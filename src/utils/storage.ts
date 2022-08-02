@@ -1,7 +1,7 @@
 export const accessTokenKey = "access-token";
 export const refreshTokenKey = "refresh-token";
 
-function saveAccessTokenToLocalStorage(value) {
+function saveAccessTokenToLocalStorage(value: string) {
     localStorage.setItem(accessTokenKey, value);
 }
 
@@ -9,7 +9,7 @@ function getAccessTokenFromLocalStorage() {
     return localStorage.getItem(accessTokenKey);
 }
 
-function saveRefreshTokenToLocalStorage(value) {
+function saveRefreshTokenToLocalStorage(value: string) {
     localStorage.setItem(refreshTokenKey, value);
 }
 

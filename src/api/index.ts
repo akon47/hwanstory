@@ -10,7 +10,7 @@ function createInstance() {
     return instance;
 }
 
-function createInstanceWithAuth(url) {
+function createInstanceWithAuth(url: string) {
     const instance = axios.create({
         baseURL: `${apiUrl}${url}`
     });
