@@ -33,6 +33,7 @@
       <div>
         <label for="verify-code">이메일 인증코드</label>
         <input type="text" id="verify-code" v-model="verifyCode"/>
+        <button v-on:click="sendVerifyCode">인증코드 발송</button>
       </div>
       <button
           :disabled="!isUsernameValid || !isPasswordValid || !isPasswordRepeatValid || isLoading"
@@ -46,6 +47,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
+import {sendVerifyCodeToEmail} from "@/api/accounts"
 
 export default defineComponent({
   name: "SignupForm",
@@ -72,7 +74,7 @@ export default defineComponent({
   },
   methods: {
     async submitForm() {
-
+      await sendVerifyCodeToEmail(this.email);
     },
     clearForm() {
       this.username = "";
@@ -80,6 +82,9 @@ export default defineComponent({
       this.passwordRepeat = "";
       this.email = "";
       this.verifyCode = "";
+    },
+    async sendVerifyCode() {
+
     }
   }
 });

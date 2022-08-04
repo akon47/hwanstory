@@ -7,7 +7,7 @@ function signUp(accountCreateDto: any) {
 
 // 사용자 이메일 인증 코드 발송
 function sendVerifyCodeToEmail(email: string) {
-    return accountsV1.post("/verify-email", {
+    return accountsV1.post("/verify-email", null, {
         params: {
             email: email
         }
