@@ -1,6 +1,8 @@
 <template>
   <div class="content-container">
-    Content
+    <transition name="component-fade" mode="out-in">
+      <router-view />
+    </transition>
   </div>
 </template>
 
@@ -14,13 +16,15 @@ export default defineComponent({
 
 <style scoped>
 .content-container {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+
+}
+.component-fade-enter-active,
+.component-fade-leave-active {
+  transition: all 0.15s ease;
+}
+.component-fade-enter,
+.component-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-50px);
 }
 </style>

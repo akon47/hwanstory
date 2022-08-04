@@ -1,6 +1,7 @@
 <template>
   <div class="header-container">
-    Header
+    <router-link to="/main">main</router-link>
+    <router-link to="/signup">signup</router-link>
   </div>
 </template>
 
@@ -14,13 +15,6 @@ export default defineComponent({
 
 <style scoped>
 .header-container {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+
 }
 </style>

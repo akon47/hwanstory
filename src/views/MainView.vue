@@ -1,6 +1,6 @@
 <template>
-  <div class="footer-container">
-    Footer
+  <div>
+
   </div>
 </template>
 
@@ -8,12 +8,10 @@
 import {defineComponent} from "vue";
 
 export default defineComponent({
-  name: "AppFooter",
+  name: "MainView",
 });
 </script>
 
 <style scoped>
-.footer-container {
 
-}
 </style>

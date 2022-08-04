@@ -1,6 +1,6 @@
 <template>
-  <div class="footer-container">
-    Footer
+  <div>
+    not-found
   </div>
 </template>
 
@@ -8,12 +8,10 @@
 import {defineComponent} from "vue";
 
 export default defineComponent({
-  name: "AppFooter",
+  name: "NotFoundView",
 });
 </script>
 
 <style scoped>
-.footer-container {
 
-}
 </style>
