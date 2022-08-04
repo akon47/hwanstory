@@ -1,4 +1,4 @@
-# Hwanstory - FrontEnd
+# Hwan'story - FrontEnd
 Blog frontend project.
 
 ## 🖼️ Screenshot
