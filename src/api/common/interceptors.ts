@@ -6,7 +6,7 @@ function setInterceptors(instance: AxiosInstance) {
     instance.interceptors.request.use(
         function (config: AxiosRequestConfig) {
             // Do something before request is sent
-            config.headers!.Authorization = store.state.accessToken;
+            config.headers!.Authorization = store.state.accountStore.accessToken;
             return config;
         },
         function (error: any) {

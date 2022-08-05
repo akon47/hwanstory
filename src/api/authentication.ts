@@ -1,6 +1,7 @@
 import {authenticationV1} from "./index";
+import {AuthenticationInfoDto, TokenDto} from "@/models/authentication/authentication.dtos";
 
-function signIn(authenticationInfoDto: any) {
+function signIn(authenticationInfoDto: AuthenticationInfoDto) {
     return authenticationV1.post("/token", authenticationInfoDto);
 }
 

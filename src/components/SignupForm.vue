@@ -29,6 +29,9 @@
       <div>
         <label for="email">이메일</label>
         <input type="text" id="email" v-model="email"/>
+        <p v-if="email && !isEmailValid">
+          이메일을 확인해주세요.
+        </p>
       </div>
       <div>
         <label for="verify-code">이메일 인증코드</label>
@@ -36,7 +39,7 @@
         <button v-on:click="sendVerifyCode">인증코드 발송</button>
       </div>
       <button
-          :disabled="!isUsernameValid || !isPasswordValid || !isPasswordRepeatValid || isLoading"
+          :disabled="!isUsernameValid || !isPasswordValid || !isPasswordRepeatValid || !isEmailValid || isLoading"
           type="submit"
       >
         회원가입
@@ -70,11 +73,15 @@ export default defineComponent({
     },
     isPasswordRepeatValid(): boolean {
       return this.password === this.passwordRepeat;
-    }
+    },
+    isEmailValid(): boolean {
+      const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return regex.test(this.email);
+    },
   },
   methods: {
     async submitForm() {
-      await sendVerifyCodeToEmail(this.email);
+
     },
     clearForm() {
       this.username = "";
@@ -84,7 +91,7 @@ export default defineComponent({
       this.verifyCode = "";
     },
     async sendVerifyCode() {
-
+      await sendVerifyCodeToEmail(this.email);
     }
   }
 });
