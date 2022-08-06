@@ -11,13 +11,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import AppHeader from "./components/common/AppHeader.vue";
-import AppContent from "./components/common/AppContent.vue";
-import AppFooter from "./components/common/AppFooter.vue";
+import { defineComponent } from 'vue';
+import AppHeader from './components/common/AppHeader.vue';
+import AppContent from './components/common/AppContent.vue';
+import AppFooter from './components/common/AppFooter.vue';
 
 export default defineComponent({
-  name: "App",
+  name: 'App',
   components: {
     AppHeader,
     AppContent,
@@ -27,6 +27,6 @@ export default defineComponent({
 </script>
 
 <style>
-@import "./css/reset.css";
-@import "./css/common.css";
+@import './css/reset.css';
+@import './css/common.css';
 </style>

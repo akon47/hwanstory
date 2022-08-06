@@ -7,17 +7,9 @@
       </div>
       <div>
         <label for="password">비밀번호</label>
-        <input
-            type="password"
-            id="password"
-            v-model="password"
-            autocomplete="off"
-        />
+        <input type="password" id="password" v-model="password" autocomplete="off"/>
       </div>
-      <button
-          :disabled="!isEmailValid || !isPasswordValid || isLoading"
-          type="submit"
-      >
+      <button :disabled="!isEmailValid || !isPasswordValid || isLoading" type="submit">
         로그인
       </button>
     </form>
@@ -25,28 +17,30 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
-import {useStore} from "vuex";
-import {AuthenticationInfoDto} from "@/models/authentication/authentication.dtos";
+import { defineComponent } from 'vue';
+import { useStore } from 'vuex';
+import { AuthenticationInfoDto } from '@/api/models/authentication.dtos';
 
 export default defineComponent({
-  name: "SigninForm",
+  name: 'SigninForm',
   setup() {
     const store = useStore();
-    const signIn = (authenticationInfoDto: AuthenticationInfoDto) => store.dispatch("accountStore/signIn", authenticationInfoDto);
+    const signIn = (authenticationInfoDto: AuthenticationInfoDto) =>
+        store.dispatch('accountStore/signIn', authenticationInfoDto);
 
-    return {signIn};
+    return { signIn };
   },
   data() {
     return {
-      email: "",
-      password: "",
-      isLoading: false
-    }
+      email: '',
+      password: '',
+      isLoading: false,
+    };
   },
   computed: {
     isEmailValid(): boolean {
-      const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      const regex =
+          /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       return regex.test(this.email);
     },
     isPasswordValid(): boolean {
@@ -55,17 +49,19 @@ export default defineComponent({
   },
   methods: {
     async submitForm() {
-      const dto: AuthenticationInfoDto = {
+      await this.signIn({
         email: this.email,
-        password: this.password
-      };
-      await this.signIn(dto);
-      this.$router.push("/main");
+        password: this.password,
+      })
+      .then(() => {
+        this.$router.push('/main');
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
     },
-  }
+  },
 });
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

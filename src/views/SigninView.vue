@@ -5,17 +5,15 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
-import SigninForm from "@/components/SigninForm.vue";
+import { defineComponent } from 'vue';
+import SigninForm from '@/components/SigninForm.vue';
 
 export default defineComponent({
-  name: "SigninView",
+  name: 'SigninView',
   components: {
-    SigninForm
+    SigninForm,
   },
 });
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

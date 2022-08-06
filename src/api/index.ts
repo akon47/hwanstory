@@ -1,22 +1,4 @@
-import axios from "axios";
-import { setInterceptors } from "./common/interceptors";
+import { createHttpApiClient, HttpApiClient } from '@/api/common/httpApiClient';
 
-export const apiUrl = "https://api.kimhwan.kr/api/";
-
-function createInstance() {
-    const instance = axios.create({
-        baseURL: apiUrl
-    });
-    return instance;
-}
-
-function createInstanceWithAuth(url: string) {
-    const instance = axios.create({
-        baseURL: `${apiUrl}${url}`
-    });
-    return setInterceptors(instance);
-}
-
-export const instance = createInstance();
-export const accountsV1 = createInstanceWithAuth("v1/accounts");
-export const authenticationV1 = createInstanceWithAuth("v1/authentication");
+export const accountsV1: HttpApiClient = createHttpApiClient('v1/accounts');
+export const authenticationV1: HttpApiClient = createHttpApiClient('v1/authentication');

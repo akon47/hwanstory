@@ -1,25 +1,25 @@
-export const accessTokenKey = "access-token";
-export const refreshTokenKey = "refresh-token";
+export const accessTokenKey = 'access-token';
+export const refreshTokenKey = 'refresh-token';
 
 function saveAccessTokenToLocalStorage(value: string) {
-    localStorage.setItem(accessTokenKey, value);
+  localStorage.setItem(accessTokenKey, value);
 }
 
 function getAccessTokenFromLocalStorage() {
-    return localStorage.getItem(accessTokenKey);
+  return localStorage.getItem(accessTokenKey);
 }
 
 function saveRefreshTokenToLocalStorage(value: string) {
-    localStorage.setItem(refreshTokenKey, value);
+  localStorage.setItem(refreshTokenKey, value);
 }
 
 function getRefreshTokenFromLocalStorage() {
-    return localStorage.getItem(refreshTokenKey);
+  return localStorage.getItem(refreshTokenKey);
 }
 
 export {
-    saveAccessTokenToLocalStorage,
-    getAccessTokenFromLocalStorage,
-    saveRefreshTokenToLocalStorage,
-    getRefreshTokenFromLocalStorage,
+  saveAccessTokenToLocalStorage,
+  getAccessTokenFromLocalStorage,
+  saveRefreshTokenToLocalStorage,
+  getRefreshTokenFromLocalStorage,
 };

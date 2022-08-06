@@ -1,10 +1,10 @@
-import {createStore} from "vuex";
-import {accountStore, AccountState} from "@/store/modules/account.store"
+import { createStore } from 'vuex';
+import { AccountState, accountStore } from '@/store/modules/account.store';
 
 export interface RootState {
-    accountStore: AccountState;
+  accountStore: AccountState;
 }
 
 export default createStore({
-   modules: {accountStore}
+  modules: { accountStore },
 });

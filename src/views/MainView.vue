@@ -1,17 +1,13 @@
 <template>
-  <div>
-
-  </div>
+  <div></div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name: "MainView",
+  name: 'MainView',
 });
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

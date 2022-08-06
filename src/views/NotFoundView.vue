@@ -1,17 +1,13 @@
 <template>
-  <div>
-    not-found
-  </div>
+  <div>not-found</div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name: "NotFoundView",
+  name: 'NotFoundView',
 });
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
