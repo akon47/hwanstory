@@ -6,5 +6,5 @@ export interface RootState {
 }
 
 export default createStore({
-  modules: { accountStore },
+  modules: {accountStore},
 });

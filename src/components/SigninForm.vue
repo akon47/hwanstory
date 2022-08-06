@@ -28,7 +28,7 @@ export default defineComponent({
     const signIn = (authenticationInfoDto: AuthenticationInfoDto) =>
         store.dispatch('accountStore/signIn', authenticationInfoDto);
 
-    return { signIn };
+    return {signIn};
   },
   data() {
     return {

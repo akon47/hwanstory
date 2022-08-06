@@ -31,24 +31,24 @@ export const accountStore: Module<AccountState, RootState> = {
     },
   },
   actions: {
-    async signIn({ commit }, authenticationInfoDto: AuthenticationInfoDto) {
+    async signIn({commit}, authenticationInfoDto: AuthenticationInfoDto) {
       const token = await signIn(authenticationInfoDto);
       commit('setAccessToken', token.accessToken);
       commit('setRefreshToken', token.refreshToken);
       saveAccessTokenToLocalStorage(token.accessToken);
       saveRefreshTokenToLocalStorage(token.refreshToken);
     },
-    async signUp({ commit }, accountCreateDto: AccountCreateDto) {
+    async signUp({commit}, accountCreateDto: AccountCreateDto) {
       await signUp(accountCreateDto);
     },
-    async signOut({ commit }) {
+    async signOut({commit}) {
       await signOut();
       commit('setAccessToken', '');
       commit('setRefreshToken', '');
       saveAccessTokenToLocalStorage('');
       saveRefreshTokenToLocalStorage('');
     },
-    async reissueToken({ commit, state }) {
+    async reissueToken({commit, state}) {
       const token = await reissueToken(state.refreshToken);
       commit('setAccessToken', token.accessToken);
       commit('setRefreshToken', token.refreshToken);

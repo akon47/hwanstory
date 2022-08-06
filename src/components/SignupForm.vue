@@ -49,7 +49,7 @@ export default defineComponent({
     const signUp = (createAccountDto: AccountCreateDto) =>
         store.dispatch('accountStore/signUp', createAccountDto);
 
-    return { signUp };
+    return {signUp};
   },
   data() {
     return {
