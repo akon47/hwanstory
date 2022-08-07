@@ -13,9 +13,9 @@ export interface TokenDto extends DataTransferObject {
   // 인증 토큰 값
   readonly accessToken: string;
   // 인증 토큰 만료 시간
-  readonly accessTokenExpiresIn: bigint;
+  readonly accessTokenExpiresIn: number;
   // 갱신 토큰 값
   readonly refreshToken: string;
   // 갱신 토큰 만료 시간
-  readonly refreshTokenExpiresIn: bigint;
+  readonly refreshTokenExpiresIn: number;
 }

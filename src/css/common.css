@@ -26,3 +26,21 @@
     flex-shrink: 0;
     background: gray;
 }
+
+/*--- 임시 스타일 ---*/
+form {
+    width: fit-content;
+    border: solid 1px black;
+    padding: 10px;
+    margin: 10px;
+}
+form div {
+    margin-bottom: 10px;
+}
+form input {
+    float: right;
+    margin-left: 5px;
+}
+form button {
+    width: 100%;
+}

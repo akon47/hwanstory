@@ -1,9 +1,9 @@
 import { accountsV1 } from './index';
-import { AccountCreateDto, AccountDto } from '@/api/models/account.dtos';
+import { CreateAccountDto, AccountDto } from '@/api/models/account.dtos';
 import DataTransferObject from '@/api/models/common.dtos';
 
 // 사용자 계정 생성
-function signUp(accountCreateDto: AccountCreateDto) {
+function signUp(accountCreateDto: CreateAccountDto) {
   return accountsV1.postRequest<AccountDto>('', null, accountCreateDto);
 }
 

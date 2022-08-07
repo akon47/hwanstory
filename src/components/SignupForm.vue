@@ -15,6 +15,10 @@
         <p v-if="passwordRepeat && !isPasswordRepeatValid">비밀번호 확인이 비밀번호와 다릅니다.</p>
       </div>
       <div>
+        <label for="blogId">블로그 Id</label>
+        <input type="text" id="blogId" v-model="blogId"/>
+      </div>
+      <div>
         <label for="email">이메일</label>
         <input type="text" id="email" v-model="email"/>
         <p v-if="email && !isEmailValid">이메일을 확인해주세요.</p>
@@ -22,11 +26,11 @@
       <div>
         <label for="verify-code">이메일 인증코드</label>
         <input type="text" id="verify-code" v-model="emailVerifyCode"/>
-        <button v-on:click="sendEmailVerifyCode">인증코드 발송</button>
+        <button style="margin-top: 10px;" v-on:click="sendEmailVerifyCode">인증코드 발송</button>
       </div>
       <button
           :disabled="
-          !isNameValid || !isPasswordValid || !isPasswordRepeatValid || !isEmailValid || isLoading
+          !isNameValid || !isPasswordValid || !isPasswordRepeatValid || !isBlogIdValid || !isEmailValid || isLoading
         "
           @click="submitForm"
       >
@@ -39,23 +43,16 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { sendVerifyCodeToEmail } from '@/api/accounts';
-import { useStore } from 'vuex';
-import { AccountCreateDto } from '@/api/models/account.dtos';
+import store from '@/store';
 
 export default defineComponent({
   name: 'SignupForm',
-  setup() {
-    const store = useStore();
-    const signUp = (createAccountDto: AccountCreateDto) =>
-        store.dispatch('accountStore/signUp', createAccountDto);
-
-    return {signUp};
-  },
   data() {
     return {
       name: '',
       password: '',
       passwordRepeat: '',
+      blogId: '',
       email: '',
       emailVerifyCode: '',
       isLoading: false,
@@ -64,6 +61,9 @@ export default defineComponent({
   computed: {
     isNameValid(): boolean {
       return this.name.length > 0;
+    },
+    isBlogIdValid(): boolean {
+      return this.blogId.length > 0;
     },
     isPasswordValid(): boolean {
       return this.password.length > 0;
@@ -79,14 +79,15 @@ export default defineComponent({
   },
   methods: {
     async submitForm() {
-      await this.signUp({
+      await store.dispatch('accountStore/signUp', {
         name: this.name,
         email: this.email,
         password: this.password,
+        blogId: this.blogId,
         emailVerifyCode: this.emailVerifyCode,
       })
       .then(() => {
-        this.$router.push('/main');
+        this.$router.push('/signin');
       })
       .catch((error) => {
         alert(error.message);
@@ -94,9 +95,10 @@ export default defineComponent({
     },
     clearForm() {
       this.name = '';
+      this.email = '';
       this.password = '';
       this.passwordRepeat = '';
-      this.email = '';
+      this.blogId = '';
       this.emailVerifyCode = '';
     },
     async sendEmailVerifyCode() {
@@ -112,4 +114,6 @@ export default defineComponent({
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+
+</style>

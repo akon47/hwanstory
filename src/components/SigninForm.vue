@@ -4,6 +4,7 @@
       <div>
         <label for="email">이메일</label>
         <input type="text" id="email" v-model="email"/>
+        <p v-if="email && !isEmailValid">이메일을 확인해주세요.</p>
       </div>
       <div>
         <label for="password">비밀번호</label>
@@ -18,18 +19,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useStore } from 'vuex';
-import { AuthenticationInfoDto } from '@/api/models/authentication.dtos';
+import store from '@/store';
 
 export default defineComponent({
   name: 'SigninForm',
-  setup() {
-    const store = useStore();
-    const signIn = (authenticationInfoDto: AuthenticationInfoDto) =>
-        store.dispatch('accountStore/signIn', authenticationInfoDto);
-
-    return {signIn};
-  },
   data() {
     return {
       email: '',
@@ -49,7 +42,7 @@ export default defineComponent({
   },
   methods: {
     async submitForm() {
-      await this.signIn({
+      await store.dispatch('accountStore/signIn', {
         email: this.email,
         password: this.password,
       })
@@ -64,4 +57,6 @@ export default defineComponent({
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+
+</style>

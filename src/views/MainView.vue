@@ -1,5 +1,7 @@
 <template>
-  <div></div>
+  <div>
+    MainView
+  </div>
 </template>
 
 <script lang="ts">
@@ -10,4 +12,6 @@ export default defineComponent({
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+
+</style>

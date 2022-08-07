@@ -1,11 +1,9 @@
 <template>
-  <div class="content-container">
-    <router-view v-slot="{ Component }">
-      <transition name="component-fade" mode="out-in">
-        <component :is="Component"/>
-      </transition>
-    </router-view>
-  </div>
+  <router-view v-slot="{ Component }">
+    <transition name="component-fade" mode="out-in">
+      <component :is="Component"/>
+    </transition>
+  </router-view>
 </template>
 
 <script lang="ts">
@@ -17,15 +15,11 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.content-container {
-}
-
 .component-fade-enter-active,
 .component-fade-leave-active {
-  transition: all 0.3s ease;
+  transition: opacity .15s ease;
 }
-
-.component-fade-enter,
+.component-fade-enter-from,
 .component-fade-leave-to {
   opacity: 0;
 }

@@ -3,22 +3,36 @@
     <router-link to="/main">
       <button>main</button>
     </router-link>
-    <router-link to="/signup">
-      <button>signup</button>
-    </router-link>
     <router-link to="/signin">
       <button>signin</button>
     </router-link>
-    <button @click="showCurrentAccountInfo">내 정보</button>
+    <router-link to="/signup">
+      <button>signup</button>
+    </router-link>
+    <button @click="signOut">signout</button>
+    <button @click="showCurrentAccountInfo">info</button>
+
+    <span v-if="isLogin">
+      AccessToken 만료예정: {{ new Date($store.state.accountStore.accessTokenExpiresIn) }}
+    </span>
+    <span v-else>
+      로그인 되어있지 않습니다.
+    </span>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { getCurrentAccount } from '@/api/accounts';
+import store from '@/store';
 
 export default defineComponent({
   name: 'AppHeader',
+  computed: {
+    isLogin(): boolean {
+      return store.getters['accountStore/isLogin'] ?? false;
+    },
+  },
   methods: {
     async showCurrentAccountInfo() {
       await getCurrentAccount()
@@ -29,6 +43,15 @@ export default defineComponent({
         alert(error.message);
       });
     },
+    async signOut() {
+      await store.dispatch('accountStore/signOut')
+      .then(() => {
+        alert('로그아웃 되었습니다.');
+      })
+      .catch(error => {
+        alert(error.message);
+      });
+    },
   },
 });
 </script>
@@ -36,4 +59,10 @@ export default defineComponent({
 <style scoped>
 .header-container {
 }
+
+button {
+  width: 100px;
+  height: 30px;
+}
+
 </style>
