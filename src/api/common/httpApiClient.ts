@@ -2,7 +2,6 @@ import store from '../../store';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import DataTransferObject, { ErrorResponseDto } from '@/api/models/common.dtos';
 
-
 export const apiBaseUrl = 'https://api.kimhwan.kr/api/';
 
 export interface HttpApiClient {
@@ -17,15 +16,85 @@ export interface HttpApiClient {
   patchRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, requestModel?: DataTransferObject | null, headers?: any): Promise<T>;
 }
 
-export function createHttpApiClient(uri: string, withAuth: boolean = true): HttpApiClient {
-  return new HttpApiClientInstance(uri, withAuth);
+export interface HttpApiError extends Error {
+  readonly statusCode?: number;
+  readonly statusText?: string;
+  readonly serverErrorCode?: string;
+  readonly serverErrorMessage?: string;
+
+  getErrorMessage(): string;
+
+  isNotFound(): boolean;
+
+  isConflict(): boolean;
+
+  isUnauthorized(): boolean;
+
+  isForbidden(): boolean;
 }
 
+export function createHttpApiClient(uri: string, withAuth: boolean = true): HttpApiClient {
+  return new AxiosHttpApiClientImpl(uri, withAuth);
+}
+
+//region Axios를 이용한 구현체
+
+// Retry 요청 기능을 지원하기 위한 인터페이스
 interface CustomAxiosRequestConfig extends AxiosRequestConfig {
   retryCount: number;
 }
 
-class HttpApiClientInstance implements HttpApiClient {
+// Axios를 이용한 HttpApiError 구현체
+class AxiosHttpApiErrorImpl implements HttpApiError {
+  public readonly statusCode?: number;
+  public readonly statusText?: string;
+  public readonly serverErrorCode?: string;
+  public readonly serverErrorMessage?: string;
+  public message: string;
+  public name: string;
+
+  private config: AxiosRequestConfig;
+
+  public constructor(error: AxiosError<ErrorResponseDto>) {
+    this.statusCode = error.response?.status;
+    this.statusText = error.response?.statusText;
+    this.serverErrorCode = error.response?.data?.name;
+    this.serverErrorMessage = error.response?.data?.message;
+    this.name = 'HttpApiError';
+    this.message = error.message;
+
+    this.config = error.config;
+  }
+
+  public getErrorMessage(defaultErrorMessage: string = '서비스에 일시적인 문제가 있습니다. 다시 시도해 보세요.'): string {
+    if (this.serverErrorMessage) {
+      return this.serverErrorMessage;
+    }
+    if (this.message) {
+      return this.message;
+    }
+
+    return defaultErrorMessage;
+  }
+
+  public isUnauthorized = () => this.statusCode == 401;
+
+  public isForbidden = () => this.statusCode == 403;
+
+  public isNotFound = () => this.statusCode == 404;
+
+  public isConflict = () => this.statusCode == 409;
+
+  public getCustomAxiosRequestConfig(): CustomAxiosRequestConfig {
+    const requestConfig = this.config as CustomAxiosRequestConfig;
+    requestConfig.retryCount ??= 0;
+
+    return requestConfig;
+  }
+}
+
+// Axios를 이용한 HttpApiClient 구현체
+class AxiosHttpApiClientImpl implements HttpApiClient {
   private readonly instance: AxiosInstance;
 
   public constructor(uri: string, withAuth: boolean = true) {
@@ -66,15 +135,9 @@ class HttpApiClientInstance implements HttpApiClient {
   }
 
   private createHttpApiResponse<T extends DataTransferObject | void = void>(response: Promise<AxiosResponse>): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
+    return new Promise<T>(resolve => {
       response.then(response => {
         resolve(response.data);
-      }).catch((error: Error | AxiosError<ErrorResponseDto>) => {
-        if (axios.isAxiosError(error)) {
-          reject(new Error(error.response?.data?.message));
-        } else {
-          reject(error);
-        }
       });
     });
   }
@@ -109,15 +172,17 @@ class HttpApiClientInstance implements HttpApiClient {
         return response;
       },
       async (error: Error | AxiosError<ErrorResponseDto>) => {
-        if (withAuth && axios.isAxiosError(error)) {
-          const responseErrorName = error.response?.data?.name?.toLowerCase();
+        // HttpApiClient를 통하여 호출하는 모든 Api 호출은 HttpApiError 인터페이스의 에러 타입을 반환하도록 처리한다.
+        const httpApiError = new AxiosHttpApiErrorImpl(axios.isAxiosError(error) ? error : new AxiosError<ErrorResponseDto>(error.message));
 
-          // 토큰이 만료된 경우 갱신 토큰이 있다면 갱신을 시도한다.
-          if (responseErrorName == 'token_expired' && store.state.accountStore.refreshToken) {
-            const requestConfig = error.config as CustomAxiosRequestConfig;
-            requestConfig.retryCount ??= 0;
+        if (withAuth && httpApiError.isUnauthorized()) {
+          const serverErrorCode = httpApiError.serverErrorCode?.toLowerCase();
 
-            if (requestConfig.retryCount < 1) {
+          // 토큰이 만료된 경우 갱신을 시도한다.
+          if (serverErrorCode == 'token_expired') {
+            const requestConfig = httpApiError.getCustomAxiosRequestConfig();
+
+            if (requestConfig?.retryCount < 1) {
               requestConfig.retryCount++;
 
               try {
@@ -129,12 +194,17 @@ class HttpApiClientInstance implements HttpApiClient {
               // 토큰이 만료되어 실패했던 요청을 다시 재요청 시도한다.
               return instance.request(requestConfig);
             }
+          } else {
+            // 토큰이 만료된 경우가 아닌 경우에 대해서는 클라이언트에 저장되어 있는 토큰을 삭제한다.
+            await store.dispatch('accountStore/signOut', true);
           }
         }
 
-        return Promise.reject(error);
+        return Promise.reject(httpApiError);
       },
     );
     return instance;
   }
 }
+
+//endregion

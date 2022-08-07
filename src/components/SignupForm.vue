@@ -44,6 +44,7 @@
 import { defineComponent } from 'vue';
 import { sendVerifyCodeToEmail } from '@/api/accounts';
 import store from '@/store';
+import { HttpApiError } from '@/api/common/httpApiClient';
 
 export default defineComponent({
   name: 'SignupForm',
@@ -89,8 +90,8 @@ export default defineComponent({
       .then(() => {
         this.$router.push('/signin');
       })
-      .catch((error) => {
-        alert(error.message);
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
       });
     },
     clearForm() {
@@ -106,8 +107,8 @@ export default defineComponent({
       .then(() => {
         alert('인증 코드를 발송하였습니다.');
       })
-      .catch((error) => {
-        alert(error.message);
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
       });
     },
   },

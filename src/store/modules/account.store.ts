@@ -47,27 +47,29 @@ export const accountStore: Module<AccountState, RootState> = {
       saveRefreshTokenToLocalStorage('');
       saveAccessTokenExpiresInToLocalStorage('');
       saveRefreshTokenExpiresInToLocalStorage('');
-    }
+    },
   },
   getters: {
     // 로그인 되어있는지 여부
-    isLogin(state) {
+    isLoggedIn(state) {
       return state.accessToken && state.refreshToken && state.accessTokenExpiresIn > 0 && state.refreshTokenExpiresIn > 0;
-    }
+    },
   },
   actions: {
-    async signIn({commit}, authenticationInfoDto: AuthenticationInfoDto) {
+    async signIn({ commit }, authenticationInfoDto: AuthenticationInfoDto) {
       const token = await signIn(authenticationInfoDto);
       commit('setToken', token);
     },
-    async signUp({commit}, createAccountDto: CreateAccountDto) {
+    async signUp({ commit }, createAccountDto: CreateAccountDto) {
       await signUp(createAccountDto);
     },
-    async signOut({commit}) {
-      await signOut();
+    async signOut({ commit }, clearTokenOnly: boolean = false) {
+      if (clearTokenOnly == false) {
+        await signOut();
+      }
       commit('clearToken');
     },
-    async reissueToken({commit, state}) {
+    async reissueToken({ commit, state }) {
       const token = await reissueToken(state.refreshToken);
       commit('setToken', token);
     },

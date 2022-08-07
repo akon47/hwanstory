@@ -20,6 +20,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import store from '@/store';
+import { HttpApiError } from '@/api/common/httpApiClient';
 
 export default defineComponent({
   name: 'SigninForm',
@@ -49,8 +50,8 @@ export default defineComponent({
       .then(() => {
         this.$router.push('/main');
       })
-      .catch((error) => {
-        alert(error.message);
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
       });
     },
   },

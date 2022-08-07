@@ -1,4 +1,15 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
+import { createRouter, createWebHashHistory, NavigationGuardWithThis } from 'vue-router';
+import store from '@/store';
+
+// beforeEnter에 사용하여 로그인이 되어 있으면 메인 화면으로 보내는 함수
+const routeToMainWhenIsLoggedIn: NavigationGuardWithThis<undefined> = (to, from, next) => {
+
+  if (store.getters['accountStore/isLoggedIn']) {
+    next('/main');
+  } else {
+    next();
+  }
+};
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -16,11 +27,13 @@ const router = createRouter({
       path: '/signup',
       name: 'Signup',
       component: () => import('../views/SignupView.vue'),
+      beforeEnter: routeToMainWhenIsLoggedIn,
     },
     {
       path: '/signin',
       name: 'Signin',
       component: () => import('../views/SigninView.vue'),
+      beforeEnter: routeToMainWhenIsLoggedIn,
     },
     {
       path: '/not-found',

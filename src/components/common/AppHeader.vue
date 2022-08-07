@@ -12,7 +12,7 @@
     <button @click="signOut">signout</button>
     <button @click="showCurrentAccountInfo">info</button>
 
-    <span v-if="isLogin">
+    <span v-if="isLoggedIn">
       AccessToken 만료예정: {{ new Date($store.state.accountStore.accessTokenExpiresIn) }}
     </span>
     <span v-else>
@@ -25,12 +25,13 @@
 import { defineComponent } from 'vue';
 import { getCurrentAccount } from '@/api/accounts';
 import store from '@/store';
+import { HttpApiError } from '@/api/common/httpApiClient';
 
 export default defineComponent({
   name: 'AppHeader',
   computed: {
-    isLogin(): boolean {
-      return store.getters['accountStore/isLogin'] ?? false;
+    isLoggedIn(): boolean {
+      return store.getters['accountStore/isLoggedIn'] ?? false;
     },
   },
   methods: {
@@ -39,8 +40,8 @@ export default defineComponent({
       .then((response) => {
         alert(JSON.stringify(response, null, 2));
       })
-      .catch((error) => {
-        alert(error.message);
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
       });
     },
     async signOut() {
@@ -48,8 +49,8 @@ export default defineComponent({
       .then(() => {
         alert('로그아웃 되었습니다.');
       })
-      .catch(error => {
-        alert(error.message);
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
       });
     },
   },
