@@ -1,5 +1,5 @@
 import { Module } from 'vuex';
-import { RootState } from '../index';
+import { RootState } from '@/store';
 import {
   getAccessTokenExpiresInFromLocalStorage,
   getAccessTokenFromLocalStorage, getRefreshTokenExpiresInFromLocalStorage,
@@ -31,11 +31,11 @@ export const accountStore: Module<AccountState, RootState> = {
     setToken(state, token: TokenDto) {
       state.accessToken = token.accessToken;
       state.accessTokenExpiresIn = token.accessTokenExpiresIn;
-      state.refreshToken = token.accessToken;
-      state.refreshTokenExpiresIn = token.accessTokenExpiresIn;
+      state.refreshToken = token.refreshToken;
+      state.refreshTokenExpiresIn = token.refreshTokenExpiresIn;
       saveAccessTokenToLocalStorage(token.accessToken);
-      saveRefreshTokenToLocalStorage(token.refreshToken);
       saveAccessTokenExpiresInToLocalStorage(token.accessTokenExpiresIn.toString());
+      saveRefreshTokenToLocalStorage(token.refreshToken);
       saveRefreshTokenExpiresInToLocalStorage(token.refreshTokenExpiresIn.toString());
     },
     clearToken(state) {
@@ -44,8 +44,8 @@ export const accountStore: Module<AccountState, RootState> = {
       state.refreshToken = '';
       state.refreshTokenExpiresIn = 0;
       saveAccessTokenToLocalStorage('');
-      saveRefreshTokenToLocalStorage('');
       saveAccessTokenExpiresInToLocalStorage('');
+      saveRefreshTokenToLocalStorage('');
       saveRefreshTokenExpiresInToLocalStorage('');
     },
   },
@@ -64,7 +64,7 @@ export const accountStore: Module<AccountState, RootState> = {
       await signUp(createAccountDto);
     },
     async signOut({ commit }, clearTokenOnly: boolean = false) {
-      if (clearTokenOnly == false) {
+      if (!clearTokenOnly) {
         await signOut();
       }
       commit('clearToken');
