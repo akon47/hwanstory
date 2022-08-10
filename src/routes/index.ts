@@ -36,6 +36,11 @@ const router = createRouter({
       beforeEnter: routeToMainWhenIsLoggedIn,
     },
     {
+      path: '/write',
+      name: 'Write',
+      component: () => import('../views/WriteView.vue'),
+    },
+    {
       path: '/not-found',
       name: 'NotFound',
       component: () => import('../views/NotFoundView.vue'),

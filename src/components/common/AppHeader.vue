@@ -9,11 +9,14 @@
     <router-link to="/signup">
       <button>signup</button>
     </router-link>
+    <router-link to="/write">
+      <button>write</button>
+    </router-link>
     <button @click="signOut">signout</button>
     <button @click="showCurrentAccountInfo">info</button>
 
     <span v-if="isLoggedIn">
-      AccessToken 만료예정: {{ new Date($store.state.accountStore.accessTokenExpiresIn) }}
+      로그인 되어있음.
     </span>
     <span v-else>
       로그인 되어있지 않습니다.

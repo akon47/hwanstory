@@ -49,10 +49,10 @@ export default defineComponent({
       })
       .then(() => {
         this.$router.push('/main');
-      })
-      .catch((error: HttpApiError) => {
+      }).catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
       });
+
     },
   },
 });
