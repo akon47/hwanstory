@@ -13,13 +13,21 @@ function modifyPost(postUrl: string, postRequestDto: PostRequestDto) {
 }
 
 // 게시글 삭제
-function deletePost(blogId: string, postUrl: string) {
-  return blogV1.deleteRequest(`/${blogId}/${postUrl}`);
+function deletePost(postUrl: string) {
+  return blogV1.deleteRequest(`/posts/${postUrl}`);
 }
 
 // 게시글 조회
 function getPost(blogId: string, postUrl: string) {
   return blogV1.getRequest<SliceDto<SimplePostDto>>(`/${blogId}/posts/${postUrl}`);
+}
+
+// 특정 블로그 전체 게시글 조회
+function getPosts(blogId: string, size: number, cursorId: string | null = null) {
+  return blogV1.getRequest<SliceDto<SimplePostDto>>(`/${blogId}/posts`, {
+    cursorId: cursorId,
+    size: size,
+  });
 }
 
 // 전체 게시글 조회
@@ -35,5 +43,6 @@ export {
   modifyPost,
   deletePost,
   getPost,
+  getPosts,
   getAllPosts,
 };

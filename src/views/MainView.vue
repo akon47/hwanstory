@@ -4,7 +4,7 @@
       <li v-for="post in posts" :key="post.blogId + post.postUrl">
         <ul>
           <li>
-            {{ post.title }} - ({{ post.blogId }}/{{ post.postUrl }})
+            {{ post.title }} - ({{ post.blogId }}/{{ post.postUrl }}) <button @click="deletePost(post.postUrl)">delete</button>
             <ul>
               <li>
                 {{ post.content }}
@@ -20,7 +20,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { SimplePostDto } from '@/api/models/blog.dtos';
-import { getAllPosts } from '@/api/blog';
+import { deletePost, getAllPosts } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
 
 export default defineComponent({
@@ -40,6 +40,16 @@ export default defineComponent({
         alert(error.getErrorMessage());
       });
     },
+    async deletePost(postUrl: string) {
+      await deletePost(postUrl)
+      .then(async () => {
+        alert("게시글을 삭제했습니다.");
+        await this.fetchPosts();
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
+    }
   },
   mounted() {
     this.fetchPosts();
