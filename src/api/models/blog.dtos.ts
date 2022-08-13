@@ -15,6 +15,8 @@ export interface PostRequestDto extends DataTransferObject {
 
 // 게시글 Dto
 export interface PostDto extends DataTransferObject {
+  // 게시글 Id
+  readonly id: string;
   // 게시글이 작성되어진 블로그 Id
   readonly blogId: string;
   // 게시글 URL
@@ -33,6 +35,8 @@ export interface PostDto extends DataTransferObject {
 
 // 게시글 리스트 조회용 Dto
 export interface SimplePostDto extends DataTransferObject {
+  // 게시글 Id
+  readonly id: string;
   // 게시글이 작성되어진 블로그 Id
   readonly blogId: string;
   // 게시글 URL

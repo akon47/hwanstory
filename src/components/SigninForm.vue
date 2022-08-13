@@ -14,6 +14,9 @@
         로그인
       </button>
     </form>
+    <router-link to="/signup">
+      <button>회원가입</button>
+    </router-link>
   </div>
 </template>
 

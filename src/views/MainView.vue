@@ -1,10 +1,6 @@
 <template>
-  <div>
-    <ol>
-      <li v-for="post in posts" :key="post.blogId + post.postUrl">
-        <simple-post-item :simple-post="post"></simple-post-item>
-      </li>
-    </ol>
+  <div class="main-container">
+    <simple-post-wrap-panel :simple-posts="simplePosts"></simple-post-wrap-panel>
   </div>
 </template>
 
@@ -13,21 +9,21 @@ import { defineComponent } from 'vue';
 import { SimplePostDto } from '@/api/models/blog.dtos';
 import { getAllPosts } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
-import SimplePostItem from "@/components/post/SimplePostItem.vue";
+import SimplePostWrapPanel from "@/components/posts/SimplePostWrapPanel.vue";
 
 export default defineComponent({
   name: 'MainView',
-  components: { SimplePostItem },
+  components: { SimplePostWrapPanel },
   data() {
     return {
-      posts: Array<SimplePostDto>(),
+      simplePosts: Array<SimplePostDto>(),
     };
   },
   methods: {
     async fetchPosts() {
       await getAllPosts(20)
       .then((posts) => {
-        this.posts = posts.data;
+        this.simplePosts = posts.data;
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());

@@ -1,67 +1,73 @@
 <template>
   <div class="header-container">
-    <router-link to="/main">
-      <button>main</button>
-    </router-link>
-    <router-link to="/signin">
-      <button>signin</button>
-    </router-link>
-    <router-link to="/signup">
-      <button>signup</button>
-    </router-link>
-    <router-link to="/write">
-      <button>write</button>
-    </router-link>
-    <button @click="signOut">signout</button>
-    <button @click="showCurrentAccountInfo">info</button>
+    <div class="logo">
+      <router-link to="/main">
+        <button>main</button>
+      </router-link>
+    </div>
+    <div class="search">
 
-    <span v-if="isLoggedIn">
-      로그인 되어있음.
-    </span>
-    <span v-else>
-      로그인 되어있지 않습니다.
-    </span>
+    </div>
+    <div class="">
+
+    </div>
+    <div class="account">
+      <div v-if="isLoggedIn" class="logged-in-container">
+        <router-link to="/write">
+          <button>새 글 작성</button>
+        </router-link>
+        <account-summary-menu-button></account-summary-menu-button>
+      </div>
+      <div v-else>
+        <router-link to="/signin">
+          <button>시작하기</button>
+        </router-link>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { getCurrentAccount } from '@/api/accounts';
 import store from '@/store';
-import { HttpApiError } from '@/api/common/httpApiClient';
+import AccountSummaryMenuButton from "@/components/accounts/AccountSummaryMenuButton.vue";
 
 export default defineComponent({
   name: 'AppHeader',
+  components: { AccountSummaryMenuButton },
   computed: {
     isLoggedIn(): boolean {
       return store.getters['accountStore/isLoggedIn'] ?? false;
     },
   },
   methods: {
-    async showCurrentAccountInfo() {
-      await getCurrentAccount()
-      .then((response) => {
-        alert(JSON.stringify(response, null, 2));
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
-    },
-    async signOut() {
-      await store.dispatch('accountStore/signOut')
-      .then(() => {
-        alert('로그아웃 되었습니다.');
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
-    },
+
   },
 });
 </script>
 
 <style scoped>
 .header-container {
+  display: grid;
+
+  grid-template-columns: auto auto 1fr auto;
+  grid-template-rows: 1fr;
+
+  align-items: center;
+
+  padding: 0px 20px;
+  height: 80px;
+}
+
+.logged-in-container {
+  display: grid;
+
+  grid-template-columns: auto auto;
+  grid-template-rows: 1fr;
+
+  align-items: center;
+
+  column-gap: 20px;
 }
 
 button {

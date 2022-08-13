@@ -41,6 +41,11 @@ const router = createRouter({
       component: () => import('../views/WriteView.vue'),
     },
     {
+      path: '/:blogId/:postUrl',
+      component: () => import('../views/PostView.vue'),
+      props: true,
+    },
+    {
       path: '/not-found',
       name: 'NotFound',
       component: () => import('../views/NotFoundView.vue'),

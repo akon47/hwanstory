@@ -19,7 +19,7 @@ function deletePost(postUrl: string) {
 
 // 게시글 조회
 function getPost(blogId: string, postUrl: string) {
-  return blogV1.getRequest<SliceDto<SimplePostDto>>(`/${blogId}/posts/${postUrl}`);
+  return blogV1.getRequest<PostDto>(`/${blogId}/posts/${postUrl}`);
 }
 
 // 특정 블로그 전체 게시글 조회
