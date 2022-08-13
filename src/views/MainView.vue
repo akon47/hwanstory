@@ -4,10 +4,11 @@
       <li v-for="post in posts" :key="post.blogId + post.postUrl">
         <ul>
           <li>
-            {{ post.title }} - ({{ post.blogId }}/{{ post.postUrl }}) <button @click="deletePost(post.postUrl)">delete</button>
+            {{ post.title }} - ({{ post.blogId }}/{{ post.postUrl }}, 댓글: {{ post.commentCount }}, 좋아요: {{ post.likeCount }})
+            <button @click="deletePost(post.postUrl)">delete</button>
             <ul>
               <li>
-                {{ post.content }}
+                - 내용: {{ post.content }}
               </li>
             </ul>
           </li>
