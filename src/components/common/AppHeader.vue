@@ -2,13 +2,13 @@
   <div class="header-container">
     <div class="logo">
       <router-link to="/main">
-        <button>main</button>
+        <img src="@/assets/logo.svg" />
       </router-link>
     </div>
     <div class="search">
 
     </div>
-    <div class="">
+    <div>
 
     </div>
     <div class="account">
@@ -57,6 +57,11 @@ export default defineComponent({
 
   padding: 0px 20px;
   height: 80px;
+}
+
+.logo img {
+  height: 30px;
+  margin-top: 10px;
 }
 
 .logged-in-container {
