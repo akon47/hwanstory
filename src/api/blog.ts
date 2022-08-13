@@ -38,6 +38,16 @@ function getAllPosts(size: number, cursorId: string | null = null) {
   });
 }
 
+// 게시글 좋아요
+function likePost(blogId: string, postUrl: string) {
+  return blogV1.postRequest(`/${blogId}/posts/${postUrl}/likes`);
+}
+
+// 게시글 좋아요 취소
+function unlikePost(blogId: string, postUrl: string) {
+  return blogV1.deleteRequest(`/${blogId}/posts/${postUrl}/likes`);
+}
+
 export {
   createPost,
   modifyPost,
@@ -45,4 +55,6 @@ export {
   getPost,
   getPosts,
   getAllPosts,
+  likePost,
+  unlikePost
 };

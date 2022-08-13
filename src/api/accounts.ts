@@ -16,7 +16,7 @@ function sendVerifyCodeToEmail(email: string) {
 
 // 현재 사용자 계정 조회
 function getCurrentAccount() {
-  return accountsV1.getRequest('/me');
+  return accountsV1.getRequest<AccountDto>('/me');
 }
 
 export { signUp, sendVerifyCodeToEmail, getCurrentAccount };

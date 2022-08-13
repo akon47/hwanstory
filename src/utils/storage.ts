@@ -2,6 +2,7 @@ export const accessTokenKey = 'access-token';
 export const refreshTokenKey = 'refresh-token';
 export const accessTokenExpiresInKey = 'access-token-expires-in';
 export const refreshTokenExpiresInKey = 'refresh-token-expires-in';
+export const blogIdKey = 'blog-id';
 
 function saveAccessTokenToLocalStorage(value: string) {
   localStorage.setItem(accessTokenKey, value);
@@ -35,6 +36,15 @@ function getRefreshTokenExpiresInFromLocalStorage() {
   return localStorage.getItem(refreshTokenExpiresInKey);
 }
 
+function saveBlogIdToLocalStorage(value: string) {
+  localStorage.setItem(blogIdKey, value);
+}
+
+function getBlogIdFromLocalStorage() {
+  return localStorage.getItem(blogIdKey);
+}
+
+
 export {
   saveAccessTokenToLocalStorage,
   getAccessTokenFromLocalStorage,
@@ -44,4 +54,6 @@ export {
   getAccessTokenExpiresInFromLocalStorage,
   saveRefreshTokenExpiresInToLocalStorage,
   getRefreshTokenExpiresInFromLocalStorage,
+  saveBlogIdToLocalStorage,
+  getBlogIdFromLocalStorage,
 };

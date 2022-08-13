@@ -2,21 +2,27 @@ import { Module } from 'vuex';
 import { RootState } from '@/store';
 import {
   getAccessTokenExpiresInFromLocalStorage,
-  getAccessTokenFromLocalStorage, getRefreshTokenExpiresInFromLocalStorage,
-  getRefreshTokenFromLocalStorage, saveAccessTokenExpiresInToLocalStorage,
-  saveAccessTokenToLocalStorage, saveRefreshTokenExpiresInToLocalStorage,
+  getAccessTokenFromLocalStorage,
+  getBlogIdFromLocalStorage,
+  getRefreshTokenExpiresInFromLocalStorage,
+  getRefreshTokenFromLocalStorage,
+  saveAccessTokenExpiresInToLocalStorage,
+  saveAccessTokenToLocalStorage,
+  saveBlogIdToLocalStorage,
+  saveRefreshTokenExpiresInToLocalStorage,
   saveRefreshTokenToLocalStorage,
 } from '@/utils/storage';
 import { reissueToken, signIn, signOut } from '@/api/authentication';
 import { AuthenticationInfoDto, TokenDto } from '@/api/models/authentication.dtos';
 import { CreateAccountDto } from '@/api/models/account.dtos';
-import { signUp } from '@/api/accounts';
+import { getCurrentAccount, signUp } from '@/api/accounts';
 
 export interface AccountState {
   accessToken: string;
   accessTokenExpiresIn: number;
   refreshToken: string;
   refreshTokenExpiresIn: number;
+  blogId: string;
 }
 
 export const accountStore: Module<AccountState, RootState> = {
@@ -26,6 +32,7 @@ export const accountStore: Module<AccountState, RootState> = {
     accessTokenExpiresIn: Number(getAccessTokenExpiresInFromLocalStorage() || 0),
     refreshToken: getRefreshTokenFromLocalStorage() || '',
     refreshTokenExpiresIn: Number(getRefreshTokenExpiresInFromLocalStorage() || 0),
+    blogId: getBlogIdFromLocalStorage() || '',
   }),
   mutations: {
     setToken(state, token: TokenDto) {
@@ -48,6 +55,14 @@ export const accountStore: Module<AccountState, RootState> = {
       saveRefreshTokenToLocalStorage('');
       saveRefreshTokenExpiresInToLocalStorage('');
     },
+    setBlogId(state, blogId: string) {
+      state.blogId = blogId;
+      saveBlogIdToLocalStorage(blogId);
+    },
+    clearBlogId(state) {
+      state.blogId = '';
+      saveBlogIdToLocalStorage('');
+    },
   },
   getters: {
     // 로그인 되어있는지 여부
@@ -59,6 +74,8 @@ export const accountStore: Module<AccountState, RootState> = {
     async signIn({ commit }, authenticationInfoDto: AuthenticationInfoDto) {
       const token = await signIn(authenticationInfoDto);
       commit('setToken', token);
+      const account = await getCurrentAccount();
+      commit('setBlogId', account.blogId);
     },
     async signUp({ commit }, createAccountDto: CreateAccountDto) {
       await signUp(createAccountDto);
@@ -68,6 +85,7 @@ export const accountStore: Module<AccountState, RootState> = {
         await signOut();
       }
       commit('clearToken');
+      commit('clearBlogId');
     },
     async reissueToken({ commit, state }) {
       const token = await reissueToken(state.refreshToken);

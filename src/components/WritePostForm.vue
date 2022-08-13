@@ -42,7 +42,8 @@ export default defineComponent({
       return this.content.length > 0;
     },
     isPostUrlValid(): boolean {
-      return this.postUrl.length > 0;
+      const regex = /^[-a-zA-Z\d_]*$/;
+      return regex.test(this.postUrl);
     },
   },
   methods: {

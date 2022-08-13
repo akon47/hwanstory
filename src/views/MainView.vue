@@ -2,17 +2,7 @@
   <div>
     <ol>
       <li v-for="post in posts" :key="post.blogId + post.postUrl">
-        <ul>
-          <li>
-            {{ post.title }} - ({{ post.blogId }}/{{ post.postUrl }}, 댓글: {{ post.commentCount }}, 좋아요: {{ post.likeCount }})
-            <button @click="deletePost(post.postUrl)">delete</button>
-            <ul>
-              <li>
-                - 내용: {{ post.content }}
-              </li>
-            </ul>
-          </li>
-        </ul>
+        <simple-post-item :simple-post="post"></simple-post-item>
       </li>
     </ol>
   </div>
@@ -21,11 +11,13 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { SimplePostDto } from '@/api/models/blog.dtos';
-import { deletePost, getAllPosts } from '@/api/blog';
+import { getAllPosts } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
+import SimplePostItem from "@/components/post/SimplePostItem.vue";
 
 export default defineComponent({
   name: 'MainView',
+  components: { SimplePostItem },
   data() {
     return {
       posts: Array<SimplePostDto>(),
@@ -41,16 +33,6 @@ export default defineComponent({
         alert(error.getErrorMessage());
       });
     },
-    async deletePost(postUrl: string) {
-      await deletePost(postUrl)
-      .then(async () => {
-        alert("게시글을 삭제했습니다.");
-        await this.fetchPosts();
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
-    }
   },
   mounted() {
     this.fetchPosts();
