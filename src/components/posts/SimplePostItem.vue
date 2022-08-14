@@ -1,18 +1,18 @@
 <template>
-  <div class="simple-post-item-container" @click="click">
-    <div class="title-image">
+  <div class="simple-post-item-container">
+    <div class="title-image" @click="moveToPost">
 
     </div>
-    <div class="title">
+    <div class="title" @click="moveToPost">
       {{ simplePost.title }}
     </div>
-    <div class="content">
+    <div class="content" @click="moveToPost">
       {{ simplePost.content }}
     </div>
     <div class="footer">
       <div class="footer-content">
         <div>
-          by {{ simplePost.blogId }}
+          by&nbsp;<a @click="moveToBlog"><b>{{ simplePost.blogId }}</b></a>
         </div>
         <div>
 
@@ -56,8 +56,11 @@ export default defineComponent({
     }
   },
   methods: {
-    click() {
+    moveToPost() {
       this.$router.push(`/${this.simplePost?.blogId}/${this.simplePost?.postUrl}`);
+    },
+    moveToBlog() {
+      this.$router.push(`/${this.simplePost?.blogId}`);
     },
     apply() {
       this.likeCount = this.simplePost?.likeCount ?? 0;
@@ -102,26 +105,21 @@ export default defineComponent({
   display: grid;
 
   grid-template-columns: 1fr;
-  grid-template-rows: auto auto 1fr 35px;
+  grid-template-rows: auto auto 1fr 40px;
 
   width: 100%;
-  height: 250px;
+  aspect-ratio: 10 / 12;
 
-  border: 1px solid #e0e0e0;
-  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--base-border-radius);
 
-  background: white;
-
+  background: var(--content-item-background-color);
   transition: box-shadow .2s;
 }
 
 .simple-post-item-container:hover {
-  box-shadow: 0 0 11px rgba(33,33,33,.2);
+  box-shadow: 0 0 11px var(--base-shadow-color);
   cursor: pointer;
-}
-
-.simple-post-item-container .title-image {
-
 }
 
 .simple-post-item-container .title {
@@ -132,7 +130,7 @@ export default defineComponent({
   overflow: hidden;
   text-overflow: ellipsis;
 
-  margin: 10px;
+  margin: var(--half-base-gab);
 }
 
 .simple-post-item-container .content {
@@ -142,14 +140,18 @@ export default defineComponent({
   overflow: hidden;
   text-overflow: ellipsis;
 
-  margin: 0 10px 10px 10px
+  margin: 0 var(--half-base-gab) var(--half-base-gab) var(--half-base-gab)
 }
 
 .simple-post-item-container .footer {
   display: grid;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color);
 
   align-items: center;
+}
+
+.footer {
+  cursor: auto;
 }
 
 .footer .footer-content {
@@ -162,7 +164,7 @@ export default defineComponent({
 
   font-size: 12px;
   font-weight: normal;
-  margin: 0 10px;
+  margin: 0 var(--half-base-gab);
 }
 
 </style>

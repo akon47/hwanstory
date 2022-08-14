@@ -11,6 +11,7 @@
 import { defineComponent } from 'vue';
 import AppHeader from './components/common/AppHeader.vue';
 import AppContent from './components/common/AppContent.vue';
+import store from "@/store";
 
 export default defineComponent({
   name: 'App',
@@ -18,6 +19,28 @@ export default defineComponent({
     AppHeader,
     AppContent,
   },
+  computed: {
+    theme() {
+      return store.getters["accountStore/getTheme"];
+    },
+  },
+  watch: {
+    theme(value) {
+      document.documentElement.className = value;
+    }
+  },
+  methods: {
+    getMediaPreference() {
+      const hasDarkPreference = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+      ).matches;
+      if (hasDarkPreference) {
+        return "dark-theme";
+      } else {
+        return "light-theme";
+      }
+    },
+  }
 });
 </script>
 

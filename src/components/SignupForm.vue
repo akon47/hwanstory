@@ -1,42 +1,39 @@
 <template>
-  <div>
-    <form @submit.prevent>
+  <div class="form-container">
+    <div class="form-wrapper">
       <div>
-        <label for="name">유저이름 또는 별명</label>
-        <input type="text" id="name" v-model="name"/>
+        <input :class="{'invalid': name && !isNameValid}"
+               type="text" id="name" v-model="name" placeholder="이름"/>
       </div>
       <div>
-        <label for="password">비밀번호</label>
-        <input type="password" id="password" v-model="password" autocomplete="off"/>
+        <input type="password" id="password" v-model="password" autocomplete="off"
+               placeholder="비밀번호"/>
       </div>
       <div>
-        <label for="password-repeat">비밀번호 확인</label>
-        <input type="password" id="password-repeat" v-model="passwordRepeat" autocomplete="off"/>
-        <p v-if="passwordRepeat && !isPasswordRepeatValid">비밀번호 확인이 비밀번호와 다릅니다.</p>
+        <input :class="{'invalid': passwordRepeat && !isPasswordRepeatValid}"
+               type="password" id="password-repeat" v-model="passwordRepeat" autocomplete="off"
+               placeholder="비밀번호 확인"/>
       </div>
       <div>
-        <label for="blogId">블로그 Id</label>
-        <input type="text" id="blogId" v-model="blogId"/>
+        <input :class="{'invalid': blogId && !isBlogIdValid}"
+               type="text" id="blogId" v-model="blogId" placeholder="블로그 ID"/>
       </div>
       <div>
-        <label for="email">이메일</label>
-        <input type="text" id="email" v-model="email"/>
-        <p v-if="email && !isEmailValid">이메일을 확인해주세요.</p>
+        <input :class="{'invalid': email && !isEmailValid}"
+               type="text" id="email" v-model="email" placeholder="이메일"/>
+        <a class="verify-code-button" :disabled="!isPasswordValid" v-on:click="sendEmailVerifyCode">인증코드 발송</a>
       </div>
-      <div>
-        <label for="verify-code">이메일 인증코드</label>
-        <input type="text" id="verify-code" v-model="emailVerifyCode"/>
-        <button style="margin-top: 10px;" v-on:click="sendEmailVerifyCode">인증코드 발송</button>
+      <div v-if="isEmailVerifyCodeSended">
+        <input type="text" id="verify-code" v-model="emailVerifyCode" placeholder="이메일 인증코드"/>
       </div>
       <button
-          :disabled="
-          !isNameValid || !isPasswordValid || !isPasswordRepeatValid || !isBlogIdValid || !isEmailValid || isLoading
-        "
-          @click="submitForm"
+          class="form-button"
+          :disabled="!isNameValid || !isPasswordValid || !isPasswordRepeatValid || !isBlogIdValid || !isEmailValid || isLoading"
+          @click="signUp"
       >
         회원가입
       </button>
-    </form>
+    </div>
   </div>
 </template>
 
@@ -56,6 +53,7 @@ export default defineComponent({
       blogId: '',
       email: '',
       emailVerifyCode: '',
+      isEmailVerifyCodeSended: false,
       isLoading: false,
     };
   },
@@ -79,7 +77,7 @@ export default defineComponent({
     },
   },
   methods: {
-    async submitForm() {
+    async signUp() {
       await store.dispatch('accountStore/signUp', {
         name: this.name,
         email: this.email,
@@ -116,5 +114,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
+.verify-code-button {
+  position: relative;
+  right: 0;
+}
 
 </style>

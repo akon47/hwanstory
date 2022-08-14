@@ -2,7 +2,7 @@
   <div class="header-container">
     <div class="logo">
       <router-link to="/main">
-        <img src="@/assets/logo.svg" />
+        <img src="@/assets/logo.svg"/>
       </router-link>
     </div>
     <div class="search">
@@ -10,6 +10,9 @@
     </div>
     <div>
 
+    </div>
+    <div class="themes">
+      <input type="checkbox" @change="toggleTheme"/>
     </div>
     <div class="account">
       <div v-if="isLoggedIn" class="logged-in-container">
@@ -41,7 +44,9 @@ export default defineComponent({
     },
   },
   methods: {
-
+    toggleTheme() {
+      store.dispatch('accountStore/toggleTheme');
+    },
   },
 });
 </script>
@@ -50,12 +55,13 @@ export default defineComponent({
 .header-container {
   display: grid;
 
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto auto;
   grid-template-rows: 1fr;
 
   align-items: center;
 
-  padding: 0px 20px;
+  padding: 0px var(--base-gap);
+  grid-column-gap: var(--base-gap);
   height: 80px;
 }
 
@@ -71,8 +77,7 @@ export default defineComponent({
   grid-template-rows: 1fr;
 
   align-items: center;
-
-  column-gap: 20px;
+  column-gap: var(--base-gap);
 }
 
 button {

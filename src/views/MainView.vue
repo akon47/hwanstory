@@ -2,7 +2,8 @@
   <div class="main-container">
     <simple-post-wrap-panel :simple-posts="simplePosts"></simple-post-wrap-panel>
     <observer-trigger
-        :class="{'observer-trigger-enable': !this.isNoMorePage, 'observer-trigger-disable': this.isNoMorePage}"
+        class="observer-trigger-enable"
+        :class="{'observer-trigger-disable': this.isNoMorePage}"
         v-on:trigger="loadMorePosts" />
   </div>
 </template>
@@ -63,8 +64,10 @@ export default defineComponent({
   margin-top: -600px;
 }
 
-.observer-trigger-enable {
+.observer-trigger-disable {
   height: 0px;
+  margin-top: 0px;
+  position: relative;
 }
 
 </style>

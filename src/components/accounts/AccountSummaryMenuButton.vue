@@ -87,7 +87,7 @@ export default defineComponent({
 .dropdown-container .dropdown-content {
   position: absolute;
   min-inline-size: max-content;
-  background-color: white;
+  background-color: var(--background-color);
   right: 0px;
 }
 
@@ -107,23 +107,19 @@ export default defineComponent({
   grid-template-columns: 80px;
   grid-auto-rows: auto;
 
-  row-gap: 10px;
+  grid-row-gap: var(--half-base-gab);
 
-  margin-top: 5px;
-  border: 1px solid #e0e0e0;
-  border-radius: 3px;
+  margin-top: calc(var(--half-base-gab) / 2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--base-border-radius);
 
-  padding: 10px 0px;
+  padding: var(--half-base-gab) 0px;
 
   font-size: 12px;
 }
 
 .dropdown-content a {
-  padding: 0px 10px;
-}
-
-.dropdown-content a:hover {
-  text-decoration: underline;
+  padding: 0px var(--half-base-gab);
 }
 
 </style>

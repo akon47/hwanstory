@@ -17,7 +17,7 @@ export default defineComponent({
 <style scoped>
 .component-fade-enter-active,
 .component-fade-leave-active {
-  transition: opacity .15s ease;
+  transition: opacity .2s ease;
 }
 
 .component-fade-enter-from,

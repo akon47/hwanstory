@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="write-post-container">
     <write-post-form></write-post-form>
   </div>
 </template>
@@ -16,4 +16,13 @@ export default defineComponent({
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+
+.write-post-container {
+  display: grid;
+
+  width: 100%;
+  height: 100%;
+}
+
+</style>

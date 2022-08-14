@@ -24,12 +24,26 @@ export default defineComponent({
   display: grid;
 
   grid-template-columns: repeat(auto-fill, 300px);
-  grid-template-rows: 1fr;
+  grid-auto-rows: auto;
 
   justify-content: center;
 
-  gap: 40px;
-  margin: 40px;
+  gap: calc(var(--base-gap) * 2);
+  margin: calc(var(--base-gap) * 2);
+}
+
+@media (max-width: 1080px) {
+  .wrap-panel-container {
+    grid-template-columns: repeat(2, 1fr);
+    justify-content: stretch;
+  }
+}
+
+@media (max-width: 650px) {
+  .wrap-panel-container {
+    grid-template-columns: repeat(1, 1fr);
+    justify-content: stretch;
+  }
 }
 
 </style>

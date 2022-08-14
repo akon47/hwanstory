@@ -21,9 +21,6 @@ export default defineComponent({
 .sign-up-container {
   display: grid;
 
-  align-items: center;
-  justify-content: center;
-
   width: 100%;
   height: 100%;
 }

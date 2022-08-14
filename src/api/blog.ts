@@ -23,7 +23,7 @@ function getPost(blogId: string, postUrl: string) {
 }
 
 // 특정 블로그 전체 게시글 조회
-function getPosts(blogId: string, size: number, cursorId: string | null = null) {
+function getBlogPosts(blogId: string, size: number, cursorId: string | null = null) {
   return blogV1.getRequest<SliceDto<SimplePostDto>>(`/${blogId}/posts`, {
     cursorId: cursorId,
     size: size,
@@ -53,7 +53,7 @@ export {
   modifyPost,
   deletePost,
   getPost,
-  getPosts,
+  getBlogPosts,
   getAllPosts,
   likePost,
   unlikePost

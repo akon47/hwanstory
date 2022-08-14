@@ -1,22 +1,27 @@
 <template>
-  <div>
-    <form @submit.prevent="submitForm">
+  <div class="form-container">
+    <div class="form-wrapper">
       <div>
-        <label for="email">이메일</label>
-        <input type="text" id="email" v-model="email"/>
-        <p v-if="email && !isEmailValid">이메일을 확인해주세요.</p>
+        <input :class="{'invalid': email && !isEmailValid}"
+               type="text" id="email" v-model="email" placeholder="Email"/>
       </div>
       <div>
-        <label for="password">비밀번호</label>
-        <input type="password" id="password" v-model="password" autocomplete="off"/>
+        <input :class="{'invalid': password && !isPasswordValid}"
+               type="password" id="password" v-model="password" autocomplete="off"
+               placeholder="Password"/>
       </div>
-      <button :disabled="!isEmailValid || !isPasswordValid || isLoading" type="submit">
+      <button class="form-button"
+              :disabled="!isEmailValid || !isPasswordValid || isLoading"
+              @click="signIn">
         로그인
       </button>
-    </form>
-    <router-link to="/signup">
-      <button>회원가입</button>
-    </router-link>
+      <div class="signup-message">
+        회원이 아니신가요?
+        <router-link to="/signup">
+          회원가입
+        </router-link>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -45,7 +50,7 @@ export default defineComponent({
     },
   },
   methods: {
-    async submitForm() {
+    async signIn() {
       await store.dispatch('accountStore/signIn', {
         email: this.email,
         password: this.password,
@@ -55,12 +60,22 @@ export default defineComponent({
       }).catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
       });
-
     },
   },
 });
 </script>
 
 <style scoped>
+
+.signup-message {
+  margin-top: -5px;
+  font-size: 10pt;
+  color: #8e9297;
+}
+
+.signup-message a {
+  color: var(--base-color);
+  font-weight: bold;
+}
 
 </style>

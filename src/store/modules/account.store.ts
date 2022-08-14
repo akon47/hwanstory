@@ -23,6 +23,7 @@ export interface AccountState {
   refreshToken: string;
   refreshTokenExpiresIn: number;
   blogId: string;
+  theme: string;
 }
 
 export const accountStore: Module<AccountState, RootState> = {
@@ -33,6 +34,7 @@ export const accountStore: Module<AccountState, RootState> = {
     refreshToken: getRefreshTokenFromLocalStorage() || '',
     refreshTokenExpiresIn: Number(getRefreshTokenExpiresInFromLocalStorage() || 0),
     blogId: getBlogIdFromLocalStorage() || '',
+    theme: '',
   }),
   mutations: {
     setToken(state, token: TokenDto) {
@@ -63,11 +65,17 @@ export const accountStore: Module<AccountState, RootState> = {
       state.blogId = '';
       saveBlogIdToLocalStorage('');
     },
+    setTheme(state, theme: string) {
+      state.theme = theme;
+    },
   },
   getters: {
     // 로그인 되어있는지 여부
     isLoggedIn(state) {
       return state.accessToken && state.refreshToken && state.accessTokenExpiresIn > 0 && state.refreshTokenExpiresIn > 0;
+    },
+    getTheme(state) {
+      return state.theme;
     },
   },
   actions: {
@@ -90,6 +98,13 @@ export const accountStore: Module<AccountState, RootState> = {
     async reissueToken({ commit, state }) {
       const token = await reissueToken(state.refreshToken);
       commit('setToken', token);
+    },
+    async toggleTheme({ commit, state }) {
+      if (state.theme === 'dark-theme') {
+        commit('setTheme', 'light-theme');
+      } else {
+        commit('setTheme', 'dark-theme');
+      }
     },
   },
 };

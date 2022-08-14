@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent } from "vue";
 import { PostDto } from "@/api/models/blog.dtos";
 import { getPost } from "@/api/blog";
 import { HttpApiError } from "@/api/common/httpApiClient";
@@ -18,8 +18,14 @@ import { HttpApiError } from "@/api/common/httpApiClient";
 export default defineComponent({
   name: 'PostView',
   props: {
-    blogId: Object as PropType<string>,
-    postUrl: Object as PropType<string>,
+    blogId: {
+      type: String,
+      required: true,
+    },
+    postUrl: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -56,7 +62,17 @@ export default defineComponent({
 .post-container {
   display: grid;
 
+  grid-template-columns: 650px;
   justify-content: center;
+
+  padding: var(--base-gap);
+}
+
+@media (max-width: 800px) {
+  .post-container {
+    grid-template-columns: auto;
+    justify-content: stretch;
+  }
 }
 
 </style>
