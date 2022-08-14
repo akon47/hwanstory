@@ -2,7 +2,8 @@
   <div class="header-container">
     <div class="logo">
       <router-link to="/main">
-        <img src="@/assets/logo.svg"/>
+        <img class="logo-text" src="@/assets/logo-title.svg"/>
+        <img class="logo-symbol" src="@/assets/logo-symbol.svg"/>
       </router-link>
     </div>
     <div class="search">
@@ -12,7 +13,8 @@
 
     </div>
     <div class="themes">
-      <input type="checkbox" @change="toggleTheme"/>
+      <input id="theme-button" type="checkbox" :checked="isDarkTheme" @change="toggleTheme"/>
+      <label class="switch" for="theme-button"/>
     </div>
     <div class="account">
       <div v-if="isLoggedIn" class="logged-in-container">
@@ -33,7 +35,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import store from '@/store';
-import AccountSummaryMenuButton from "@/components/accounts/AccountSummaryMenuButton.vue";
+import AccountSummaryMenuButton from '@/components/accounts/AccountSummaryMenuButton.vue';
 
 export default defineComponent({
   name: 'AppHeader',
@@ -42,11 +44,17 @@ export default defineComponent({
     isLoggedIn(): boolean {
       return store.getters['accountStore/isLoggedIn'] ?? false;
     },
+    isDarkTheme(): boolean {
+      return store.getters['accountStore/isDarkTheme'] ?? false;
+    }
   },
   methods: {
     toggleTheme() {
       store.dispatch('accountStore/toggleTheme');
     },
+  },
+  created() {
+
   },
 });
 </script>
@@ -65,11 +73,6 @@ export default defineComponent({
   height: 80px;
 }
 
-.logo img {
-  height: 30px;
-  margin-top: 10px;
-}
-
 .logged-in-container {
   display: grid;
 
@@ -80,9 +83,57 @@ export default defineComponent({
   column-gap: var(--base-gap);
 }
 
-button {
+.header-container button {
   width: 100px;
   height: 30px;
+}
+
+.header-container .logo-text {
+  margin-top: 10px;
+  height: 30px;
+}
+
+.header-container .logo-symbol {
+  display: none;
+  height: 35px;
+}
+
+@media (max-width: 500px) {
+  .header-container .logo-text {
+    display: none;
+  }
+
+  .header-container .logo-symbol {
+    display: block;
+  }
+}
+
+.themes input {
+  display: none;
+}
+
+.switch {
+  background-image: url(@/assets/light-mode.svg);
+  background-size: 25px 25px;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: block;
+  width: 35px;
+  height: 35px;
+  color: white;
+  border-radius: 100%;
+  transform: rotate(90deg);
+  transition: 0.5s;
+}
+
+.themes input:checked + .switch {
+  background-image: url(@/assets/dark-mode.svg);
+  transform: rotate(0deg);
+}
+
+.themes .switch:hover {
+  cursor: pointer;
+  background-color: var(--hover-color);
 }
 
 </style>

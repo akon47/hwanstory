@@ -2,8 +2,8 @@
   <div class="write-form-container">
     <div class="content">
       <textarea id="title" v-model="title" placeholder="제목을 입력하세요."/>
-      <textarea id="postUrl" v-model="postUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)" />
-      <textarea id="content" v-model="content" placeholder="내용 입력하세요." />
+      <textarea id="postUrl" v-model="postUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)"/>
+      <textarea id="content" v-model="content" placeholder="내용 입력하세요."/>
     </div>
     <div class="footer">
       <div>
@@ -51,7 +51,7 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         postUrl: this.postUrl,
-        tags: []
+        tags: [],
       })
       .then(() => {
         this.$router.push('/main');
@@ -81,7 +81,6 @@ export default defineComponent({
 
   justify-content: center;
   row-gap: var(--base-gap);
-
   padding: var(--base-gap);
 }
 

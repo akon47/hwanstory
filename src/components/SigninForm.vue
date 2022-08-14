@@ -1,17 +1,17 @@
 <template>
   <div class="form-container">
     <div class="form-wrapper">
+      <img class="logo" src="@/assets/logo-title.svg" />
       <div>
         <input :class="{'invalid': email && !isEmailValid}"
                type="text" id="email" v-model="email" placeholder="Email"/>
       </div>
       <div>
-        <input :class="{'invalid': password && !isPasswordValid}"
+        <input :class="{'invalid': password && !isPasswordValid}" @keyup.enter="signIn"
                type="password" id="password" v-model="password" autocomplete="off"
                placeholder="Password"/>
       </div>
-      <button class="form-button"
-              :disabled="!isEmailValid || !isPasswordValid || isLoading"
+      <button :disabled="!isEmailValid || !isPasswordValid || isLoading"
               @click="signIn">
         로그인
       </button>
@@ -51,6 +51,7 @@ export default defineComponent({
   },
   methods: {
     async signIn() {
+      this.isLoading = true;
       await store.dispatch('accountStore/signIn', {
         email: this.email,
         password: this.password,
@@ -59,6 +60,9 @@ export default defineComponent({
         this.$router.push('/main');
       }).catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.isLoading = false;
       });
     },
   },
@@ -66,6 +70,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
+.logo {
+  height: 30px;
+}
 
 .signup-message {
   margin-top: -5px;

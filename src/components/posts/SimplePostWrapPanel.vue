@@ -36,6 +36,9 @@ export default defineComponent({
   .wrap-panel-container {
     grid-template-columns: repeat(2, 1fr);
     justify-content: stretch;
+
+    gap: var(--base-gap);
+    margin: var(--base-gap);
   }
 }
 

@@ -4,17 +4,19 @@
   --footer-background-color: #e5e5e5;
   --content-background-color: transparent;
   --content-item-background-color: #fafafa;
+  --hover-color: rgba(0,0,0,0.1);
   --border-color: #e0e0e0;
   --base-color: #202020;
   --base-shadow-color: rgba(33,33,33,.2);
-  --form-button-color: #4E61FF;
-  --form-button-hover-color: #3F4FFA;
+  --button-color: #4E61FF;
+  --button-hover-color: #3F4FFA;
 
   --base-gap: 20px;
   --half-base-gab: calc(var(--base-gap) / 2);
   --base-border-radius: 5px;
 
   --theme-changed-transition: 0.2s;
+  --base-font-family: 'Noto Sans KR', sans-serif;
 }
 
 :root.dark-theme {
@@ -23,11 +25,14 @@
   --footer-background-color: #303030;
   --content-background-color: transparent;
   --content-item-background-color: #232323;
+  --hover-color: rgba(255,255,255,0.1);
   --border-color: #303030;
-  --base-color: #e5e5e5;
+  --base-color: #f0f0f0;
   --base-shadow-color: rgba(222,222,222,.2);
-  --form-button-color: #5865F2;
-  --form-button-hover-color: #4752c4;
+  --button-color: #5865F2;
+  --button-hover-color: #4752c4;
+
+  --logo-brightness: 180%;
 
   color-scheme: dark;
 }
@@ -47,7 +52,9 @@
   overflow: hidden;
   overflow-y: visible;
 
-  transition: var(--theme-changed-transition)
+  transition: var(--theme-changed-transition);
+
+  font-family: var(--base-font-family);
 }
 
 #app > .header {
@@ -68,26 +75,36 @@ a:hover {
   cursor: pointer;
 }
 
-.form-button {
-  background: var(--form-button-color);
+input,
+textarea{
+  font-family: var(--base-font-family);
+  font-weight: 500;
+}
+
+button {
+  background: var(--button-color);
   padding: 0 10px;
   border-radius: var(--base-border-radius);
   border: none;
   transition: 0.2s;
   height: 30px;
   font-weight: bold;
-  color: #e5e5e5;
+  color: #f0f0f0;
 }
 
-.form-button:hover {
-  background: var(--form-button-hover-color);
+button:hover {
+  background: var(--button-hover-color);
   cursor: pointer;
 }
 
-.form-button:disabled {
+button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  color:rgba(255, 255, 255, 0.5)
+  color: rgba(255, 255, 255, 0.5)
+}
+
+.logo {
+  filter: brightness(var(--logo-brightness));
 }
 
 .form-container {
@@ -95,6 +112,9 @@ a:hover {
 
   align-content: center;
   justify-content: center;
+
+  padding: var(--base-gap);
+  box-sizing: border-box;
 }
 
 .form-container .form-wrapper {
@@ -108,23 +128,37 @@ a:hover {
   grid-auto-rows: auto;
   grid-template-columns: 1fr;
 
+  box-sizing: border-box;
+
   row-gap: var(--half-base-gab);
 
-  width: 350px;
+  width: 400px;
+}
+
+@media (max-width: 500px) {
+  .form-container {
+    justify-content: stretch;
+  }
+
+  .form-container .form-wrapper {
+    padding: var(--base-gap);
+    width: 100%;
+  }
 }
 
 .form-wrapper input,
 .form-wrapper textarea {
   font-size: 14px;
-  padding: 1rem 0.75rem;
-  width: calc(100% - 1.5rem);
+  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
   border-radius: var(--base-border-radius);
   border: 1px solid var(--border-color);
   outline: none;
 }
 
 .form-wrapper button {
-  height: 50px;
+  height: 42px;
   font-size: 16px;
 }
 
@@ -135,6 +169,7 @@ a:hover {
 .form-wrapper input.valid {
   border: 1px solid #21b314;
 }
+
 .form-wrapper input.invalid {
   border: 1px solid red;
 }

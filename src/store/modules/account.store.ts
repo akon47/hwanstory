@@ -5,12 +5,12 @@ import {
   getAccessTokenFromLocalStorage,
   getBlogIdFromLocalStorage,
   getRefreshTokenExpiresInFromLocalStorage,
-  getRefreshTokenFromLocalStorage,
+  getRefreshTokenFromLocalStorage, getThemeFromLocalStorage,
   saveAccessTokenExpiresInToLocalStorage,
   saveAccessTokenToLocalStorage,
   saveBlogIdToLocalStorage,
   saveRefreshTokenExpiresInToLocalStorage,
-  saveRefreshTokenToLocalStorage,
+  saveRefreshTokenToLocalStorage, saveThemeToLocalStorage,
 } from '@/utils/storage';
 import { reissueToken, signIn, signOut } from '@/api/authentication';
 import { AuthenticationInfoDto, TokenDto } from '@/api/models/authentication.dtos';
@@ -34,7 +34,7 @@ export const accountStore: Module<AccountState, RootState> = {
     refreshToken: getRefreshTokenFromLocalStorage() || '',
     refreshTokenExpiresIn: Number(getRefreshTokenExpiresInFromLocalStorage() || 0),
     blogId: getBlogIdFromLocalStorage() || '',
-    theme: '',
+    theme: getThemeFromLocalStorage() || '',
   }),
   mutations: {
     setToken(state, token: TokenDto) {
@@ -67,6 +67,7 @@ export const accountStore: Module<AccountState, RootState> = {
     },
     setTheme(state, theme: string) {
       state.theme = theme;
+      saveThemeToLocalStorage(theme);
     },
   },
   getters: {
@@ -76,6 +77,9 @@ export const accountStore: Module<AccountState, RootState> = {
     },
     getTheme(state) {
       return state.theme;
+    },
+    isDarkTheme(state) {
+      return state.theme === 'dark-theme';
     },
   },
   actions: {

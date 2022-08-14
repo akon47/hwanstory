@@ -1,6 +1,7 @@
 <template>
   <div class="form-container">
     <div class="form-wrapper">
+      <img class="logo" src="@/assets/logo-title.svg" />
       <div>
         <input :class="{'invalid': name && !isNameValid}"
                type="text" id="name" v-model="name" placeholder="이름"/>
@@ -23,11 +24,10 @@
                type="text" id="email" v-model="email" placeholder="이메일"/>
         <a class="verify-code-button" :disabled="!isPasswordValid" v-on:click="sendEmailVerifyCode">인증코드 발송</a>
       </div>
-      <div v-if="isEmailVerifyCodeSended">
+      <div v-if="isEmailVerifyCodeSent">
         <input type="text" id="verify-code" v-model="emailVerifyCode" placeholder="이메일 인증코드"/>
       </div>
       <button
-          class="form-button"
           :disabled="!isNameValid || !isPasswordValid || !isPasswordRepeatValid || !isBlogIdValid || !isEmailValid || isLoading"
           @click="signUp"
       >
@@ -53,7 +53,7 @@ export default defineComponent({
       blogId: '',
       email: '',
       emailVerifyCode: '',
-      isEmailVerifyCodeSended: false,
+      isEmailVerifyCodeSent: false,
       isLoading: false,
     };
   },
@@ -78,6 +78,7 @@ export default defineComponent({
   },
   methods: {
     async signUp() {
+      this.isLoading = true;
       await store.dispatch('accountStore/signUp', {
         name: this.name,
         email: this.email,
@@ -90,6 +91,9 @@ export default defineComponent({
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.isLoading = false;
       });
     },
     clearForm() {
@@ -103,6 +107,7 @@ export default defineComponent({
     async sendEmailVerifyCode() {
       await sendVerifyCodeToEmail(this.email)
       .then(() => {
+        this.isEmailVerifyCodeSent = true;
         alert('인증 코드를 발송하였습니다.');
       })
       .catch((error: HttpApiError) => {
@@ -115,9 +120,19 @@ export default defineComponent({
 
 <style scoped>
 
+.logo {
+  height: 30px;
+}
+
+.form-wrapper div {
+  display: flex;
+  flex-direction: column;
+}
+
 .verify-code-button {
-  position: relative;
-  right: 0;
+  align-self: end;
+  margin-top: 3px;
+  font-weight: bold;
 }
 
 </style>

@@ -124,7 +124,7 @@ export default defineComponent({
 
 .simple-post-item-container .title {
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 500;
 
   white-space: nowrap;
   overflow: hidden;

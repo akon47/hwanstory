@@ -40,7 +40,10 @@ export default defineComponent({
         return "light-theme";
       }
     },
-  }
+  },
+  created() {
+    document.documentElement.className = this.theme;
+  },
 });
 </script>
 
