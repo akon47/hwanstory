@@ -25,12 +25,16 @@ export interface PostDto extends DataTransferObject {
   readonly title: string;
   // 내용
   readonly content: string;
+  // 작성자
+  readonly author: SimpleAccountDto;
   // 태그
   readonly tags: Array<TagDto>;
   // 댓글
   readonly comments: Array<SimpleCommentDto>;
   // 좋아요 수
   readonly likeCount: number;
+  // 작성 시간
+  readonly createdAt: Date;
 }
 
 // 게시글 리스트 조회용 Dto
@@ -45,12 +49,16 @@ export interface SimplePostDto extends DataTransferObject {
   readonly title: string;
   // 내용
   readonly content: string;
+  // 작성자
+  readonly author: SimpleAccountDto;
   // 태그
   readonly tags: Array<TagDto>;
   // 댓글 수
   readonly commentCount: number;
   // 좋아요 수
   readonly likeCount: number;
+  // 작성 시간
+  readonly createdAt: Date;
 }
 
 // 댓글 리스트 조회용 Dto

@@ -43,7 +43,9 @@ export default defineComponent({
   },
   created() {
     document.documentElement.className = this.theme;
-    store.dispatch('accountStore/updateCurrentAccountInfo');
+    if(store.getters['accountStore/isLoggedIn']) {
+      store.dispatch('accountStore/updateCurrentAccountInfo');
+    }
   },
 });
 </script>

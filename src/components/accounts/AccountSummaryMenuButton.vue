@@ -167,8 +167,4 @@ export default defineComponent({
   padding: 0px var(--half-base-gab);
 }
 
-.account-summary-container input {
-
-}
-
 </style>
