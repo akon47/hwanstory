@@ -3,16 +3,14 @@
     <div class="content">
       <textarea id="title" v-model="title" placeholder="제목을 입력하세요."/>
       <textarea id="postUrl" v-model="postUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)"/>
-      <textarea id="content" v-model="content" placeholder="내용 입력하세요."/>
+      <textarea id="content" v-model="content" placeholder="내용을 입력하세요."/>
     </div>
     <div class="footer">
       <div>
-
       </div>
       <div>
-
       </div>
-      <button class="form-button" :disabled="!isTitleValid || !isContentValid || !isPostUrlValid" @click="writePost">
+      <button class="form-button" :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || isLoading" @click="writePost">
         글쓰기
       </button>
     </div>
@@ -31,6 +29,7 @@ export default defineComponent({
       title: '',
       content: '',
       postUrl: '',
+      isLoading: false,
     };
   },
   computed: {
@@ -47,6 +46,7 @@ export default defineComponent({
   },
   methods: {
     async writePost() {
+      this.isLoading = true;
       await createPost({
         title: this.title,
         content: this.content,
@@ -58,6 +58,9 @@ export default defineComponent({
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.isLoading = false;
       });
     },
   },
@@ -113,11 +116,15 @@ export default defineComponent({
 }
 
 #postUrl {
-  font-size: 14px;
   line-height: 10px;
   padding-bottom: var(--half-base-gab);
   border-bottom: 1px solid var(--border-color);
   overflow: hidden;
+  font-size: 16px;
+}
+
+#content {
+  font-size: 16px;
 }
 
 .footer {
@@ -132,7 +139,7 @@ export default defineComponent({
   padding: 0 var(--base-gap)
 }
 
-.footer #form-button {
+.footer .form-button {
   min-width: 100px;
 }
 
