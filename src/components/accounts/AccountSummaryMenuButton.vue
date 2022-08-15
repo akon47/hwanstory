@@ -1,6 +1,6 @@
 <template>
   <div class="account-summary-container">
-    <div class="dropdown-container" :style="{ backgroundImage: 'url(' + profileImageUrl + ')' }">
+    <div class="dropdown-container" :style="profileImageUrl">
       <details>
         <summary/>
         <div class="dropdown-content">
@@ -25,15 +25,12 @@ export default defineComponent({
     profileImageUrl() {
       const profileImageUrl = store.state.accountStore.profileImageUrl;
       if (profileImageUrl) {
-        return `${serverUrl}${profileImageUrl}`;
+        return {
+          backgroundImage: `url(${serverUrl}${profileImageUrl})`
+        };
       } else {
-        return null;
+        return { };
       }
-    },
-  },
-  watch: {
-    profileImageUrl() {
-      console.log(this.profileImageUrl);
     },
   },
   methods: {

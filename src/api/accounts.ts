@@ -21,7 +21,7 @@ function getCurrentAccount() {
 
 // 현재 사용자 프로필 사진 변경 (업로드)
 function setCurrentProfileImage(file: File) {
-  return accountsV1.uploadFileRequest<AccountDto>('/me/profile-image', null, Array.of(file));
+  return accountsV1.uploadFileRequest<AccountDto>('/me/profile-image', 'profileImageFile', Array.of(file));
 }
 
 export { signUp, sendVerifyCodeToEmail, getCurrentAccount, setCurrentProfileImage };

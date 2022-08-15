@@ -16,7 +16,7 @@ export interface HttpApiClient {
 
   patchRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, requestModel?: DataTransferObject | null, headers?: any): Promise<T>;
 
-  uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, files?: Array<File>, headers?: any): Promise<T>;
+  uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, name: string, files: Array<File>, params?: any, headers?: any): Promise<T>;
 }
 
 export interface HttpApiError extends Error {
@@ -137,9 +137,9 @@ class AxiosHttpApiClientImpl implements HttpApiClient {
     );
   }
 
-  public uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, files?: Array<File>, headers?: any): Promise<T> {
+  public uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, name: string, files: Array<File>, params?: any, headers?: any): Promise<T> {
     const form = new FormData();
-    files?.forEach((file) => form.append('files', file));
+    files.forEach((file) => form.append(name, file));
     return this.createHttpApiResponse(
       this.instance.post<T>(uri, form, this.buildAxiosRequestConfig(params, headers)),
     );
