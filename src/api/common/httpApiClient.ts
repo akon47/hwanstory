@@ -2,7 +2,8 @@ import store from '../../store';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import DataTransferObject, { ErrorResponseDto } from '@/api/models/common.dtos';
 
-export const apiBaseUrl = 'https://api.kimhwan.kr/api/';
+export const serverUrl = 'https://api.kimhwan.kr';
+export const apiBaseUrl = `${serverUrl}/api/`;
 
 export interface HttpApiClient {
   getRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, headers?: any): Promise<T>;
@@ -14,6 +15,8 @@ export interface HttpApiClient {
   putRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, requestModel?: DataTransferObject | null, headers?: any): Promise<T>;
 
   patchRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, requestModel?: DataTransferObject | null, headers?: any): Promise<T>;
+
+  uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, files?: Array<File>, headers?: any): Promise<T>;
 }
 
 export interface HttpApiError extends Error {
@@ -131,6 +134,14 @@ class AxiosHttpApiClientImpl implements HttpApiClient {
   public putRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, requestModel?: DataTransferObject | null, headers?: any): Promise<T> {
     return this.createHttpApiResponse(
       this.instance.put<T>(uri, requestModel, this.buildAxiosRequestConfig(params, headers)),
+    );
+  }
+
+  public uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, files?: Array<File>, headers?: any): Promise<T> {
+    const form = new FormData();
+    files?.forEach((file) => form.append('files', file));
+    return this.createHttpApiResponse(
+      this.instance.post<T>(uri, form, this.buildAxiosRequestConfig(params, headers)),
     );
   }
 

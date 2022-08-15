@@ -43,6 +43,7 @@ export default defineComponent({
   },
   created() {
     document.documentElement.className = this.theme;
+    store.dispatch('accountStore/updateCurrentAccountInfo');
   },
 });
 </script>

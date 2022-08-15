@@ -1,9 +1,10 @@
 <template>
   <div class="account-summary-container">
-    <div class="dropdown-container">
+    <div class="dropdown-container" :style="{ backgroundImage: 'url(' + profileImageUrl + ')' }">
       <details>
         <summary/>
         <div class="dropdown-content">
+          <a @click="selectProfileImageFile">이미지 변경</a>
           <a @click="showCurrentAccountInfo">내 정보</a>
           <a @click="signOut">로그아웃</a>
         </div>
@@ -13,13 +14,28 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { getCurrentAccount } from "@/api/accounts";
-import { HttpApiError } from "@/api/common/httpApiClient";
-import store from "@/store";
+import { defineComponent } from 'vue';
+import { getCurrentAccount, setCurrentProfileImage } from '@/api/accounts';
+import { serverUrl, HttpApiError } from '@/api/common/httpApiClient';
+import store from '@/store';
 
 export default defineComponent({
-  name: "AccountSummaryMenuButton",
+  name: 'AccountSummaryMenuButton',
+  computed: {
+    profileImageUrl() {
+      const profileImageUrl = store.state.accountStore.profileImageUrl;
+      if (profileImageUrl) {
+        return `${serverUrl}${profileImageUrl}`;
+      } else {
+        return null;
+      }
+    },
+  },
+  watch: {
+    profileImageUrl() {
+      console.log(this.profileImageUrl);
+    },
+  },
   methods: {
     async showCurrentAccountInfo() {
       await getCurrentAccount()
@@ -39,7 +55,32 @@ export default defineComponent({
         alert(error.getErrorMessage());
       });
     },
-  }
+    selectProfileImageFile() {
+      const input = document.createElement('input') as HTMLInputElement;
+      input.type = 'file';
+      input.onchange = async (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        if (!target.files?.length) {
+          return;
+        }
+        const file = target.files[0];
+        if (!file.type.startsWith('image')) {
+          alert('이미지 파일을 선택해주세요.');
+          return;
+        }
+
+        await setCurrentProfileImage(file)
+        .then(() => {
+          store.dispatch('accountStore/updateCurrentAccountInfo');
+          alert('프로필 이미지를 변경하였습니다.');
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      };
+      input.click();
+    },
+  },
 });
 </script>
 
@@ -49,6 +90,9 @@ export default defineComponent({
   width: 50px;
   height: 50px;
   cursor: pointer;
+
+  background-color: #6eafd4;
+  border-radius: 100%;
 }
 
 .dropdown-container {
@@ -62,10 +106,14 @@ export default defineComponent({
   background-color: #6eafd4;
   border-radius: 100%;
   position: relative;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .dropdown-container:hover {
-  background-color: #5555ff;
+  box-shadow: 0 0 12px var(--base-shadow-color);
 }
 
 .dropdown-container details {
@@ -104,7 +152,7 @@ export default defineComponent({
 .dropdown-container .dropdown-content {
   display: grid;
 
-  grid-template-columns: 80px;
+  grid-template-columns: 100px;
   grid-auto-rows: auto;
 
   grid-row-gap: var(--half-base-gab);
@@ -120,6 +168,10 @@ export default defineComponent({
 
 .dropdown-content a {
   padding: 0px var(--half-base-gab);
+}
+
+.account-summary-container input {
+
 }
 
 </style>

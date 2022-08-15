@@ -24,6 +24,7 @@ export interface AccountState {
   refreshTokenExpiresIn: number;
   blogId: string;
   theme: string;
+  profileImageUrl: string | null;
 }
 
 export const accountStore: Module<AccountState, RootState> = {
@@ -35,6 +36,7 @@ export const accountStore: Module<AccountState, RootState> = {
     refreshTokenExpiresIn: Number(getRefreshTokenExpiresInFromLocalStorage() || 0),
     blogId: getBlogIdFromLocalStorage() || '',
     theme: getThemeFromLocalStorage() || '',
+    profileImageUrl: null,
   }),
   mutations: {
     setToken(state, token: TokenDto) {
@@ -69,6 +71,9 @@ export const accountStore: Module<AccountState, RootState> = {
       state.theme = theme;
       saveThemeToLocalStorage(theme);
     },
+    setProfileImageUrl(state, profileImageUrl: string) {
+      state.profileImageUrl = profileImageUrl;
+    },
   },
   getters: {
     // 로그인 되어있는지 여부
@@ -81,6 +86,9 @@ export const accountStore: Module<AccountState, RootState> = {
     isDarkTheme(state) {
       return state.theme === 'dark-theme';
     },
+    getProfileImageUrl(state) {
+      return state.profileImageUrl;
+    },
   },
   actions: {
     async signIn({ commit }, authenticationInfoDto: AuthenticationInfoDto) {
@@ -88,6 +96,7 @@ export const accountStore: Module<AccountState, RootState> = {
       commit('setToken', token);
       const account = await getCurrentAccount();
       commit('setBlogId', account.blogId);
+      commit('setProfileImageUrl', account.profileImageUrl ?? '');
     },
     async signUp({ commit }, createAccountDto: CreateAccountDto) {
       await signUp(createAccountDto);
@@ -109,6 +118,11 @@ export const accountStore: Module<AccountState, RootState> = {
       } else {
         commit('setTheme', 'dark-theme');
       }
+    },
+    async updateCurrentAccountInfo({ commit }) {
+      const account = await getCurrentAccount();
+      commit('setBlogId', account.blogId);
+      commit('setProfileImageUrl', account.profileImageUrl ?? '');
     },
   },
 };
