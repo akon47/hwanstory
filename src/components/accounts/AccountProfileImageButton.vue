@@ -46,12 +46,9 @@ export default defineComponent({
 }
 
 .profile {
-  display: inline-block;
-
   width: 100%;
   height: 100%;
   aspect-ratio: 1 / 1;
-  margin: auto;
   background-color: #6eafd4;
   border-radius: 100%;
   position: relative;

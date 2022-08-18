@@ -4,8 +4,9 @@
       <details>
         <summary/>
         <div class="dropdown-content">
+          <a @click="goToMyBlog">내 블로그</a>
+          <a @click="showCurrentAccountInfo">내 프로필</a>
           <a @click="selectProfileImageFile">이미지 변경</a>
-          <a @click="showCurrentAccountInfo">내 정보</a>
           <a @click="signOut">로그아웃</a>
         </div>
       </details>
@@ -51,6 +52,9 @@ export default defineComponent({
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
       });
+    },
+    goToMyBlog() {
+      this.$router.push(`/${store.state.accountStore.blogId}`);
     },
     selectProfileImageFile() {
       const input = document.createElement('input') as HTMLInputElement;

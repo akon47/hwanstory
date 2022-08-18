@@ -1,6 +1,11 @@
 import { blogV1 } from './index';
 import DataTransferObject, { SliceDto } from '@/api/models/common.dtos';
-import { PostDto, PostRequestDto, SimplePostDto } from '@/api/models/blog.dtos';
+import { BlogDetailsDto, PostDto, PostRequestDto, SimplePostDto } from '@/api/models/blog.dtos';
+
+// 블로그 정보 조회
+function getBlogDetails(blogId: string) {
+  return blogV1.getRequest<BlogDetailsDto>(`/${blogId}`);
+}
 
 // 게시글 작성
 function createPost(postRequestDto: PostRequestDto) {
@@ -49,6 +54,7 @@ function unlikePost(blogId: string, postUrl: string) {
 }
 
 export {
+  getBlogDetails,
   createPost,
   modifyPost,
   deletePost,

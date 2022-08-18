@@ -1,8 +1,6 @@
 <template>
   <div class="simple-post-item-container">
-    <div class="title-image" @click="moveToPost">
-
-    </div>
+    <div class="thumbnail" @click="moveToPost" :style="gradient"/>
     <div class="title" @click="moveToPost">
       {{ simplePost.title }}
     </div>
@@ -11,16 +9,19 @@
     </div>
     <div class="footer">
       <div class="footer-content">
-        <div>
-          by&nbsp;<a @click="moveToBlog"><b>{{ simplePost.blogId }}</b></a>
+        <div class="author">
+          <account-profile-image-button :simple-account="simplePost.author"/>
+          <div class="name">
+            by&nbsp;<a @click="moveToBlog"><b>{{ simplePost.author?.name }}</b></a>
+          </div>
         </div>
         <div>
 
         </div>
-        <div>
+        <div class="comments">
           💬{{ simplePost.commentCount }}
         </div>
-        <div>
+        <div class="likes">
           ❤️{{ likeCount }}
         </div>
       </div>
@@ -29,31 +30,49 @@
 </template>
 
 <script lang="ts">
-import { SimplePostDto } from "@/api/models/blog.dtos";
-import { deletePost, likePost, unlikePost } from "@/api/blog";
-import { HttpApiError } from "@/api/common/httpApiClient";
-import { defineComponent, PropType } from "vue";
-import store from "@/store";
+import { SimplePostDto } from '@/api/models/blog.dtos';
+import { defineComponent, PropType } from 'vue';
+import store from '@/store';
+import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 
 export default defineComponent({
-  name: "SimplePostItem",
+  name: 'SimplePostItem',
+  components: { AccountProfileImageButton },
   props: {
     simplePost: Object as PropType<SimplePostDto>,
   },
   data() {
     return {
       likeCount: 0,
-    }
-  },
-  watch: {
-    simplePost() {
-      this.apply();
-    }
+    };
   },
   computed: {
     isMyPost() {
       return this.simplePost?.blogId === store.state.accountStore.blogId;
-    }
+    },
+    gradient() {
+      let date = new Date(this.simplePost?.createdAt ?? 0).getTime() ?? 1;
+      const random = () => {
+        const x = Math.sin(date++) * 10000;
+        return x - Math.floor(x);
+      };
+
+      const direction = Math.round(Math.random() * 360); //To output a volue between 0 and 360 in degrees to be given to the linear-gradient.
+
+      const r1 = Math.round(random() * 255);
+      const g1 = Math.round(random() * 255);
+      const b1 = Math.round(random() * 255);
+      const a1 = 1;
+
+      const r2 = Math.round(random() * 255);
+      const g2 = Math.round(random() * 255);
+      const b2 = Math.round(random() * 255);
+      const a2 = 1;
+
+      return {
+        background: `linear-gradient(${direction}deg, rgba(${r1},${g1},${b1},${a1}), rgba(${r2},${g2},${b2},${a2}))`,
+      };
+    },
   },
   methods: {
     moveToPost() {
@@ -62,39 +81,6 @@ export default defineComponent({
     moveToBlog() {
       this.$router.push(`/${this.simplePost?.blogId}`);
     },
-    apply() {
-      this.likeCount = this.simplePost?.likeCount ?? 0;
-    },
-    async deletePost(postUrl: string) {
-      await deletePost(postUrl)
-      .then(async () => {
-        alert("게시글을 삭제했습니다.");
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
-    },
-    async likePost(blogId: string, postUrl: string) {
-      await likePost(blogId, postUrl)
-      .then(async () => {
-        this.likeCount++;
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
-    },
-    async unlikePost(blogId: string, postUrl: string) {
-      await unlikePost(blogId, postUrl)
-      .then(async () => {
-        this.likeCount--;
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
-    }
-  },
-  created() {
-    this.apply();
   },
 });
 </script>
@@ -120,6 +106,18 @@ export default defineComponent({
 .simple-post-item-container:hover {
   box-shadow: 0 0 11px var(--base-shadow-color);
   cursor: pointer;
+}
+
+.simple-post-item-container .thumbnail {
+  aspect-ratio: 16 / 9;
+  border-bottom: 1px solid var(--border-color);
+  box-sizing: border-box;
+
+  border-top-left-radius: var(--base-border-radius);
+  border-top-right-radius: var(--base-border-radius);
+
+  background-size: cover;
+  background: white no-repeat;
 }
 
 .simple-post-item-container .title {
@@ -165,6 +163,19 @@ export default defineComponent({
   font-size: 12px;
   font-weight: normal;
   margin: 0 var(--half-base-gab);
+
+  align-items: center;
 }
+
+.footer-content .author {
+  display: grid;
+
+  grid-template-columns: 30px auto;
+  grid-template-rows: auto;
+
+  align-items: center;
+  gap: 5px;
+}
+
 
 </style>

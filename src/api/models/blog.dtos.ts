@@ -1,5 +1,11 @@
 import DataTransferObject from '@/api/models/common.dtos';
-import { SimpleAccountDto } from '@/api/models/account.dtos';
+import { AccountDto, SimpleAccountDto } from '@/api/models/account.dtos';
+
+// 블로그 상세 Dto
+export interface BlogDetailsDto extends DataTransferObject {
+  // 블로그 주인
+  readonly owner: AccountDto;
+}
 
 // 게시글 작성/수정 Dto
 export interface PostRequestDto extends DataTransferObject {

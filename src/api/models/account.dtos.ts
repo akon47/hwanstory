@@ -30,14 +30,20 @@ export interface AccountDto extends DataTransferObject {
   readonly blogId: string;
   // 프로필 이미지 URL
   readonly profileImageUrl: string;
+  // 간단한 자기소개
+  readonly biography: string;
+  // 회사
+  readonly company: string;
+  // 위치
+  readonly location: string;
+  // 홈페이지
+  readonly homepage: string;
   // 계정에 할당된 역할
   readonly role: Array<RoleDto>;
 }
 
 // 간단한 계정 정보 Dto
 export interface SimpleAccountDto extends DataTransferObject {
-  // 계정 사용자 이메일
-  readonly email: string;
   // 계정 사용자 이름
   readonly name: string;
   // 블로그 Id

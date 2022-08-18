@@ -7,7 +7,7 @@
       <div class="author">
         <account-profile-image-button class="author-profile-image" :simple-account="post.author" />
         <div class="author-name">
-          {{ post?.blogId }}
+          {{ post.author?.name }}
         </div>
         <div class="created-at">
           {{ longCreateAt }}
@@ -23,7 +23,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { PostDto } from "@/api/models/blog.dtos";
-import { getPost } from "@/api/blog";
+import { deletePost, getPost, likePost, unlikePost } from '@/api/blog';
 import { HttpApiError } from "@/api/common/httpApiClient";
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 
@@ -42,11 +42,15 @@ export default defineComponent({
   },
   data() {
     return {
-      post: {} as PostDto
+      post: {} as PostDto,
+      likeCount: 0,
     };
   },
   computed: {
     longCreateAt() {
+      if(!this.post?.createdAt) {
+        return null;
+      }
       const date = new Date(this.post.createdAt);
       const hours = `${date.getHours()}`.padStart(2, '0');
       const minutes = `${date.getMinutes()}`.padStart(2, '0');
@@ -66,11 +70,39 @@ export default defineComponent({
       await getPost(this.blogId, this.postUrl)
       .then((post) => {
         this.post = post;
+        this.likeCount = post.likeCount;
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
       });
-    }
+    },
+    async likePost(blogId: string, postUrl: string) {
+      await likePost(blogId, postUrl)
+      .then(async () => {
+        this.likeCount++;
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
+    },
+    async unlikePost(blogId: string, postUrl: string) {
+      await unlikePost(blogId, postUrl)
+      .then(async () => {
+        this.likeCount--;
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
+    },
+    async deletePost(postUrl: string) {
+      await deletePost(postUrl)
+      .then(async () => {
+        alert("게시글을 삭제했습니다.");
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
+    },
   },
   created() {
     this.loadPost();
@@ -102,7 +134,7 @@ export default defineComponent({
 .title {
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 1em;
-  margin-bottom: 1em;
+  margin-bottom: 2em;
 }
 
 .author {
@@ -111,7 +143,7 @@ export default defineComponent({
   grid-template-columns: auto auto 1fr;
   grid-template-rows: auto auto;
 
-  margin-top: 1em;
+  margin-top: 2em;
 }
 
 .author-profile-image {

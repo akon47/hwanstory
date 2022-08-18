@@ -10,6 +10,7 @@
   --base-shadow-color: rgba(33,33,33,.2);
   --button-color: #4E61FF;
   --button-hover-color: #3F4FFA;
+  --link-accent-color: #218BFF;
 
   --base-gap: 20px;
   --half-base-gab: calc(var(--base-gap) / 2);
@@ -31,6 +32,7 @@
   --base-shadow-color: rgba(222,222,222,.2);
   --button-color: #5865F2;
   --button-hover-color: #4752c4;
+  --link-accent-color: #539BF5;
 
   --logo-brightness: 180%;
 
@@ -38,32 +40,32 @@
 }
 
 h1 {
-  font-size: 2em;
+  font-size: 3em;
   font-weight: bold;
 }
 
 h2 {
-  font-size: 1.50em;
+  font-size: 2em;
   font-weight: bold;
 }
 
 h3 {
-  font-size: 1.25em;
+  font-size: 1.5em;
   font-weight: bold;
 }
 
 h4 {
-  font-size: 1.00em;
+  font-size: 1.25em;
   font-weight: bold;
 }
 
 h5 {
-  font-size: 0.875em;
+  font-size: 1.00em;
   font-weight: bold;
 }
 
 h6 {
-  font-size: 0.85em;
+  font-size: 0.875em;
 }
 
 #app {
@@ -83,7 +85,14 @@ h6 {
 
   transition: var(--theme-changed-transition);
 
+  font-size: 16px;
   font-family: var(--base-font-family);
+}
+
+@media (max-width: 800px) {
+  #app {
+    font-size: 12px;
+  }
 }
 
 #app > .header {
@@ -97,6 +106,12 @@ h6 {
 
 a {
   text-decoration: none;
+  color: var(--link-accent-color)
+}
+
+a:visited {
+  text-decoration: none;
+  color: var(--link-accent-color)
 }
 
 a:hover {
