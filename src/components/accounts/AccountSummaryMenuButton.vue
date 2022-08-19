@@ -111,6 +111,8 @@ export default defineComponent({
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+
+  z-index: 1;
 }
 
 .dropdown-container:hover {

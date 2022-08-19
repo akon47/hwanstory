@@ -23,7 +23,7 @@ export default defineComponent({
 .wrap-panel-container {
   display: grid;
 
-  grid-template-columns: repeat(auto-fill, 300px);
+  grid-template-columns: repeat(auto-fill, 320px);
   grid-auto-rows: auto;
 
   justify-content: center;
@@ -35,7 +35,7 @@ export default defineComponent({
 @media (max-width: 1080px) {
   .wrap-panel-container {
     grid-template-columns: repeat(2, 1fr);
-    justify-content: stretch;
+    justify-content: center;
 
     gap: var(--base-gap);
     margin: var(--base-gap);

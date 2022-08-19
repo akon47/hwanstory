@@ -1,28 +1,30 @@
 <template>
   <div class="simple-post-item-container">
-    <div class="thumbnail" @click="moveToPost" :style="gradient"/>
-    <div class="title" @click="moveToPost">
-      {{ simplePost.title }}
-    </div>
-    <div class="content" @click="moveToPost">
-      {{ simplePost.content }}
+    <div class="main" @click="moveToPost">
+      <div class="thumbnail" :style="gradient">
+        <div class="author-profile-image">
+          <account-profile-image :simple-account="simplePost.author"/>
+        </div>
+      </div>
+      <div class="title">
+        {{ simplePost.title }}
+      </div>
+      <div class="content">
+        {{ simplePost.content }}
+      </div>
+      <div class="counts">
+        {{ simplePost.likeCount }} 개의 좋아요
+        <span>&#183;</span>
+        {{ simplePost.commentCount }} 개의 댓글
+      </div>
     </div>
     <div class="footer">
       <div class="footer-content">
-        <div class="author">
-          <account-profile-image-button :simple-account="simplePost.author"/>
-          <div class="name">
-            by&nbsp;<a @click="moveToBlog"><b>{{ simplePost.author?.name }}</b></a>
-          </div>
-        </div>
         <div>
-
+          {{ createdAt }}
         </div>
-        <div class="comments">
-          💬{{ simplePost.commentCount }}
-        </div>
-        <div class="likes">
-          ❤️{{ likeCount }}
+        <div class="author" @click="moveToBlog">
+          by&nbsp;{{ simplePost.author?.name }}
         </div>
       </div>
     </div>
@@ -33,11 +35,12 @@
 import { SimplePostDto } from '@/api/models/blog.dtos';
 import { defineComponent, PropType } from 'vue';
 import store from '@/store';
-import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
+import AccountProfileImage from '@/components/accounts/AccountProfileImage.vue';
+import dayjs from 'dayjs';
 
 export default defineComponent({
   name: 'SimplePostItem',
-  components: { AccountProfileImageButton },
+  components: { AccountProfileImage },
   props: {
     simplePost: Object as PropType<SimplePostDto>,
   },
@@ -47,6 +50,9 @@ export default defineComponent({
     };
   },
   computed: {
+    createdAt() {
+      return dayjs(this.simplePost?.createdAt).format('YYYY.MM.DD hh:mm');
+    },
     isMyPost() {
       return this.simplePost?.blogId === store.state.accountStore.blogId;
     },
@@ -90,11 +96,11 @@ export default defineComponent({
 .simple-post-item-container {
   display: grid;
 
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto 1fr 40px;
+  grid-template-columns: auto;
+  grid-template-rows: auto 40px;
 
   width: 100%;
-  aspect-ratio: 10 / 12;
+  aspect-ratio: 10 / 13;
 
   border: 1px solid var(--border-color);
   border-radius: var(--base-border-radius);
@@ -108,7 +114,21 @@ export default defineComponent({
   cursor: pointer;
 }
 
-.simple-post-item-container .thumbnail {
+@media (max-width: 1080px) {
+  .simple-post-item-container {
+    aspect-ratio: auto;
+  }
+}
+
+.main {
+  display: grid;
+
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr auto;
+}
+
+
+.main .thumbnail {
   aspect-ratio: 16 / 9;
   border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
@@ -118,27 +138,59 @@ export default defineComponent({
 
   background-size: cover;
   background: white no-repeat;
+
+  position: relative;
+
+  margin-bottom: 25px;
 }
 
-.simple-post-item-container .title {
-  font-size: 16px;
+.thumbnail .author-profile-image {
+  width: 50px;
+  height: 50px;
+
+  position: absolute;
+
+  margin-left: var(--base-gap);
+  bottom: -25px;
+}
+
+.main .title {
+  font-size: 18px;
   font-weight: 500;
 
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
-  margin: var(--half-base-gab);
+  margin: 10px var(--half-base-gab);
+
+  align-self: start;
 }
 
-.simple-post-item-container .content {
+.main .content {
   font-size: 14px;
-  font-weight: normal;
+  font-weight: 400;
 
   overflow: hidden;
   text-overflow: ellipsis;
 
-  margin: 0 var(--half-base-gab) var(--half-base-gab) var(--half-base-gab)
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  align-self: start;
+
+  margin-left: var(--half-base-gab);
+  margin-right: var(--half-base-gab);
+  margin-bottom: var(--half-base-gab);
+}
+
+.main .counts {
+  font-size: 12px;
+
+  justify-self: right;
+
+  margin-right: var(--half-base-gab);
+  margin-bottom: var(--half-base-gab);
 }
 
 .simple-post-item-container .footer {
@@ -155,10 +207,8 @@ export default defineComponent({
 .footer .footer-content {
   display: grid;
 
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: 1fr auto;
   grid-template-rows: 1fr;
-
-  column-gap: 5px;
 
   font-size: 12px;
   font-weight: normal;
@@ -168,14 +218,11 @@ export default defineComponent({
 }
 
 .footer-content .author {
-  display: grid;
-
-  grid-template-columns: 30px auto;
-  grid-template-rows: auto;
-
-  align-items: center;
-  gap: 5px;
+  cursor: pointer;
 }
 
+.footer-content .author:hover {
+  text-decoration: underline;
+}
 
 </style>

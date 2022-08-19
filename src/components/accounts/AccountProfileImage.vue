@@ -1,5 +1,5 @@
 <template>
-  <div class="account-profile-image-container" @click="moveToBlog">
+  <div class="account-profile-image-container">
     <div class="profile" :style="profileImageUrl"/>
   </div>
 </template>
@@ -10,7 +10,7 @@ import { SimpleAccountDto } from '@/api/models/account.dtos';
 import { serverUrl } from '@/api/common/httpApiClient';
 
 export default defineComponent({
-  name: 'AccountProfileImageButton',
+  name: 'AccountProfileImage',
   props: {
     simpleAccount: Object as PropType<SimpleAccountDto>,
   },
@@ -58,10 +58,6 @@ export default defineComponent({
   background-repeat: no-repeat;
 
   transition: 0.2s;
-}
-
-.profile:hover {
-  box-shadow: 0 0 12px var(--base-shadow-color);
 }
 
 </style>
