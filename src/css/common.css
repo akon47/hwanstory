@@ -96,7 +96,7 @@ h6 {
 }
 
 #app > .header {
-  background: var(--header-background-color);
+  background-color: var(--header-background-color);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -125,7 +125,7 @@ textarea{
 }
 
 button {
-  background: var(--button-color);
+  background-color: var(--button-color);
   padding: 0 10px;
   border-radius: var(--base-border-radius);
   border: none;
@@ -135,8 +135,8 @@ button {
   color: #f0f0f0;
 }
 
-button:hover {
-  background: var(--button-hover-color);
+button:hover:not([disabled]) {
+  background-color: var(--button-hover-color);
   cursor: pointer;
 }
 

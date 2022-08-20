@@ -17,6 +17,7 @@ export default defineComponent({
     postUrl: {
       type: String,
       required: true,
+      default: '',
     },
   },
 });

@@ -4,6 +4,7 @@
       <textarea id="title" v-model="title" placeholder="제목을 입력하세요."/>
       <textarea id="postUrl" v-model="newPostUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)"/>
       <textarea id="content" v-model="content" placeholder="내용을 입력하세요."/>
+<!--      <post-editor id="editor" v-model="content" />-->
     </div>
     <div class="footer">
       <div>
@@ -30,9 +31,11 @@ import { HttpApiError } from '@/api/common/httpApiClient';
 import { createPost, getPost, modifyPost } from '@/api/blog';
 import store from "@/store";
 import { TagDto } from "@/api/models/blog.dtos";
+// import PostEditor from "@/components/posts/PostEditor.vue";
 
 export default defineComponent({
   name: 'WritePostForm',
+  // components: { PostEditor },
   props: {
     postUrl: {
       type: String,
@@ -67,6 +70,9 @@ export default defineComponent({
     }
   },
   methods: {
+    test() {
+      alert('test');
+    },
     async writePost() {
       this.isLoading = true;
       await createPost({
@@ -132,26 +138,19 @@ export default defineComponent({
 .write-form-container {
   display: grid;
 
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 1fr 50px;
 }
 
 .write-form-container .content {
   display: grid;
 
-  grid-template-columns: 650px;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto 1fr;
 
-  justify-content: center;
+  justify-content: stretch;
   row-gap: var(--base-gap);
   padding: var(--base-gap);
-}
-
-@media (max-width: 800px) {
-  .write-form-container .content {
-    grid-template-columns: auto;
-    justify-content: stretch;
-  }
 }
 
 .write-form-container textarea {
@@ -181,10 +180,11 @@ export default defineComponent({
   border-bottom: 1px solid var(--border-color);
   overflow: hidden;
   font-size: 16px;
+  white-space: nowrap;
 }
 
-#content {
-  font-size: 16px;
+#editor {
+
 }
 
 .footer {
