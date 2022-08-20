@@ -2,6 +2,9 @@
   <div class="simple-post-item-container">
     <div class="main" @click="moveToPost">
       <div class="thumbnail" :style="gradient">
+        <div class="thumbnail-title">
+          {{ simplePost.title }}
+        </div>
         <div class="author-profile-image">
           <account-profile-image :simple-account="simplePost.author"/>
         </div>
@@ -120,6 +123,7 @@ export default defineComponent({
 
 
 .main .thumbnail {
+  display: grid;
   aspect-ratio: 16 / 9;
   border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
@@ -143,6 +147,26 @@ export default defineComponent({
 
   margin-left: var(--base-gap);
   bottom: -25px;
+}
+
+.thumbnail-title {
+  font-size: 1.75em;
+  font-weight: bold;
+  color: #e5e5e5;
+  text-shadow: 0 0 12px #000;
+  align-self: center;
+  justify-self: stretch;
+
+  text-align: center;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
+  margin: 0 1em;
 }
 
 .main .title {

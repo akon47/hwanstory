@@ -3,8 +3,8 @@
     <div class="content">
       <textarea id="title" v-model="title" placeholder="제목을 입력하세요."/>
       <textarea id="postUrl" v-model="newPostUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)"/>
-      <textarea id="content" v-model="content" placeholder="내용을 입력하세요."/>
-<!--      <post-editor id="editor" v-model="content" />-->
+<!--      <textarea id="content" v-model="content" placeholder="내용을 입력하세요."/>-->
+      <post-editor id="editor" v-model="content" />
     </div>
     <div class="footer">
       <div>
@@ -31,11 +31,11 @@ import { HttpApiError } from '@/api/common/httpApiClient';
 import { createPost, getPost, modifyPost } from '@/api/blog';
 import store from "@/store";
 import { TagDto } from "@/api/models/blog.dtos";
-// import PostEditor from "@/components/posts/PostEditor.vue";
+import PostEditor from "@/components/posts/PostEditor.vue";
 
 export default defineComponent({
   name: 'WritePostForm',
-  // components: { PostEditor },
+  components: { PostEditor },
   props: {
     postUrl: {
       type: String,

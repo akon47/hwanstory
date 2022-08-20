@@ -3,31 +3,35 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue';
 
-import Editor from "@toast-ui/editor";
-import store from "@/store";
-import { EditorCore } from "@toast-ui/editor/types/editor";
-import Prism from "prismjs"
+import Editor from '@toast-ui/editor';
+import store from '@/store';
+import { EditorCore, HookCallback } from '@toast-ui/editor/types/editor';
+import '@toast-ui/editor/dist/i18n/ko-kr';
+import Prism from 'prismjs';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
+import { uploadImageFile } from '@/api/attachments';
+import { attachmentFileBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
+
+let editor: EditorCore;
 
 export default defineComponent({
-  name: "PostEditor",
+  name: 'PostEditor',
   props: {
-    value: {
-      type: String
+    modelValue: {
+      type: String,
     },
   },
   data() {
     return {
-      editor: {} as EditorCore,
       previewStyle: {} as 'tab' | 'vertical',
-    }
+    };
   },
   computed: {
     isDarkTheme() {
-      return store.getters["accountStore/isDarkTheme"];
+      return store.getters['accountStore/isDarkTheme'];
     },
   },
   watch: {
@@ -36,25 +40,25 @@ export default defineComponent({
         return;
       }
 
-      const element = document.getElementsByClassName("toastui-editor-defaultUI")[0];
-      if (element.classList.contains("toastui-editor-dark")) {
+      const element = document.getElementsByClassName('editor-container')[0];
+      if (element.classList.contains('toastui-editor-dark')) {
         if (!newValue) {
-          element.classList.remove("toastui-editor-dark");
+          element.classList.remove('toastui-editor-dark');
         }
       } else {
         if (newValue) {
-          element.classList.add("toastui-editor-dark");
+          element.classList.add('toastui-editor-dark');
         }
       }
     },
     previewStyle(newValue, preValue) {
-      if (newValue !== preValue && this.editor) {
-        this.editor.changePreviewStyle(newValue);
+      if (newValue !== preValue && editor) {
+        editor.changePreviewStyle(newValue);
       }
     },
-    value(newValue, preValue) {
-      if(newValue !== preValue && newValue !== this.editor.getMarkdown()) {
-        //this.editor.setMarkdown(newValue, true);
+    modelValue(newValue, preValue) {
+      if (newValue !== preValue && newValue !== editor.getMarkdown()) {
+        editor.setMarkdown(newValue, true);
       }
     },
   },
@@ -65,23 +69,33 @@ export default defineComponent({
       } else {
         this.previewStyle = 'vertical';
       }
-    }
+    },
   },
   mounted() {
-    const refEditor = this.$refs["ref-editor"] as HTMLElement;
+    const refEditor = this.$refs['ref-editor'] as HTMLElement;
     this.onEditorSizeChanged(refEditor.getBoundingClientRect());
 
-    this.editor = new Editor({
+    editor = new Editor({
       el: refEditor,
       previewStyle: this.previewStyle,
-      initialValue: this.value,
+      initialValue: this.modelValue,
       height: '100%',
-      theme: this.isDarkTheme ? 'dark' : '',
+      theme: this.isDarkTheme ? 'dark' : 'light',
       placeholder: '내용을 입력하세요.',
-      plugins: [[codeSyntaxHighlight, { highlighter: Prism }], colorSyntax]
+      plugins: [[codeSyntaxHighlight, { highlighter: Prism }], colorSyntax],
+      language: 'ko-KR',
     });
-    this.editor.on('change', () => {
-      this.$emit('input', this.editor.getMarkdown());
+    editor.on('change', () => {
+      this.$emit('update:modelValue', editor.getMarkdown());
+    });
+    editor.addHook('addImageBlobHook', async (blob: Blob | File, callback: HookCallback) => {
+      await uploadImageFile(blob)
+      .then((file) => {
+        callback(`${attachmentFileBaseUrl}${file.url}`, file.fileName ?? 'image');
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
     });
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];

@@ -4,6 +4,7 @@ import DataTransferObject, { ErrorResponseDto } from '@/api/models/common.dtos';
 
 export const serverUrl = 'https://api.kimhwan.kr';
 export const apiBaseUrl = `${serverUrl}/api/`;
+export const attachmentFileBaseUrl = `${apiBaseUrl}v1`;
 
 export interface HttpApiClient {
   getRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, headers?: any): Promise<T>;
@@ -16,7 +17,7 @@ export interface HttpApiClient {
 
   patchRequest<T extends DataTransferObject | void = void>(uri: string, params?: any, requestModel?: DataTransferObject | null, headers?: any): Promise<T>;
 
-  uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, name: string, files: Array<File>, params?: any, headers?: any): Promise<T>;
+  uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, name: string, files: Array<Blob>, params?: any, headers?: any): Promise<T>;
 }
 
 export interface HttpApiError extends Error {
@@ -137,7 +138,7 @@ class AxiosHttpApiClientImpl implements HttpApiClient {
     );
   }
 
-  public uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, name: string, files: Array<File>, params?: any, headers?: any): Promise<T> {
+  public uploadFileRequest<T extends DataTransferObject | void = void>(uri: string, name: string, files: Array<Blob>, params?: any, headers?: any): Promise<T> {
     const form = new FormData();
     files.forEach((file) => form.append(name, file));
     return this.createHttpApiResponse(

@@ -7,7 +7,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { SimpleAccountDto } from '@/api/models/account.dtos';
-import { serverUrl } from '@/api/common/httpApiClient';
+import { attachmentFileBaseUrl } from '@/api/common/httpApiClient';
 
 export default defineComponent({
   name: 'AccountProfileImageButton',
@@ -18,7 +18,7 @@ export default defineComponent({
     profileImageUrl() {
       if (this.simpleAccount?.profileImageUrl) {
         return {
-          backgroundImage: `url(${serverUrl}${this.simpleAccount?.profileImageUrl})`,
+          backgroundImage: `url(${attachmentFileBaseUrl}${this.simpleAccount?.profileImageUrl})`,
         };
       } else {
         return {};

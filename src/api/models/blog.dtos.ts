@@ -84,7 +84,7 @@ export interface CommentDto extends DataTransferObject {
   // 대댓글
   readonly children: Array<SimpleCommentDto>;
   // 댓글이 달려있는 게시글
-  readonly post: PostDto;
+  readonly post: SimplePostDto;
   // 댓글을 단 사용자
   readonly account: SimpleAccountDto;
   // 작성 시간

@@ -17,7 +17,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { getCurrentAccount, setCurrentProfileImage } from '@/api/accounts';
-import { serverUrl, HttpApiError } from '@/api/common/httpApiClient';
+import { HttpApiError, attachmentFileBaseUrl } from '@/api/common/httpApiClient';
 import store from '@/store';
 
 export default defineComponent({
@@ -27,7 +27,7 @@ export default defineComponent({
       const profileImageUrl = store.state.accountStore.profileImageUrl;
       if (profileImageUrl) {
         return {
-          backgroundImage: `url(${serverUrl}${profileImageUrl})`
+          backgroundImage: `url(${attachmentFileBaseUrl}${profileImageUrl})`
         };
       } else {
         return { };

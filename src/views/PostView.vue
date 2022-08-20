@@ -20,7 +20,7 @@
       </div>
     </div>
     <div class="content">
-      {{ post.content }}
+      <post-viewer :content="post.content" />
     </div>
     <div v-if="isLoggedIn" class="write-comment">
       댓글 남기기
@@ -28,7 +28,16 @@
       <button :disabled="!isValidNewComment" @click="writeComment">댓글 작성</button>
     </div>
     <div class="comments">
-      {{ post?.comments?.length ?? 0 }} 개의 댓글
+      <div class="counts">
+        <span>{{ post?.comments?.length ?? 0 }} 개의 댓글</span>
+        <span>&#183;</span>
+        <span>{{ likeCount }} 개의 좋아요</span>
+        <div v-if="isLoggedIn">
+          <button @click="likePost">좋아요 하기</button>
+          <button @click="unlikePost">좋아요 취소</button>
+        </div>
+      </div>
+
       <div class="empty-comment-message" v-if="post?.comments?.length == 0">
         댓글이 없습니다.
       </div>
@@ -48,10 +57,11 @@ import { HttpApiError } from "@/api/common/httpApiClient";
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import store from "@/store";
 import SimpleCommentItem from "@/components/comments/SimpleCommentItem.vue";
+import PostViewer from '@/components/posts/PostViewer.vue';
 
 export default defineComponent({
   name: 'PostView',
-  components: { SimpleCommentItem, AccountProfileImageButton },
+  components: { PostViewer, SimpleCommentItem, AccountProfileImageButton },
   props: {
     blogId: {
       type: String,
@@ -128,8 +138,8 @@ export default defineComponent({
     commentDeleted(commentId: string) {
       this.comments = this.comments.filter((x) => x.id !== commentId);
     },
-    async likePost(blogId: string, postUrl: string) {
-      await likePost(blogId, postUrl)
+    async likePost() {
+      await likePost(this.blogId, this.postUrl)
       .then(async () => {
         this.likeCount++;
       })
@@ -137,8 +147,8 @@ export default defineComponent({
         alert(error.getErrorMessage());
       });
     },
-    async unlikePost(blogId: string, postUrl: string) {
-      await unlikePost(blogId, postUrl)
+    async unlikePost() {
+      await unlikePost(this.blogId, this.postUrl)
       .then(async () => {
         this.likeCount--;
       })
@@ -278,7 +288,24 @@ export default defineComponent({
 .comments {
   padding: 2em 0;
   display: grid;
-  grid-auto-rows: auto;
+  grid-auto-rows: auto;;
+}
+
+.comments .counts {
+  display: grid;
+
+  grid-template-columns: auto auto auto 1fr;
+  grid-template-rows: auto;
+
+  grid-column-gap: 10px;
+  align-items: center;
+
+  min-height: 40px;
+}
+
+.counts button {
+  justify-self: start;
+  margin-right: 10px;
 }
 
 .comments .empty-comment-message {
