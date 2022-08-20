@@ -46,8 +46,9 @@ const router = createRouter({
       path: '/write',
       name: 'Write',
       component: () => import('../views/WriteView.vue'),
+      props: route => ({ postUrl: route.query.post }),
       meta: {
-        title: '새 글 작성'
+        title: '글 작성'
       }
     },
     {

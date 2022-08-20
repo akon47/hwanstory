@@ -58,6 +58,10 @@ export default defineComponent({
 
 <style scoped>
 
+.main-container {
+  min-height: 100vh;
+}
+
 .observer-trigger-enable {
   height: 900px;
   position: relative;

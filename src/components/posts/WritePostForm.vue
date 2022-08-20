@@ -2,7 +2,7 @@
   <div class="write-form-container">
     <div class="content">
       <textarea id="title" v-model="title" placeholder="제목을 입력하세요."/>
-      <textarea id="postUrl" v-model="postUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)"/>
+      <textarea id="postUrl" v-model="newPostUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)"/>
       <textarea id="content" v-model="content" placeholder="내용을 입력하세요."/>
     </div>
     <div class="footer">
@@ -10,8 +10,15 @@
       </div>
       <div>
       </div>
-      <button class="form-button" :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || isLoading" @click="writePost">
+      <button v-if="isNewPost" class="form-button"
+              :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || isLoading"
+              @click="writePost">
         글쓰기
+      </button>
+      <button v-else class="form-button"
+              :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || isLoading"
+              @click="modifyPost">
+        수정하기
       </button>
     </div>
   </div>
@@ -20,15 +27,23 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { HttpApiError } from '@/api/common/httpApiClient';
-import { createPost } from '@/api/blog';
+import { createPost, getPost, modifyPost } from '@/api/blog';
+import store from "@/store";
+import { TagDto } from "@/api/models/blog.dtos";
 
 export default defineComponent({
   name: 'WritePostForm',
+  props: {
+    postUrl: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       title: '',
       content: '',
-      postUrl: '',
+      newPostUrl: '',
       isLoading: false,
     };
   },
@@ -41,8 +56,15 @@ export default defineComponent({
     },
     isPostUrlValid(): boolean {
       const regex = /^[-a-zA-Z\d_]*$/;
-      return regex.test(this.postUrl);
+      return regex.test(this.newPostUrl);
     },
+    isNewPost(): boolean {
+      if (this.postUrl) {
+        return false;
+      } else {
+        return true;
+      }
+    }
   },
   methods: {
     async writePost() {
@@ -50,11 +72,11 @@ export default defineComponent({
       await createPost({
         title: this.title,
         content: this.content,
-        postUrl: this.postUrl,
-        tags: [],
+        postUrl: this.newPostUrl,
+        tags: this.getTags(),
       })
-      .then(() => {
-        this.$router.push('/main');
+      .then((post) => {
+        this.$router.push(`/${post.blogId}/${post.postUrl}`);
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -63,7 +85,45 @@ export default defineComponent({
         this.isLoading = false;
       });
     },
+    async modifyPost() {
+      this.isLoading = true;
+      await modifyPost(this.postUrl, {
+        title: this.title,
+        content: this.content,
+        postUrl: this.newPostUrl,
+        tags: this.getTags(),
+      })
+      .then((post) => {
+        this.$router.push(`/${post.blogId}/${post.postUrl}`);
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.isLoading = false;
+      });
+    },
+    getTags(): Array<TagDto> {
+      return [];
+    },
+    async loadPost() {
+      if (this.postUrl) {
+        await getPost(store.state.accountStore.blogId, this.postUrl)
+        .then((post) => {
+          this.title = post.title;
+          this.newPostUrl = post.postUrl;
+          this.content = post.content;
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+          this.$router.push(`/main`);
+        });
+      }
+    },
   },
+  created() {
+    this.loadPost();
+  }
 });
 </script>
 

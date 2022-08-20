@@ -1,6 +1,12 @@
 import { blogV1 } from './index';
 import DataTransferObject, { SliceDto } from '@/api/models/common.dtos';
-import { BlogDetailsDto, PostDto, PostRequestDto, SimplePostDto } from '@/api/models/blog.dtos';
+import {
+  BlogDetailsDto, CommentDto,
+  CommentRequestDto,
+  PostDto,
+  PostRequestDto,
+  SimplePostDto
+} from '@/api/models/blog.dtos';
 
 // 블로그 정보 조회
 function getBlogDetails(blogId: string) {
@@ -14,7 +20,7 @@ function createPost(postRequestDto: PostRequestDto) {
 
 // 게시글 수정
 function modifyPost(postUrl: string, postRequestDto: PostRequestDto) {
-  return blogV1.putRequest<PostDto>(`/${postUrl}`, null, postRequestDto);
+  return blogV1.putRequest<PostDto>(`/posts/${postUrl}`, null, postRequestDto);
 }
 
 // 게시글 삭제
@@ -43,6 +49,21 @@ function getAllPosts(size: number, cursorId: string | null = null) {
   });
 }
 
+// 댓글 작성
+function createComment(blogId: string, postUrl: string, commentRequestDto: CommentRequestDto) {
+  return blogV1.postRequest<CommentDto>(`/${blogId}/posts/${postUrl}/comments`, null, commentRequestDto);
+}
+
+// 게시글 수정
+function modifyComment(commentId: string, commentRequestDto: CommentRequestDto) {
+  return blogV1.putRequest<CommentDto>(`/comments/${commentId}`, null, commentRequestDto);
+}
+
+// 게시글 삭제
+function deleteComment(commentId: string) {
+  return blogV1.deleteRequest(`/comments/${commentId}`);
+}
+
 // 게시글 좋아요
 function likePost(blogId: string, postUrl: string) {
   return blogV1.postRequest(`/${blogId}/posts/${postUrl}/likes`);
@@ -58,6 +79,9 @@ export {
   createPost,
   modifyPost,
   deletePost,
+  createComment,
+  modifyComment,
+  deleteComment,
   getPost,
   getBlogPosts,
   getAllPosts,

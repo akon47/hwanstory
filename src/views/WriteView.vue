@@ -1,6 +1,6 @@
 <template>
   <div class="write-post-container">
-    <write-post-form></write-post-form>
+    <write-post-form :post-url="postUrl"></write-post-form>
   </div>
 </template>
 
@@ -12,6 +12,12 @@ export default defineComponent({
   name: 'WriteView',
   components: {
     WritePostForm,
+  },
+  props: {
+    postUrl: {
+      type: String,
+      required: true,
+    },
   },
 });
 </script>

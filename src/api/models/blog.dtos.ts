@@ -67,6 +67,30 @@ export interface SimplePostDto extends DataTransferObject {
   readonly createdAt: Date;
 }
 
+// 댓글 작성/수정 Dto
+export interface CommentRequestDto extends DataTransferObject {
+  // 내용
+  readonly content: string;
+}
+
+// 댓글 Dto
+export interface CommentDto extends DataTransferObject {
+  // 댓글 Id
+  readonly id: string;
+  // 내용
+  readonly content: string;
+  // 부모 댓글 Id
+  readonly parentId: string;
+  // 대댓글
+  readonly children: Array<SimpleCommentDto>;
+  // 댓글이 달려있는 게시글
+  readonly post: PostDto;
+  // 댓글을 단 사용자
+  readonly account: SimpleAccountDto;
+  // 작성 시간
+  readonly createdAt: Date;
+}
+
 // 댓글 리스트 조회용 Dto
 export interface SimpleCommentDto extends DataTransferObject {
   // 댓글 Id
@@ -79,6 +103,8 @@ export interface SimpleCommentDto extends DataTransferObject {
   readonly childrenCount: number;
   // 댓글을 단 사용자
   readonly account: SimpleAccountDto;
+  // 작성 시간
+  readonly createdAt: Date;
 }
 
 // 태그 Dto

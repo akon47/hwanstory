@@ -34,7 +34,6 @@
 <script lang="ts">
 import { SimplePostDto } from '@/api/models/blog.dtos';
 import { defineComponent, PropType } from 'vue';
-import store from '@/store';
 import AccountProfileImage from '@/components/accounts/AccountProfileImage.vue';
 import dayjs from 'dayjs';
 
@@ -44,17 +43,9 @@ export default defineComponent({
   props: {
     simplePost: Object as PropType<SimplePostDto>,
   },
-  data() {
-    return {
-      likeCount: 0,
-    };
-  },
   computed: {
     createdAt() {
       return dayjs(this.simplePost?.createdAt).format('YYYY.MM.DD hh:mm');
-    },
-    isMyPost() {
-      return this.simplePost?.blogId === store.state.accountStore.blogId;
     },
     gradient() {
       let date = new Date(this.simplePost?.createdAt ?? 0).getTime() ?? 1;
