@@ -122,14 +122,16 @@ export default defineComponent({
         this.$router.push(`/main`);
       });
 
-      await isLikePost(this.blogId, this.postUrl)
-      .then((isLike) => {
-        this.isLike = isLike;
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-        this.$router.push(`/main`);
-      });
+      if(this.isLoggedIn) {
+        await isLikePost(this.blogId, this.postUrl)
+        .then((isLike) => {
+          this.isLike = isLike;
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+          this.$router.push(`/main`);
+        });
+      }
     },
     async writeComment() {
       await createComment(this.blogId, this.postUrl, {
