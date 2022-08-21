@@ -149,7 +149,6 @@ export default defineComponent({
   grid-template-rows: auto auto 1fr;
 
   justify-content: stretch;
-  row-gap: var(--base-gap);
   padding: var(--base-gap);
 }
 
@@ -167,20 +166,22 @@ export default defineComponent({
   font-size: 30px;
   font-weight: bold;
   line-height: 40px;
-  height: 42px;
+  height: 45px;
   overflow: hidden;
 
-  padding-bottom: var(--base-gap);
   border-bottom: 2px solid var(--border-color);
 }
 
 #postUrl {
-  line-height: 10px;
-  padding-bottom: var(--half-base-gab);
+  line-height: 28px;
+
   border-bottom: 1px solid var(--border-color);
   overflow: hidden;
   font-size: 16px;
   white-space: nowrap;
+  height: 28px;
+
+  margin-bottom: var(--base-gap);
 }
 
 #editor {

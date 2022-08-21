@@ -1,5 +1,5 @@
 <template>
-  <div class="editor-container" ref="ref-editor"/>
+  <div class="editor-container" :class="{ 'toastui-editor-dark': isDarkTheme }" ref="ref-editor"/>
 </template>
 
 <script lang="ts">
@@ -35,22 +35,6 @@ export default defineComponent({
     },
   },
   watch: {
-    isDarkTheme(newValue, preValue) {
-      if (newValue === preValue) {
-        return;
-      }
-
-      const element = document.getElementsByClassName('editor-container')[0];
-      if (element.classList.contains('toastui-editor-dark')) {
-        if (!newValue) {
-          element.classList.remove('toastui-editor-dark');
-        }
-      } else {
-        if (newValue) {
-          element.classList.add('toastui-editor-dark');
-        }
-      }
-    },
     previewStyle(newValue, preValue) {
       if (newValue !== preValue && editor) {
         editor.changePreviewStyle(newValue);
@@ -80,7 +64,6 @@ export default defineComponent({
       previewStyle: this.previewStyle,
       initialValue: this.modelValue,
       height: '100%',
-      theme: this.isDarkTheme ? 'dark' : 'light',
       placeholder: '내용을 입력하세요.',
       plugins: [[codeSyntaxHighlight, { highlighter: Prism }], colorSyntax],
       language: 'ko-KR',
@@ -112,13 +95,10 @@ export default defineComponent({
 
 @import '@toast-ui/editor/dist/toastui-editor.css';
 @import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
+@import '@/css/toastui-editor-common.css';
 @import 'prismjs/themes/prism.css';
 @import '@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight.css';
 @import 'tui-color-picker/dist/tui-color-picker.css';
 @import '@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css';
-
-.editor-container {
-  max-width: 100%;
-}
 
 </style>

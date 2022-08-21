@@ -1,5 +1,5 @@
 <template>
-  <div class="viewer-container" ref="ref-viewer"/>
+  <div class="viewer-container" :class="{ 'toastui-editor-dark': isDarkTheme }" ref="ref-viewer"/>
 </template>
 
 <script lang="ts">
@@ -27,22 +27,6 @@ export default defineComponent({
     },
   },
   watch: {
-    isDarkTheme(newValue, preValue) {
-      if (newValue === preValue) {
-        return;
-      }
-
-      const element = document.getElementsByClassName('viewer-container')[0];
-      if (element.classList.contains('toastui-editor-dark')) {
-        if (!newValue) {
-          element.classList.remove('toastui-editor-dark');
-        }
-      } else {
-        if (newValue) {
-          element.classList.add('toastui-editor-dark');
-        }
-      }
-    },
     content(newValue, preValue) {
       if (newValue !== preValue) {
         viewer.setMarkdown(newValue);
@@ -55,7 +39,6 @@ export default defineComponent({
     viewer = Editor.factory({
       el: refViewer,
       initialValue: this.content,
-      theme: this.isDarkTheme ? 'dark' : 'light',
       plugins: [[codeSyntaxHighlight, { highlighter: Prism }], colorSyntax],
       viewer: true,
     });
@@ -67,13 +50,10 @@ export default defineComponent({
 
 @import '@toast-ui/editor/dist/toastui-editor.css';
 @import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
+@import '@/css/toastui-editor-common.css';
 @import 'prismjs/themes/prism.css';
 @import '@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight.css';
 @import 'tui-color-picker/dist/tui-color-picker.css';
 @import '@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css';
-
-.editor-container {
-  max-width: 100%;
-}
 
 </style>

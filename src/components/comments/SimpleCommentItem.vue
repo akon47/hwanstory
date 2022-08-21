@@ -1,9 +1,9 @@
 <template>
   <div class="comment-item-container">
     <div class="author">
-      <account-profile-image-button class="profile-image" :simple-account="simpleComment.account"/>
+      <account-profile-image-button class="profile-image" :simple-account="simpleComment.author"/>
       <div class="name">
-        {{ simpleComment.account?.name }}
+        {{ simpleComment.author?.name }}
       </div>
       <div class="created-at">
         {{ longCreatedAt }}
@@ -53,7 +53,7 @@ export default defineComponent({
       return dayjs(this.simpleComment?.createdAt).format('YYYY.MM.DD hh:mm');
     },
     isMyComment() {
-      return this.simpleComment?.account.blogId === store.state.accountStore.blogId;
+      return this.simpleComment?.author.blogId === store.state.accountStore.blogId;
     }
   },
   methods: {
@@ -79,7 +79,7 @@ export default defineComponent({
       });
     },
     async deleteComment() {
-      if (!this.simpleComment?.id || confirm('댓글을 삭제하시겠습니까?') != true) {
+      if (!this.simpleComment?.id || !confirm('댓글을 삭제하시겠습니까?')) {
         return;
       }
       const id = this.simpleComment.id;

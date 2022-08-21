@@ -202,7 +202,7 @@ export default defineComponent({
 }
 
 .title {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 6px double var(--border-color);
   padding-bottom: 1em;
 }
 
@@ -257,7 +257,7 @@ export default defineComponent({
 }
 
 .content {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 6px double var(--border-color);
   padding: 2em 0;
   min-height: 400px;
 }

@@ -53,8 +53,8 @@ export interface SimplePostDto extends DataTransferObject {
   readonly postUrl: string;
   // 제목
   readonly title: string;
-  // 내용
-  readonly content: string;
+  // 요약 내용
+  readonly summary: string;
   // 작성자
   readonly author: SimpleAccountDto;
   // 태그
@@ -86,7 +86,7 @@ export interface CommentDto extends DataTransferObject {
   // 댓글이 달려있는 게시글
   readonly post: SimplePostDto;
   // 댓글을 단 사용자
-  readonly account: SimpleAccountDto;
+  readonly author: SimpleAccountDto;
   // 작성 시간
   readonly createdAt: Date;
 }
@@ -102,7 +102,7 @@ export interface SimpleCommentDto extends DataTransferObject {
   // 대댓글 개수
   readonly childrenCount: number;
   // 댓글을 단 사용자
-  readonly account: SimpleAccountDto;
+  readonly author: SimpleAccountDto;
   // 작성 시간
   readonly createdAt: Date;
 }

@@ -13,7 +13,7 @@
         {{ simplePost.title }}
       </div>
       <div class="content">
-        {{ simplePost.content }}
+        {{ simplePost.summary }}
       </div>
       <div class="counts">
         {{ simplePost.likeCount }} 개의 좋아요

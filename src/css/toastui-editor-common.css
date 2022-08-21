@@ -1,0 +1,36 @@
+.toastui-editor-contents h1, h2 {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.toastui-editor-contents h1 {
+    font-size: 32px !important;
+    padding-bottom: 10px;
+}
+
+.toastui-editor-contents h2 {
+    font-size: 24px !important;
+}
+
+.toastui-editor-contents h3 {
+    font-size: 20px !important;
+}
+
+.toastui-editor-contents h4 {
+    font-size: 16px !important;
+}
+
+.toastui-editor-contents h5 {
+    font-size: 14px !important;
+}
+
+.toastui-editor-contents h6 {
+    font-size: 12px !important;
+}
+
+.toastui-editor-dark .toastui-editor-contents ul > li::before {
+    background-color: #fff;
+}
+
+.toastui-editor-contents ul > li::before {
+    background-color: #222;
+}
