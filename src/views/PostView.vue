@@ -302,7 +302,7 @@ export default defineComponent({
 .comments {
   padding: 2em 0;
   display: grid;
-  grid-auto-rows: auto;;
+  grid-auto-rows: auto;
 }
 
 .comments .counts {

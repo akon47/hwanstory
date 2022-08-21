@@ -55,6 +55,16 @@ function createComment(blogId: string, postUrl: string, commentRequestDto: Comme
   return blogV1.postRequest<CommentDto>(`/${blogId}/posts/${postUrl}/comments`, null, commentRequestDto);
 }
 
+// 댓글 조회
+function getComment(commentId: string) {
+  return blogV1.getRequest<CommentDto>(`/comments/${commentId}`);
+}
+
+// 대댓글 작성
+function createCommentToComment(commentId: string, commentRequestDto: CommentRequestDto) {
+  return blogV1.postRequest<CommentDto>(`/comments/${commentId}`, null, commentRequestDto);
+}
+
 // 게시글 수정
 function modifyComment(commentId: string, commentRequestDto: CommentRequestDto) {
   return blogV1.putRequest<CommentDto>(`/comments/${commentId}`, null, commentRequestDto);
@@ -100,6 +110,8 @@ export {
   createComment,
   modifyComment,
   deleteComment,
+  getComment,
+  createCommentToComment,
   getPost,
   getBlogPosts,
   getAllPosts,

@@ -17,23 +17,42 @@
     <div class="content">
       {{ content }}
     </div>
-    <div class="reply">
-      <button @click="writeComment">댓글 작성</button>
+    <div v-if="!simpleComment.parentId" class="footer">
+      <button class="toggle-nested-replies" @click="toggleNestedReplies">
+        {{ simpleComment.childrenCount }}
+        개의 대댓글
+        <span v-if="isNestedCommentsOpened">숨기기</span>
+        <span v-else>보기</span>
+      </button>
+      <div v-if="isNestedCommentsOpened" class="nested-comments-container">
+        <div class="line" />
+        <div class="nested-comments">
+          <div v-if="isLoggedIn" class="write-comment">
+            댓글 남기기
+            <textarea v-model="newComment" placeholder="대댓글 내용을 입력하세요." />
+            <button :disabled="!isValidNewComment" @click="writeComment">대댓글 작성</button>
+          </div>
+          <simple-comment-item
+              v-for="comment in nestedComments" :key="comment.id"
+              :simple-comment="comment"
+              @deleted="commentDeleted" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import { SimpleCommentDto } from "@/api/models/blog.dtos";
-import AccountProfileImageButton from "@/components/accounts/AccountProfileImageButton.vue";
-import dayjs from "dayjs";
-import store from "@/store";
-import { deleteComment, modifyComment } from "@/api/blog";
-import { HttpApiError } from "@/api/common/httpApiClient";
+import { defineComponent, PropType } from 'vue';
+import { SimpleCommentDto } from '@/api/models/blog.dtos';
+import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
+import dayjs from 'dayjs';
+import store from '@/store';
+import { createCommentToComment, deleteComment, getComment, modifyComment } from '@/api/blog';
+import { HttpApiError } from '@/api/common/httpApiClient';
 
 export default defineComponent({
-  name: "SimpleCommentItem",
+  name: 'SimpleCommentItem',
   components: { AccountProfileImageButton },
   props: {
     simpleComment: Object as PropType<SimpleCommentDto>,
@@ -41,7 +60,11 @@ export default defineComponent({
   data() {
     return {
       content: '',
-    }
+      newComment: '',
+      isNestedCommentsOpened: false,
+      nestedComments: {} as Array<SimpleCommentDto>,
+      isNestedCommentsLoaded: false,
+    };
   },
   watch: {
     simpleComment() {
@@ -52,9 +75,15 @@ export default defineComponent({
     longCreatedAt() {
       return dayjs(this.simpleComment?.createdAt).format('YYYY.MM.DD H:mm');
     },
+    isValidNewComment() {
+      return this.newComment.length > 0;
+    },
     isMyComment() {
       return this.simpleComment?.author.blogId === store.state.accountStore.blogId;
-    }
+    },
+    isLoggedIn(): boolean {
+      return store.getters['accountStore/isLoggedIn'] ?? false;
+    },
   },
   methods: {
     async modifyComment() {
@@ -62,16 +91,16 @@ export default defineComponent({
         return;
       }
       const id = this.simpleComment.id;
-      const newContent = prompt("수정할 내용", this.simpleComment.content);
+      const newContent = prompt('수정할 내용', this.simpleComment.content);
       if (!newContent) {
         return;
       }
 
       await modifyComment(id, {
-        content: newContent
+        content: newContent,
       })
       .then((comment) => {
-        alert("댓글을 수정했습니다.");
+        alert('댓글을 수정했습니다.');
         this.content = comment.content;
       })
       .catch((error: HttpApiError) => {
@@ -85,7 +114,7 @@ export default defineComponent({
       const id = this.simpleComment.id;
       await deleteComment(id)
       .then(() => {
-        alert("댓글을 삭제했습니다.");
+        alert('댓글을 삭제했습니다.');
         this.$emit('deleted', id);
       })
       .catch((error: HttpApiError) => {
@@ -93,7 +122,43 @@ export default defineComponent({
       });
     },
     async writeComment() {
-      alert('not implemented yet!');
+      if(!this.simpleComment?.id) {
+        return;
+      }
+
+      await createCommentToComment(this.simpleComment.id, {
+        content: this.newComment,
+      })
+      .then((comment) => {
+        this.newComment = '';
+        this.nestedComments.push(Object.assign(comment, {
+          childrenCount: comment.children.length
+        }));
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
+    },
+    async toggleNestedReplies() {
+      if(!this.simpleComment?.id) {
+        return;
+      }
+
+      this.isNestedCommentsOpened = !this.isNestedCommentsOpened;
+      if(this.isNestedCommentsOpened && !this.isNestedCommentsLoaded) {
+        await getComment(this.simpleComment.id)
+        .then((comment) => {
+          this.nestedComments = comment.children;
+          this.isNestedCommentsLoaded = true;
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+          this.isNestedCommentsOpened = !this.isNestedCommentsOpened;
+        });
+      }
+    },
+    commentDeleted(commentId: string) {
+      this.nestedComments = this.nestedComments.filter((x) => x.id !== commentId);
     },
   },
   created() {
@@ -124,7 +189,50 @@ export default defineComponent({
   padding: 1em 0;
 }
 
-.comment-item-container .reply {
+.comment-item-container .footer {
+  display: grid;
+
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+}
+
+.footer .toggle-nested-replies {
+  justify-self: start;
+}
+
+.footer .nested-comments-container {
+  display: grid;
+
+  grid-template-columns: auto 1fr;
+  grid-auto-rows: auto;
+}
+
+.nested-comments-container .line {
+  width: 5px;
+  background-color: var(--border-color);
+  margin: 20px 10px 0 10px;
+}
+
+.write-comment {
+  padding: 1em 0;
+  display: grid;
+
+  grid-auto-rows: auto;
+  grid-row-gap: 0.5em;
+}
+
+.write-comment textarea {
+  font-size: 14px;
+  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: var(--base-border-radius);
+  border: 1px solid var(--border-color);
+  resize: none;
+  outline: none;
+}
+
+.write-comment button {
   justify-self: end;
 }
 
