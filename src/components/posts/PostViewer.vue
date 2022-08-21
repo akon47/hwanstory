@@ -39,6 +39,7 @@ export default defineComponent({
     viewer = Editor.factory({
       el: refViewer,
       initialValue: this.content,
+      extendedAutolinks: true,
       plugins: [[codeSyntaxHighlight, { highlighter: Prism }], colorSyntax],
       viewer: true,
     });
