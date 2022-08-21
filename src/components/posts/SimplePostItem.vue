@@ -1,8 +1,8 @@
 <template>
   <div class="simple-post-item-container">
     <div class="main" @click="moveToPost">
-      <div class="thumbnail" :style="gradient">
-        <div class="thumbnail-title">
+      <div class="thumbnail" :style="thumbnailStyle">
+        <div v-if="!simplePost.thumbnailImageUrl" class="thumbnail-title">
           {{ simplePost.title }}
         </div>
         <div class="author-profile-image">
@@ -39,6 +39,7 @@ import { SimplePostDto } from '@/api/models/blog.dtos';
 import { defineComponent, PropType } from 'vue';
 import AccountProfileImage from '@/components/accounts/AccountProfileImage.vue';
 import dayjs from 'dayjs';
+import { attachmentFileBaseUrl } from '@/api/common/httpApiClient';
 
 export default defineComponent({
   name: 'SimplePostItem',
@@ -48,16 +49,25 @@ export default defineComponent({
   },
   computed: {
     createdAt() {
-      return dayjs(this.simplePost?.createdAt).format('YYYY.MM.DD hh:mm');
+      return dayjs(this.simplePost?.createdAt).format('YYYY.MM.DD H:mm');
     },
-    gradient() {
+    thumbnailStyle() {
+      if(this.simplePost?.thumbnailImageUrl) {
+        return {
+          backgroundImage: `url(${attachmentFileBaseUrl}${this.simplePost?.thumbnailImageUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        };
+      }
+
       let date = new Date(this.simplePost?.createdAt ?? 0).getTime() ?? 1;
       const random = () => {
         const x = Math.sin(date++) * 10000;
         return x - Math.floor(x);
       };
 
-      const direction = Math.round(Math.random() * 360); //To output a volue between 0 and 360 in degrees to be given to the linear-gradient.
+      const direction = Math.round(random() * 360); //To output a volue between 0 and 360 in degrees to be given to the linear-gradient.
 
       const r1 = Math.round(random() * 255);
       const g1 = Math.round(random() * 255);

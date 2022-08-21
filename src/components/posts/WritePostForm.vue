@@ -3,8 +3,7 @@
     <div class="content">
       <textarea id="title" v-model="title" placeholder="제목을 입력하세요."/>
       <textarea id="postUrl" v-model="newPostUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)"/>
-<!--      <textarea id="content" v-model="content" placeholder="내용을 입력하세요."/>-->
-      <post-editor id="editor" v-model="content" />
+      <post-editor id="editor" v-model="content"/>
     </div>
     <div class="footer">
       <div>
@@ -29,9 +28,10 @@
 import { defineComponent } from 'vue';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import { createPost, getPost, modifyPost } from '@/api/blog';
-import store from "@/store";
-import { TagDto } from "@/api/models/blog.dtos";
-import PostEditor from "@/components/posts/PostEditor.vue";
+import store from '@/store';
+import { TagDto } from '@/api/models/blog.dtos';
+import PostEditor from '@/components/posts/PostEditor.vue';
+import { uploadImageFileFromUrl } from '@/api/attachments';
 
 export default defineComponent({
   name: 'WritePostForm',
@@ -67,18 +67,16 @@ export default defineComponent({
       } else {
         return true;
       }
-    }
+    },
   },
   methods: {
-    test() {
-      alert('test');
-    },
     async writePost() {
       this.isLoading = true;
       await createPost({
         title: this.title,
         content: this.content,
         postUrl: this.newPostUrl,
+        thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.getTags(),
       })
       .then((post) => {
@@ -97,6 +95,7 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         postUrl: this.newPostUrl,
+        thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.getTags(),
       })
       .then((post) => {
@@ -126,10 +125,24 @@ export default defineComponent({
         });
       }
     },
+    async getThumbnailFileId() {
+      const urls = /!\[.*?\]\((.*?)\)/.exec(this.content);
+      if (urls) {
+        const imageUrl = new URL(urls[1]);
+        console.log(imageUrl);
+        return await uploadImageFileFromUrl(imageUrl)
+        .then((file) => {
+          return file.id;
+        })
+        .catch(() => {
+          return undefined;
+        });
+      }
+    },
   },
   created() {
     this.loadPost();
-  }
+  },
 });
 </script>
 

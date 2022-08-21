@@ -50,7 +50,7 @@ export default defineComponent({
   },
   computed: {
     longCreatedAt() {
-      return dayjs(this.simpleComment?.createdAt).format('YYYY.MM.DD hh:mm');
+      return dayjs(this.simpleComment?.createdAt).format('YYYY.MM.DD H:mm');
     },
     isMyComment() {
       return this.simpleComment?.author.blogId === store.state.accountStore.blogId;

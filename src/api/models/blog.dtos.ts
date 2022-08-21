@@ -15,6 +15,10 @@ export interface PostRequestDto extends DataTransferObject {
   readonly title: string;
   // 내용
   readonly content: string;
+  // 요약 내용
+  readonly summary?: string;
+  // 썸네일 이미지 파일 Id
+  readonly thumbnailFileId?: string;
   // 태그
   readonly tags: Array<TagDto>;
 }
@@ -31,6 +35,10 @@ export interface PostDto extends DataTransferObject {
   readonly title: string;
   // 내용
   readonly content: string;
+  // 요약 내용
+  readonly summary?: string;
+  // 썸네일 이미지 URL
+  readonly thumbnailImageUrl?: string;
   // 작성자
   readonly author: SimpleAccountDto;
   // 태그
@@ -55,6 +63,8 @@ export interface SimplePostDto extends DataTransferObject {
   readonly title: string;
   // 요약 내용
   readonly summary: string;
+  // 썸네일 이미지 URL
+  readonly thumbnailImageUrl: string;
   // 작성자
   readonly author: SimpleAccountDto;
   // 태그

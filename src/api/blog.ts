@@ -7,6 +7,7 @@ import {
   PostRequestDto,
   SimplePostDto
 } from '@/api/models/blog.dtos';
+import { HttpApiError } from '@/api/common/httpApiClient';
 
 // 블로그 정보 조회
 function getBlogDetails(blogId: string) {
@@ -74,6 +75,23 @@ function unlikePost(blogId: string, postUrl: string) {
   return blogV1.deleteRequest(`/${blogId}/posts/${postUrl}/likes`);
 }
 
+// 게시글 좋아요 여부
+function isLikePost(blogId: string, postUrl: string): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    blogV1.getRequest(`/${blogId}/posts/${postUrl}/likes`)
+    .then(() => {
+      resolve(true);
+    })
+    .catch((error: HttpApiError) => {
+      if(error.isNotFound()) {
+        resolve(false);
+      } else {
+        reject(error);
+      }
+    });
+  });
+}
+
 export {
   getBlogDetails,
   createPost,
@@ -86,5 +104,6 @@ export {
   getBlogPosts,
   getAllPosts,
   likePost,
-  unlikePost
+  unlikePost,
+  isLikePost,
 };

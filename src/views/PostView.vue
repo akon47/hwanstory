@@ -33,8 +33,8 @@
         <span>&#183;</span>
         <span>{{ likeCount }} 개의 좋아요</span>
         <div v-if="isLoggedIn">
-          <button @click="likePost">좋아요 하기</button>
-          <button @click="unlikePost">좋아요 취소</button>
+          <button v-if="!this.isLike" @click="likePost">좋아요 하기</button>
+          <button v-else @click="unlikePost">좋아요 취소</button>
         </div>
       </div>
 
@@ -52,7 +52,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { PostDto, SimpleCommentDto } from "@/api/models/blog.dtos";
-import { createComment, deletePost, getPost, likePost, unlikePost } from '@/api/blog';
+import { createComment, deletePost, getPost, isLikePost, likePost, unlikePost } from '@/api/blog';
 import { HttpApiError } from "@/api/common/httpApiClient";
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import store from "@/store";
@@ -77,6 +77,7 @@ export default defineComponent({
       post: {} as PostDto,
       comments: {} as Array<SimpleCommentDto>,
       likeCount: 0,
+      isLike: false,
       newComment: '',
     };
   },
@@ -120,6 +121,15 @@ export default defineComponent({
         alert(error.getErrorMessage());
         this.$router.push(`/main`);
       });
+
+      await isLikePost(this.blogId, this.postUrl)
+      .then((isLike) => {
+        this.isLike = isLike;
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+        this.$router.push(`/main`);
+      });
     },
     async writeComment() {
       await createComment(this.blogId, this.postUrl, {
@@ -142,6 +152,7 @@ export default defineComponent({
       await likePost(this.blogId, this.postUrl)
       .then(async () => {
         this.likeCount++;
+        this.isLike = true;
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -151,6 +162,7 @@ export default defineComponent({
       await unlikePost(this.blogId, this.postUrl)
       .then(async () => {
         this.likeCount--;
+        this.isLike = false;
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
