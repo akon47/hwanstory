@@ -41,11 +41,11 @@
     background-color: #222;
 }
 
-.toastui-editor-dark .toastui-editor-contents code {
+.toastui-editor-dark .toastui-editor-contents :not(pre) code {
     color: darkorange !important;
 }
 
-.toastui-editor-contents code {
+.toastui-editor-contents :not(pre) code {
     padding: 0.2em 0.4em !important;
     font-size: 85% !important;
     border-radius: 4px !important;
