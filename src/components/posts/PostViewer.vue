@@ -4,13 +4,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-
 import Editor, { Viewer } from '@toast-ui/editor';
 import store from '@/store';
 import '@toast-ui/editor/dist/i18n/ko-kr';
-import Prism from 'prismjs';
-import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
+
+const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight-all');
 
 let viewer: Viewer;
 
@@ -40,7 +39,7 @@ export default defineComponent({
       el: refViewer,
       initialValue: this.content,
       extendedAutolinks: true,
-      plugins: [[codeSyntaxHighlight, { highlighter: Prism }], colorSyntax],
+      plugins: [codeSyntaxHighlight, colorSyntax],
       viewer: true,
     });
   },

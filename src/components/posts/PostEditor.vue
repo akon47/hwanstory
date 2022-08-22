@@ -9,11 +9,11 @@ import Editor from '@toast-ui/editor';
 import store from '@/store';
 import { EditorCore, HookCallback } from '@toast-ui/editor/types/editor';
 import '@toast-ui/editor/dist/i18n/ko-kr';
-import Prism from 'prismjs';
-import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { uploadImageFile } from '@/api/attachments';
 import { attachmentFileBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
+
+const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight-all');
 
 let editor: EditorCore;
 
@@ -66,7 +66,7 @@ export default defineComponent({
       extendedAutolinks: true,
       height: '100%',
       placeholder: '내용을 입력하세요.',
-      plugins: [[codeSyntaxHighlight, { highlighter: Prism }], colorSyntax],
+      plugins: [codeSyntaxHighlight, colorSyntax],
       language: 'ko-KR',
     });
     editor.on('change', () => {

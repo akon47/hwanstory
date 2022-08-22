@@ -11,7 +11,6 @@
     "@toast-ui/editor": "^3.2.0",
     "@toast-ui/editor-plugin-code-syntax-highlight": "^3.1.0",
     "@toast-ui/editor-plugin-color-syntax": "^3.1.0",
-    "@types/prismjs": "^1.26.0",
     "axios": "^0.27.2",
     "core-js": "^3.8.3",
     "dayjs": "^1.11.5",
