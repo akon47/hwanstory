@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory, NavigationGuardWithThis } from 'vue-router';
 import store from '@/store';
-import { nextTick } from "vue";
+import { nextTick } from 'vue';
 
 // beforeEnter에 사용하여 로그인이 되어 있으면 메인 화면으로 보내는 함수
 const routeToMainWhenIsLoggedIn: NavigationGuardWithThis<undefined> = (to, from, next) => {
@@ -30,8 +30,8 @@ const router = createRouter({
       component: () => import('../views/SignupView.vue'),
       beforeEnter: routeToMainWhenIsLoggedIn,
       meta: {
-        title: '회원가입'
-      }
+        title: '회원가입',
+      },
     },
     {
       path: '/signin',
@@ -39,8 +39,8 @@ const router = createRouter({
       component: () => import('../views/SigninView.vue'),
       beforeEnter: routeToMainWhenIsLoggedIn,
       meta: {
-        title: '로그인'
-      }
+        title: '로그인',
+      },
     },
     {
       path: '/write',
@@ -48,16 +48,35 @@ const router = createRouter({
       component: () => import('../views/WriteView.vue'),
       props: route => ({ postUrl: route.query.post }),
       meta: {
-        title: '글 작성'
-      }
+        title: '글 작성',
+      },
     },
     {
       path: '/:blogId',
       component: () => import('../views/BlogView.vue'),
       props: true,
+      children: [
+        {
+          path: '',
+          component: () => import('@/components/posts/PostLoader.vue'),
+          props: (route) => ({
+            blogId: route.params.blogId,
+            postUrl: 'about-me',
+            defaultContent: '#### 소개 게시글이 존재하지 않습니다.',
+          }),
+        },
+        {
+          path: 'posts',
+          component: () => import('../views/NotFoundView.vue'),
+        },
+        {
+          path: 'likes',
+          component: () => import('../views/NotFoundView.vue'),
+        },
+      ],
     },
     {
-      path: '/:blogId/:postUrl',
+      path: '/:blogId/posts/:postUrl',
       component: () => import('../views/PostView.vue'),
       props: true,
     },

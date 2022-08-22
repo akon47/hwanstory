@@ -57,7 +57,7 @@ class AxiosHttpApiErrorImpl implements HttpApiError {
   public message: string;
   public name: string;
 
-  private config: AxiosRequestConfig;
+  private readonly config: AxiosRequestConfig;
 
   public constructor(error: AxiosError<ErrorResponseDto>) {
     this.statusCode = error.response?.status;

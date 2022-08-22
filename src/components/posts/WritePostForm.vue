@@ -80,7 +80,7 @@ export default defineComponent({
         tags: this.getTags(),
       })
       .then((post) => {
-        this.$router.push(`/${post.blogId}/${post.postUrl}`);
+        this.$router.push(`/${post.blogId}/posts/${post.postUrl}`);
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -99,7 +99,7 @@ export default defineComponent({
         tags: this.getTags(),
       })
       .then((post) => {
-        this.$router.push(`/${post.blogId}/${post.postUrl}`);
+        this.$router.push(`/${post.blogId}/posts/${post.postUrl}`);
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());

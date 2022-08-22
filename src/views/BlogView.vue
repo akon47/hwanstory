@@ -2,7 +2,7 @@
   <div class="blog-simple-post-container">
     <div class="profile-container">
       <div class="profile-image">
-        <account-profile-image-button :simple-account="blogOwner" />
+        <account-profile-image-button :simple-account="blogOwner"/>
       </div>
       <div class="bio">
         <div class="name">
@@ -16,18 +16,29 @@
         </div>
       </div>
     </div>
-    <div>
-
+    <div class="blog-tabs-container">
+      <div class="tabs">
+        <router-link :to="{path: `/${blogId}`}">
+          소개
+        </router-link>
+        <router-link :to="{path: `/${blogId}/posts`}">
+          게시글
+        </router-link>
+        <router-link :to="{path: `/${blogId}/likes`}">
+          좋아요 한 글
+        </router-link>
+      </div>
+      <router-view/>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { SimplePostDto } from "@/api/models/blog.dtos";
+import { defineComponent } from 'vue';
+import { SimplePostDto } from '@/api/models/blog.dtos';
 import { getBlogDetails, getBlogPosts } from '@/api/blog';
-import { HttpApiError } from "@/api/common/httpApiClient";
-import { AccountDto } from "@/api/models/account.dtos";
+import { HttpApiError } from '@/api/common/httpApiClient';
+import { AccountDto } from '@/api/models/account.dtos';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 
 export default defineComponent({
@@ -91,7 +102,7 @@ export default defineComponent({
   },
   created() {
     this.loadBlog();
-  }
+  },
 });
 </script>
 
@@ -101,10 +112,12 @@ export default defineComponent({
   display: grid;
 
   grid-template-columns: 650px;
-  grid-auto-rows: auto;
+  grid-template-rows: auto 1fr;
 
   justify-content: center;
   padding: var(--base-gap);
+
+  box-sizing: border-box;
 }
 
 @media (max-width: 800px) {
@@ -151,6 +164,41 @@ export default defineComponent({
 .bio .content {
   font-size: 1em;
   margin-top: 1em;;
+}
+
+.blog-tabs-container {
+
+}
+
+.tabs {
+  border-bottom: 1px solid var(--border-color);
+
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto;
+}
+
+.tabs a {
+  color: var(--base-color);
+  box-sizing: border-box;
+  text-align: center;
+  align-self: stretch;
+  padding: 15px;
+  border-bottom: 4px solid transparent;
+
+  transition: 0.2s;
+}
+
+.tabs a:hover {
+  background-color: var(--border-color);
+  text-decoration: none;
+}
+
+.tabs a.router-link-exact-active {
+  font-weight: bold;
+  background-color: var(--border-color);
+  border-bottom: 4px solid var(--button-color);
 }
 
 </style>

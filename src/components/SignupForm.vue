@@ -1,7 +1,7 @@
 <template>
   <div class="form-container">
     <div class="form-wrapper">
-      <img class="logo" src="@/assets/logo-title.svg" />
+      <img class="logo" src="@/assets/logo-title.svg"/>
       <div>
         <input :class="{'invalid': name && !isNameValid}"
                type="text" id="name" v-model="name" placeholder="이름"/>
@@ -17,7 +17,7 @@
       </div>
       <div>
         <input :class="{'invalid': blogId && !isBlogIdValid}"
-               type="text" id="blogId" v-model="blogId" placeholder="블로그 ID"/>
+               type="text" id="blogId" v-model="blogId" placeholder="블로그 ID" autocomplete="off"/>
       </div>
       <div>
         <input :class="{'invalid': email && !isEmailValid}"

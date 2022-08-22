@@ -67,7 +67,7 @@ export default defineComponent({
         return x - Math.floor(x);
       };
 
-      const direction = Math.round(random() * 360); //To output a volue between 0 and 360 in degrees to be given to the linear-gradient.
+      const direction = Math.round(random() * 360);
 
       const r1 = Math.round(random() * 255);
       const g1 = Math.round(random() * 255);
@@ -86,7 +86,7 @@ export default defineComponent({
   },
   methods: {
     moveToPost() {
-      this.$router.push(`/${this.simplePost?.blogId}/${this.simplePost?.postUrl}`);
+      this.$router.push(`/${this.simplePost?.blogId}/posts/${this.simplePost?.postUrl}`);
     },
     moveToBlog() {
       this.$router.push(`/${this.simplePost?.blogId}`);

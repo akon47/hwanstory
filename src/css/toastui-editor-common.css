@@ -6,6 +6,7 @@
 .toastui-editor-contents h1, h2, h3, h4, h5, h6 {
     margin-top: 24px !important;
     margin-bottom: 16px !important;
+    line-height: 1.25 !important;
 }
 
 .toastui-editor-contents h1 {
@@ -38,4 +39,33 @@
 
 .toastui-editor-contents ul > li::before {
     background-color: #222;
+}
+
+.toastui-editor-dark .toastui-editor-contents code {
+    color: darkorange !important;
+}
+
+.toastui-editor-contents code {
+    padding: 0.2em 0.4em !important;
+    font-size: 85% !important;
+    border-radius: 4px !important;
+    color: deeppink !important;
+    border: 1px solid var(--border-color) !important;
+    background-color: var(--background-color) !important;
+}
+
+.toastui-editor-dark .toastui-editor-md-code {
+    color: darkorange !important;
+}
+
+.toastui-editor-md-code {
+    font-size: 85% !important;
+    border-radius: 4px !important;
+    color: deeppink !important;
+    background-color: var(--background-color) !important;
+}
+
+.toastui-editor-md-code + .toastui-editor-md-marked-text {
+    padding: 0.2em 0.4em !important;
+    border: 1px solid var(--border-color) !important;
 }
