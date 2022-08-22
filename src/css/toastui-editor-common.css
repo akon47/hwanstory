@@ -1,10 +1,15 @@
 .toastui-editor-contents h1, h2 {
     border-bottom: 1px solid var(--border-color) !important;
+    padding-bottom: 0.3em;
+}
+
+.toastui-editor-contents h1, h2, h3, h4, h5, h6 {
+    margin-top: 24px !important;
+    margin-bottom: 16px !important;
 }
 
 .toastui-editor-contents h1 {
     font-size: 32px !important;
-    padding-bottom: 10px;
 }
 
 .toastui-editor-contents h2 {

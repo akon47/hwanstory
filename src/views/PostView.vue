@@ -230,8 +230,8 @@ export default defineComponent({
 }
 
 .author-profile-image {
-  width: 3em;
-  height: 3em;
+  width: 50px;
+  height: 50px;
 
   justify-self: center;
 
