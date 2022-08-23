@@ -45,6 +45,10 @@
     color: darkorange !important;
 }
 
+.toastui-editor-contents pre > code {
+    white-space: pre !important;
+}
+
 .toastui-editor-contents :not(pre) code {
     padding: 0.2em 0.4em !important;
     font-size: 85% !important;
@@ -68,4 +72,9 @@
 .toastui-editor-md-code + .toastui-editor-md-marked-text {
     padding: 0.2em 0.4em !important;
     border: 1px solid var(--border-color) !important;
+}
+
+.toastui-editor-contents pre {
+    white-space: pre-wrap !important;
+    overflow-x: auto !important;
 }

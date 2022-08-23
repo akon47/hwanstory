@@ -1,4 +1,8 @@
-import { createRouter, createWebHashHistory, NavigationGuardWithThis } from 'vue-router';
+import {
+  createRouter,
+  createWebHashHistory,
+  NavigationGuardWithThis,
+} from 'vue-router';
 import store from '@/store';
 import { nextTick } from 'vue';
 
@@ -93,6 +97,12 @@ const router = createRouter({
       redirect: 'not-found',
     },
   ],
+  scrollBehavior: (to, from, savedPosition) => {
+    console.log(savedPosition);
+    return {
+      top: 0,
+    };
+  },
 });
 
 router.afterEach((to, from) => {

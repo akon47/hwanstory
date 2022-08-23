@@ -81,7 +81,7 @@ export default defineComponent({
 .blog-simple-post-container {
   display: grid;
 
-  grid-template-columns: 650px;
+  grid-template-columns: 750px;
   grid-template-rows: auto 1fr;
 
   justify-content: center;
@@ -92,7 +92,7 @@ export default defineComponent({
 
 @media (max-width: 800px) {
   .blog-simple-post-container {
-    grid-template-columns: auto;
+    grid-template-columns: minmax(0, auto);
     justify-content: stretch;
   }
 }
