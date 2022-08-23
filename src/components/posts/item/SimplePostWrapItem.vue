@@ -42,7 +42,7 @@ import dayjs from 'dayjs';
 import { attachmentFileBaseUrl } from '@/api/common/httpApiClient';
 
 export default defineComponent({
-  name: 'SimplePostItem',
+  name: 'SimplePostWrapItem',
   components: { AccountProfileImage },
   props: {
     simplePost: Object as PropType<SimplePostDto>,

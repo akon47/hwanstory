@@ -1,24 +1,30 @@
 <template>
   <div class="main-container">
-    <simple-post-wrap-panel :simple-posts="simplePosts"></simple-post-wrap-panel>
+    <simple-post-list-panel :simple-posts="simplePosts"></simple-post-list-panel>
     <observer-trigger
         class="observer-trigger-enable"
         :class="{'observer-trigger-disable': this.isNoMorePage}"
-        v-on:trigger="loadMorePosts" />
+        v-on:trigger="loadMorePosts"/>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import SimplePostListPanel from '@/components/posts/layout/SimplePostListPanel.vue';
+import ObserverTrigger from '@/components/common/ObserverTrigger.vue';
 import { SimplePostDto } from '@/api/models/blog.dtos';
-import { getAllPosts } from '@/api/blog';
+import { getBlogAllPosts } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
-import SimplePostWrapPanel from "@/components/posts/layout/SimplePostWrapPanel.vue";
-import ObserverTrigger from "@/components/common/ObserverTrigger.vue";
 
 export default defineComponent({
-  name: 'MainView',
-  components: { ObserverTrigger, SimplePostWrapPanel },
+  name: 'BlogPostsView',
+  components: { ObserverTrigger, SimplePostListPanel },
+  props: {
+    blogId: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       simplePosts: Array<SimplePostDto>(),
@@ -28,9 +34,9 @@ export default defineComponent({
   },
   methods: {
     async fetchPosts(cursorId: string | null = null) {
-      await getAllPosts(20, cursorId)
+      await getBlogAllPosts(this.blogId, 20, cursorId)
       .then((posts) => {
-        if(posts.first) {
+        if (posts.first) {
           this.simplePosts = posts.data;
         } else {
           posts.data.forEach((post) => {

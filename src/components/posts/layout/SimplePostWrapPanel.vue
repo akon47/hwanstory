@@ -1,17 +1,17 @@
 <template>
   <div class="wrap-panel-container">
-    <simple-post-item v-for="post in simplePosts" :key="post.id" :simple-post="post"/>
+    <simple-post-wrap-item v-for="post in simplePosts" :key="post.id" :simple-post="post"/>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import { SimplePostDto } from "@/api/models/blog.dtos";
-import SimplePostItem from "@/components/posts/SimplePostItem.vue";
+import SimplePostWrapItem from "@/components/posts/item/SimplePostWrapItem.vue";
 
 export default defineComponent({
   name: 'SimplePostWrapPanel',
-  components: { SimplePostItem },
+  components: { SimplePostWrapItem },
   props: {
     simplePosts: Object as PropType<Array<SimplePostDto>>,
   }

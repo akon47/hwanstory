@@ -67,7 +67,10 @@ const router = createRouter({
         },
         {
           path: 'posts',
-          component: () => import('../views/NotFoundView.vue'),
+          component: () => import('../views/BlogPostsView.vue'),
+          props: (route) => ({
+            blogId: route.params.blogId,
+          }),
         },
         {
           path: 'likes',

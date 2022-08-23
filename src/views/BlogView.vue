@@ -35,8 +35,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { SimplePostDto } from '@/api/models/blog.dtos';
-import { getBlogDetails, getBlogPosts } from '@/api/blog';
+import { getBlogDetails } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import { AccountDto } from '@/api/models/account.dtos';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
@@ -53,9 +52,6 @@ export default defineComponent({
   data() {
     return {
       blogOwner: {} as AccountDto,
-      simplePosts: Array<SimplePostDto>(),
-      cursorId: '',
-      isNoMorePage: false,
     };
   },
   watch: {
@@ -72,32 +68,6 @@ export default defineComponent({
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
       });
-      await this.fetchBlogPosts();
-    },
-    async fetchBlogPosts(cursorId: string | null = null) {
-      if (!this.blogId)
-        return;
-
-      await getBlogPosts(this.blogId, 10, cursorId)
-      .then((posts) => {
-        if (posts.first) {
-          this.simplePosts = posts.data;
-        } else {
-          posts.data.forEach((post) => {
-            this.simplePosts.push(post);
-          });
-        }
-        this.cursorId = (!posts.last && posts.cursorId) ? posts.cursorId : '';
-        this.isNoMorePage = posts.last;
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
-    },
-    async loadMorePosts() {
-      if (this.cursorId) {
-        await this.fetchBlogPosts(this.cursorId);
-      }
     },
   },
   created() {
@@ -175,8 +145,11 @@ export default defineComponent({
 
   display: grid;
 
+  margin-bottom: var(--base-gap);
+
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: auto;
+  box-sizing: border-box;
 }
 
 .tabs a {
