@@ -19,7 +19,7 @@
     </div>
     <div v-if="!simpleComment.parentId" class="footer">
       <button class="toggle-nested-replies" @click="toggleNestedReplies">
-        {{ simpleComment.childrenCount }}
+        {{ nestedComments.length ?? 0 }}
         개의 대댓글
         <span v-if="isNestedCommentsOpened">숨기기</span>
         <span v-else>보기</span>
