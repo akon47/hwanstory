@@ -42,6 +42,14 @@ function getBlogAllPosts(blogId: string, size: number, cursorId: string | null =
   });
 }
 
+// 특정 블로그 주인이 좋아요 한 전체 게시글 조회
+function getBloggerLikePosts(blogId: string, size: number, cursorId: string | null = null) {
+  return blogV1.getRequest<SliceDto<SimplePostDto>>(`/${blogId}/likes`, {
+    cursorId: cursorId,
+    size: size,
+  });
+}
+
 // 전체 게시글 조회
 function getAllPosts(size: number, cursorId: string | null = null) {
   return blogV1.getRequest<SliceDto<SimplePostDto>>('/posts', {
@@ -114,6 +122,7 @@ export {
   createCommentToComment,
   getPost,
   getBlogAllPosts,
+  getBloggerLikePosts,
   getAllPosts,
   likePost,
   unlikePost,

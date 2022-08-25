@@ -78,7 +78,10 @@ const router = createRouter({
         },
         {
           path: 'likes',
-          component: () => import('../views/NotFoundView.vue'),
+          component: () => import('../views/BlogLikesView.vue'),
+          props: (route) => ({
+            blogId: route.params.blogId,
+          }),
         },
       ],
     },
@@ -98,7 +101,6 @@ const router = createRouter({
     },
   ],
   scrollBehavior: (to, from, savedPosition) => {
-    console.log(savedPosition);
     return {
       top: 0,
     };

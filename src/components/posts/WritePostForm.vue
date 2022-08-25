@@ -3,6 +3,7 @@
     <div class="content">
       <textarea id="title" v-model="title" placeholder="제목을 입력하세요."/>
       <textarea id="postUrl" v-model="newPostUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)"/>
+      <tag-input-box id="tags" v-model="tags"/>
       <post-editor id="editor" v-model="content"/>
     </div>
     <div class="footer">
@@ -32,10 +33,11 @@ import store from '@/store';
 import { TagDto } from '@/api/models/blog.dtos';
 import PostEditor from '@/components/posts/PostEditor.vue';
 import { uploadImageFileFromUrl } from '@/api/attachments';
+import TagInputBox from '@/components/posts/TagInputBox.vue';
 
 export default defineComponent({
   name: 'WritePostForm',
-  components: { PostEditor },
+  components: { TagInputBox, PostEditor },
   props: {
     postUrl: {
       type: String,
@@ -48,6 +50,7 @@ export default defineComponent({
       content: '',
       newPostUrl: '',
       isLoading: false,
+      tags: Array<string>(),
     };
   },
   computed: {
@@ -77,7 +80,7 @@ export default defineComponent({
         content: this.content,
         postUrl: this.newPostUrl,
         thumbnailFileId: await this.getThumbnailFileId(),
-        tags: this.getTags(),
+        tags: this.tags?.map(name => ({ name } as TagDto)),
       })
       .then((post) => {
         this.$router.push(`/${post.blogId}/posts/${post.postUrl}`);
@@ -96,7 +99,7 @@ export default defineComponent({
         content: this.content,
         postUrl: this.newPostUrl,
         thumbnailFileId: await this.getThumbnailFileId(),
-        tags: this.getTags(),
+        tags: this.tags?.map(name => ({ name } as TagDto)),
       })
       .then((post) => {
         this.$router.push(`/${post.blogId}/posts/${post.postUrl}`);
@@ -108,9 +111,6 @@ export default defineComponent({
         this.isLoading = false;
       });
     },
-    getTags(): Array<TagDto> {
-      return [];
-    },
     async loadPost() {
       if (this.postUrl) {
         await getPost(store.state.accountStore.blogId, this.postUrl)
@@ -118,6 +118,7 @@ export default defineComponent({
           this.title = post.title;
           this.newPostUrl = post.postUrl;
           this.content = post.content;
+          this.tags = post.tags?.map(x => x.name);
         })
         .catch((error: HttpApiError) => {
           alert(error.getErrorMessage());
@@ -159,7 +160,7 @@ export default defineComponent({
   display: grid;
 
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr;
 
   justify-content: stretch;
   padding: var(--base-gap);
@@ -193,8 +194,12 @@ export default defineComponent({
   font-size: 16px;
   white-space: nowrap;
   height: 28px;
+}
 
+#tags {
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: var(--base-gap);
+  padding: 2px 0px;
 }
 
 #editor {

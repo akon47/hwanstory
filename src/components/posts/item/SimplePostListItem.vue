@@ -108,6 +108,8 @@ export default defineComponent({
 }
 
 .thumbnail {
+  display: grid;
+
   aspect-ratio: 16 / 9;
   box-sizing: border-box;
 
@@ -120,8 +122,27 @@ export default defineComponent({
 @media (max-width: 650px) {
   .thumbnail {
     aspect-ratio: 10 / 9;
-
   }
+}
+
+.thumbnail-title {
+  font-size: 1.75em;
+  font-weight: bold;
+  color: #e5e5e5;
+  text-shadow: 0 0 12px #000;
+  align-self: center;
+  justify-self: center;
+
+  text-align: center;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
+  margin: 0 1em;
 }
 
 .contents {
