@@ -70,6 +70,7 @@ export default defineComponent({
 .tag-item {
   cursor: pointer;
 
+  color: white;
   background-color: var(--button-color);
   margin: 2px;
   border-radius: 5px;
