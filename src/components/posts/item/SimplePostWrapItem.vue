@@ -106,7 +106,6 @@ export default defineComponent({
   width: 100%;
   aspect-ratio: 10 / 13;
 
-  border: 1px solid var(--border-color);
   border-radius: var(--base-border-radius);
 
   background: var(--content-item-background-color);
@@ -135,14 +134,11 @@ export default defineComponent({
 .main .thumbnail {
   display: grid;
   aspect-ratio: 16 / 9;
-  border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
 
   border-top-left-radius: var(--base-border-radius);
   border-top-right-radius: var(--base-border-radius);
-
-  background-size: cover;
-  background: white no-repeat;
+  background-color: white;
 
   position: relative;
 
