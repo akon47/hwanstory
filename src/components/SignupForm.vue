@@ -62,7 +62,12 @@ export default defineComponent({
       return this.name.length > 0;
     },
     isBlogIdValid(): boolean {
-      return this.blogId.length > 0;
+      if (this.blogId.length < 2) {
+        return false;
+      }
+
+      const regex = /^@?[-a-zA-Z\d_]+$/;
+      return regex.test(this.blogId);
     },
     isPasswordValid(): boolean {
       return this.password.length > 0;

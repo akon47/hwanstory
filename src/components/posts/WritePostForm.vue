@@ -34,6 +34,7 @@ import { TagDto } from '@/api/models/blog.dtos';
 import PostEditor from '@/components/posts/PostEditor.vue';
 import { uploadImageFileFromUrl } from '@/api/attachments';
 import TagInputBox from '@/components/posts/TagInputBox.vue';
+import { marked } from 'marked';
 
 export default defineComponent({
   name: 'WritePostForm',
@@ -61,15 +62,14 @@ export default defineComponent({
       return this.content.length > 0;
     },
     isPostUrlValid(): boolean {
-      const regex = /^[-a-zA-Z\d_]*$/;
+      if(this.newPostUrl.length == 0)
+        return true;
+
+      const regex = /^[-a-zA-Z\d_]+$/;
       return regex.test(this.newPostUrl);
     },
     isNewPost(): boolean {
-      if (this.postUrl) {
-        return false;
-      } else {
-        return true;
-      }
+      return !this.postUrl;
     },
   },
   methods: {
@@ -78,6 +78,7 @@ export default defineComponent({
       await createPost({
         title: this.title,
         content: this.content,
+        summary: this.createSummaryFromContent(this.content),
         postUrl: this.newPostUrl,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
@@ -97,6 +98,7 @@ export default defineComponent({
       await modifyPost(this.postUrl, {
         title: this.title,
         content: this.content,
+        summary: this.createSummaryFromContent(this.content),
         postUrl: this.newPostUrl,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
@@ -140,6 +142,36 @@ export default defineComponent({
         });
       }
     },
+    createSummaryFromContent(content: string) {
+      const renderer = new marked.Renderer();
+      renderer.code = () => '\n';
+      renderer.blockquote = () => '\n';
+      renderer.html = () => '\n';
+      renderer.heading = () => '\n';
+      renderer.hr = () => '\n';
+      renderer.list = () => '\n';
+      renderer.listitem = () => '\n';
+      renderer.checkbox = () => '\n';
+      renderer.table = () => '\n';
+      renderer.tablerow = () => '\n';
+      renderer.tablecell = () => '\n';
+      renderer.strong = (text) => text;
+      renderer.em = (text) => text;
+      renderer.codespan = () => '\n';
+      renderer.br = () => '\n';
+      renderer.del = () => '\n';
+      renderer.link = () => '\n';
+      renderer.image = () => '\n';
+      renderer.paragraph = (text) => text;
+
+      const summary = marked(content, {
+        renderer: renderer
+      }).split('\n').filter(Boolean)[0];
+      if(!summary) {
+        return "내용없음";
+      }
+      return summary.length > 255 ? summary.substring(0, 255) : summary;
+    }
   },
   created() {
     this.loadPost();
@@ -199,7 +231,7 @@ export default defineComponent({
 #tags {
   border-bottom: 1px solid var(--border-color);
   margin-bottom: var(--base-gap);
-  padding: 2px 0px;
+  padding: 2px 0;
 }
 
 #editor {
