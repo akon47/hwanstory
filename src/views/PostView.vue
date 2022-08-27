@@ -17,6 +17,11 @@
             <a @click="deletePost">삭제</a>
           </span>
         </div>
+        <div class="tags">
+          <div class="tag-item" v-for="tag in tags" :key="tag">
+            {{ tag }}
+          </div>
+        </div>
       </div>
     </div>
     <div class="content">
@@ -76,6 +81,7 @@ export default defineComponent({
     return {
       post: {} as PostDto,
       comments: {} as Array<SimpleCommentDto>,
+      tags: {} as Array<string>,
       likeCount: 0,
       isLike: false,
       newComment: '',
@@ -116,6 +122,7 @@ export default defineComponent({
         this.post = post;
         this.likeCount = post.likeCount;
         this.comments = post.comments;
+        this.tags = post.tags?.map(tag => tag.name) ?? [];
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -220,6 +227,38 @@ export default defineComponent({
   padding-bottom: 1em;
 }
 
+.tags {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  align-items: center;
+  justify-items: start;
+
+  grid-column: 3 / span 1;
+  grid-row: 1 / span 2;
+
+  align-self: end;
+  justify-self: end;
+
+  margin-left: 10px;
+}
+
+.tag-item {
+  color: white;
+  background-color: var(--button-color);
+  margin: 2px;
+  border-radius: 5px;
+  padding: 1px 5px;
+  box-sizing: border-box;
+  font-size: 14px;
+
+  -ms-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .author {
   display: grid;
 
@@ -253,6 +292,8 @@ export default defineComponent({
 
 .created-at {
   align-self: start;
+
+  white-space: nowrap;
 
   grid-column: 2 / span 1;
   grid-row: 2 / span 1;
