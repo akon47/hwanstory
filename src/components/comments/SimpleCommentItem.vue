@@ -25,17 +25,17 @@
         <span v-else>보기</span>
       </button>
       <div v-if="isNestedCommentsOpened" class="nested-comments-container">
-        <div class="line" />
+        <div class="line"/>
         <div class="nested-comments">
           <div v-if="isLoggedIn" class="write-comment">
             댓글 남기기
-            <textarea v-model="newComment" placeholder="대댓글 내용을 입력하세요." />
+            <textarea v-model="newComment" placeholder="대댓글 내용을 입력하세요."/>
             <button :disabled="!isValidNewComment" @click="writeComment">대댓글 작성</button>
           </div>
           <simple-comment-item
               v-for="comment in nestedComments" :key="comment.id"
               :simple-comment="comment"
-              @deleted="commentDeleted" />
+              @deleted="commentDeleted"/>
         </div>
       </div>
     </div>
@@ -102,6 +102,7 @@ export default defineComponent({
       .then((comment) => {
         alert('댓글을 수정했습니다.');
         this.content = comment.content;
+        this.onCommentChanged();
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -114,7 +115,6 @@ export default defineComponent({
       const id = this.simpleComment.id;
       await deleteComment(id)
       .then(() => {
-        alert('댓글을 삭제했습니다.');
         this.$emit('deleted', id);
       })
       .catch((error: HttpApiError) => {
@@ -122,7 +122,7 @@ export default defineComponent({
       });
     },
     async writeComment() {
-      if(!this.simpleComment?.id) {
+      if (!this.simpleComment?.id) {
         return;
       }
 
@@ -134,18 +134,19 @@ export default defineComponent({
         this.nestedComments.push(Object.assign(comment, {
           childrenCount: comment.children.length
         }));
+        this.onCommentChanged();
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
       });
     },
     async toggleNestedReplies() {
-      if(!this.simpleComment?.id) {
+      if (!this.simpleComment?.id) {
         return;
       }
 
       this.isNestedCommentsOpened = !this.isNestedCommentsOpened;
-      if(this.isNestedCommentsOpened && !this.isNestedCommentsLoaded) {
+      if (this.isNestedCommentsOpened && !this.isNestedCommentsLoaded) {
         await getComment(this.simpleComment.id)
         .then((comment) => {
           this.nestedComments = comment.children;
@@ -159,6 +160,21 @@ export default defineComponent({
     },
     commentDeleted(commentId: string) {
       this.nestedComments = this.nestedComments.filter((x) => x.id !== commentId);
+      this.onCommentChanged();
+    },
+    onCommentChanged() {
+      if (!this.simpleComment) {
+        return;
+      }
+
+      this.$emit('changed', {
+        id: this.simpleComment.id,
+        content: this.content,
+        parentId: this.simpleComment.parentId,
+        childrenCount: this.nestedComments.length,
+        author: this.simpleComment.author,
+        createdAt: this.simpleComment.createdAt
+      } as SimpleCommentDto);
     },
   },
   created() {

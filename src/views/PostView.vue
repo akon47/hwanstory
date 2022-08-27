@@ -5,7 +5,7 @@
         {{ post.title }}
       </h1>
       <div class="author">
-        <account-profile-image-button class="author-profile-image" :simple-account="post.author" />
+        <account-profile-image-button class="author-profile-image" :simple-account="post.author"/>
         <div class="author-name">
           {{ post.author?.name }}
         </div>
@@ -25,16 +25,16 @@
       </div>
     </div>
     <div class="content">
-      <post-viewer :content="post.content" />
+      <post-viewer :content="post.content"/>
     </div>
     <div v-if="isLoggedIn" class="write-comment">
       댓글 남기기
-      <textarea v-model="newComment" placeholder="댓글 내용을 입력하세요." />
+      <textarea v-model="newComment" placeholder="댓글 내용을 입력하세요."/>
       <button :disabled="!isValidNewComment" @click="writeComment">댓글 작성</button>
     </div>
     <div class="comments">
       <div class="counts">
-        <span>{{ post?.comments?.length ?? 0 }} 개의 댓글</span>
+        <span>{{ allCommentCount }} 개의 댓글</span>
         <span>&#183;</span>
         <span>{{ likeCount }} 개의 좋아요</span>
         <div v-if="isLoggedIn">
@@ -43,13 +43,14 @@
         </div>
       </div>
 
-      <div class="empty-comment-message" v-if="post?.comments?.length == 0">
+      <div class="empty-comment-message" v-if="comments?.length == 0">
         댓글이 없습니다.
       </div>
       <simple-comment-item
           v-for="comment in comments" :key="comment.id"
           :simple-comment="comment"
-          @deleted="commentDeleted" />
+          @deleted="commentDeleted"
+          @changed="commentChanged"/>
     </div>
   </div>
 </template>
@@ -89,7 +90,7 @@ export default defineComponent({
   },
   computed: {
     longCreateAt() {
-      if(!this.post?.createdAt) {
+      if (!this.post?.createdAt) {
         return null;
       }
       const date = new Date(this.post.createdAt);
@@ -105,6 +106,9 @@ export default defineComponent({
     },
     isValidNewComment() {
       return this.newComment.length > 0;
+    },
+    allCommentCount() {
+      return this.comments?.reduce((previous, current) => previous + 1 + current.childrenCount, 0) ?? 0;
     },
   },
   watch: {
@@ -129,7 +133,7 @@ export default defineComponent({
         this.$router.push(`/main`);
       });
 
-      if(this.isLoggedIn) {
+      if (this.isLoggedIn) {
         await isLikePost(this.blogId, this.postUrl)
         .then((isLike) => {
           this.isLike = isLike;
@@ -157,6 +161,9 @@ export default defineComponent({
     commentDeleted(commentId: string) {
       this.comments = this.comments.filter((x) => x.id !== commentId);
     },
+    commentChanged(comment: SimpleCommentDto) {
+      this.comments.splice(this.comments.findIndex(x => x.id === comment.id), 1, comment);
+    },
     async likePost() {
       await likePost(this.blogId, this.postUrl)
       .then(async () => {
@@ -181,7 +188,7 @@ export default defineComponent({
       this.$router.push(`/write?post=${this.postUrl}`);
     },
     async deletePost() {
-      if(confirm('게시글을 삭제하시겠습니까?') != true) {
+      if (confirm('게시글을 삭제하시겠습니까?') != true) {
         return;
       }
 
