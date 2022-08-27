@@ -79,7 +79,7 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         summary: this.createSummaryFromContent(this.content),
-        postUrl: this.newPostUrl,
+        postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
       })
@@ -99,7 +99,7 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         summary: this.createSummaryFromContent(this.content),
-        postUrl: this.newPostUrl,
+        postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
       })

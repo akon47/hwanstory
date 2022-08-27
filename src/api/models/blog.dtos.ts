@@ -10,7 +10,7 @@ export interface BlogDetailsDto extends DataTransferObject {
 // 게시글 작성/수정 Dto
 export interface PostRequestDto extends DataTransferObject {
   // 게시글 URL
-  readonly postUrl: string;
+  readonly postUrl: string | null;
   // 제목
   readonly title: string;
   // 내용
