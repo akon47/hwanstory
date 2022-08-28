@@ -59,13 +59,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { PostDto, SimpleCommentDto } from "@/api/models/blog.dtos";
+import { defineComponent } from 'vue';
+import { PostDto, SimpleCommentDto } from '@/api/models/blog.dtos';
 import { createComment, deletePost, getPost, isLikePost, likePost, unlikePost } from '@/api/blog';
-import { HttpApiError } from "@/api/common/httpApiClient";
+import { HttpApiError } from '@/api/common/httpApiClient';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
-import store from "@/store";
-import SimpleCommentItem from "@/components/comments/SimpleCommentItem.vue";
+import store from '@/store';
+import SimpleCommentItem from '@/components/comments/SimpleCommentItem.vue';
 import PostViewer from '@/components/posts/PostViewer.vue';
 
 export default defineComponent({
@@ -111,13 +111,13 @@ export default defineComponent({
       return this.newComment.length > 0;
     },
     allCommentCount() {
-      return this.comments?.reduce((previous, current) => previous + 1 + current.childrenCount, 0) ?? 0;
+      return this.comments?.reduce?.((previous, current) => previous + 1 + current.childrenCount, 0) ?? 0;
     },
   },
   watch: {
     postUrl() {
       this.loadPost();
-    }
+    },
   },
   methods: {
     async loadPost() {
@@ -154,7 +154,7 @@ export default defineComponent({
       .then((comment) => {
         this.newComment = '';
         this.comments.push(Object.assign(comment, {
-          childrenCount: comment.children.length
+          childrenCount: comment.children.length,
         }));
       })
       .catch((error: HttpApiError) => {
@@ -197,7 +197,7 @@ export default defineComponent({
 
       await deletePost(this.postUrl)
       .then(() => {
-        alert("게시글을 삭제했습니다.");
+        alert('게시글을 삭제했습니다.');
         this.$router.push(`/main`);
       })
       .catch((error: HttpApiError) => {
@@ -207,7 +207,7 @@ export default defineComponent({
   },
   created() {
     this.loadPost();
-  }
+  },
 });
 </script>
 
