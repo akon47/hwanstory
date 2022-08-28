@@ -25,6 +25,8 @@
       <div class="footer-content">
         <div>
           {{ createdAt }}
+          <span>&#183;</span>
+          {{ simplePost.hits }} 조회됨
         </div>
         <div class="author" @click="moveToBlog">
           by&nbsp;{{ simplePost.author?.name }}
