@@ -4,6 +4,9 @@
       <h1>
         {{ post.title }}
       </h1>
+      <div class="hits">
+        조회수 {{ post.hits }} 회
+      </div>
       <div class="author">
         <account-profile-image-button class="author-profile-image" :simple-account="post.author"/>
         <div class="author-name">
@@ -234,6 +237,10 @@ export default defineComponent({
   padding-bottom: 1em;
 }
 
+.hits {
+  font-size: 0.75em;
+}
+
 .tags {
   display: flex;
 
@@ -272,7 +279,7 @@ export default defineComponent({
   grid-template-columns: auto auto 1fr;
   grid-template-rows: auto auto;
 
-  margin-top: 2em;
+  margin-top: 1.5em;
 }
 
 .author-profile-image {

@@ -47,6 +47,8 @@ export interface PostDto extends DataTransferObject {
   readonly comments: Array<SimpleCommentDto>;
   // 좋아요 수
   readonly likeCount: number;
+  // 조회수
+  readonly hits: number;
   // 작성 시간
   readonly createdAt: Date;
 }
@@ -73,6 +75,8 @@ export interface SimplePostDto extends DataTransferObject {
   readonly commentCount: number;
   // 좋아요 수
   readonly likeCount: number;
+  // 조회수
+  readonly hits: number;
   // 작성 시간
   readonly createdAt: Date;
 }
