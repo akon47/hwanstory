@@ -5,12 +5,14 @@ import {
   getAccessTokenFromLocalStorage,
   getBlogIdFromLocalStorage,
   getRefreshTokenExpiresInFromLocalStorage,
-  getRefreshTokenFromLocalStorage, getThemeFromLocalStorage,
+  getRefreshTokenFromLocalStorage,
+  getThemeFromLocalStorage,
   saveAccessTokenExpiresInToLocalStorage,
   saveAccessTokenToLocalStorage,
   saveBlogIdToLocalStorage,
   saveRefreshTokenExpiresInToLocalStorage,
-  saveRefreshTokenToLocalStorage, saveThemeToLocalStorage,
+  saveRefreshTokenToLocalStorage,
+  saveThemeToLocalStorage,
 } from '@/utils/storage';
 import { reissueToken, signIn, signOut } from '@/api/authentication';
 import { AuthenticationInfoDto, TokenDto } from '@/api/models/authentication.dtos';
@@ -102,11 +104,14 @@ export const accountStore: Module<AccountState, RootState> = {
       await signUp(createAccountDto);
     },
     async signOut({ commit }, clearTokenOnly: boolean = false) {
-      if (!clearTokenOnly) {
-        await signOut();
+      try {
+        if (!clearTokenOnly) {
+          await signOut();
+        }
+      } finally {
+        commit('clearToken');
+        commit('clearBlogId');
       }
-      commit('clearToken');
-      commit('clearBlogId');
     },
     async reissueToken({ commit, state }) {
       const token = await reissueToken(state.refreshToken);
