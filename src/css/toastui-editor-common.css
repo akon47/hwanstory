@@ -78,3 +78,7 @@
     white-space: pre-wrap !important;
     overflow-x: auto !important;
 }
+
+.toastui-editor-contents code > .token.operator {
+    background: transparent;
+}
