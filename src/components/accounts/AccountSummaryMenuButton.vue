@@ -59,6 +59,7 @@ export default defineComponent({
     selectProfileImageFile() {
       const input = document.createElement('input') as HTMLInputElement;
       input.type = 'file';
+      input.accept = 'image/*';
       input.onchange = async (e: Event) => {
         const target = e.target as HTMLInputElement;
         if (!target.files?.length) {
