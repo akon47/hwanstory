@@ -32,7 +32,7 @@ import { createPost, getPost, modifyPost } from '@/api/blog';
 import store from '@/store';
 import { TagDto } from '@/api/models/blog.dtos';
 import PostEditor from '@/components/posts/PostEditor.vue';
-import { uploadImageFileFromUrl } from '@/api/attachments';
+import { uploadFileFromUrl } from '@/api/attachments';
 import TagInputBox from '@/components/posts/TagInputBox.vue';
 import { marked } from 'marked';
 
@@ -132,8 +132,7 @@ export default defineComponent({
       const urls = /!\[.*?\]\((.*?)\)/.exec(this.content);
       if (urls) {
         const imageUrl = new URL(urls[1]);
-        console.log(imageUrl);
-        return await uploadImageFileFromUrl(imageUrl)
+        return await uploadFileFromUrl(imageUrl)
         .then((file) => {
           return file.id;
         })

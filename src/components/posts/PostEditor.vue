@@ -10,7 +10,7 @@ import store from '@/store';
 import { EditorCore, HookCallback } from '@toast-ui/editor/types/editor';
 import '@toast-ui/editor/dist/i18n/ko-kr';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { uploadImageFile } from '@/api/attachments';
+import { uploadFile } from '@/api/attachments';
 import { attachmentFileBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
 
 const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight-all');
@@ -73,7 +73,7 @@ export default defineComponent({
       this.$emit('update:modelValue', editor.getMarkdown());
     });
     editor.addHook('addImageBlobHook', async (blob: Blob | File, callback: HookCallback) => {
-      await uploadImageFile(blob)
+      await uploadFile(blob)
       .then((file) => {
         callback(`${attachmentFileBaseUrl}${file.url}`, file.fileName ?? 'image');
       })
