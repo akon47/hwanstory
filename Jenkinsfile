@@ -64,11 +64,11 @@ pipeline {
             steps {
                 echo 'Pull Docker Image & Docker Image Run'
                 sshagent(credentials: ['ssh']) {
-                    sh "ssh -o StrictHostKeyChecking=no kimhwan@kimhwan.kr -p 10100 'docker pull ${IMAGE_NAME}'"
-                    sh "ssh -o StrictHostKeyChecking=no kimhwan@kimhwan.kr -p 10100 'docker ps -q -a --filter name=${APP_NAME} | grep -q . && docker rm -f \$(docker ps -aq --filter name=${APP_NAME}) || true'"
-                    sh "ssh -o StrictHostKeyChecking=no kimhwan@kimhwan.kr -p 10100 'docker run -d --restart always --name ${APP_NAME} -p 1500:80 ${IMAGE_NAME}'"
-                    sh "ssh -o StrictHostKeyChecking=no kimhwan@kimhwan.kr -p 10100 'docker images -qf dangling=true | xargs -I{} docker rmi {} || true'"
-                    sh "ssh -o StrictHostKeyChecking=no kimhwan@kimhwan.kr -p 10100 'docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true'"
+                    sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker pull ${IMAGE_NAME}'"
+                    sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker ps -q -a --filter name=${APP_NAME} | grep -q . && docker rm -f \$(docker ps -aq --filter name=${APP_NAME}) || true'"
+                    sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker run -d --restart always --name ${APP_NAME} -p 80:80 ${IMAGE_NAME}'"
+                    sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker images -qf dangling=true | xargs -I{} docker rmi {} || true'"
+                    sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true'"
                 }
             }
             post {
