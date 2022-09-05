@@ -5,5 +5,5 @@
 ![image](https://user-images.githubusercontent.com/49547202/188465375-1ffce2fb-7b8d-4ba0-bd07-26243eb35f55.png)
 
 
-## 🚀 서비스
+## 🚀 Demo
 https://blog.kimhwan.kr/
