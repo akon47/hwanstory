@@ -1,6 +1,6 @@
 import {
   createRouter,
-  createWebHashHistory,
+  createWebHashHistory, createWebHistory,
   NavigationGuardWithThis,
 } from 'vue-router';
 import store from '@/store';
@@ -17,7 +17,7 @@ const routeToMainWhenIsLoggedIn: NavigationGuardWithThis<undefined> = (to, from,
 };
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes: [
     {
       path: '/',
@@ -89,6 +89,20 @@ const router = createRouter({
       path: '/:blogId/posts/:postUrl',
       component: () => import('../views/PostView.vue'),
       props: true,
+    },
+    {
+      path: '/social-authentication-redirect',
+      name: 'SocialAuthenticationRedirect',
+      component: () => import('../views/SocialAuthenticationRedirectView.vue'),
+      props: (route) => ({
+        needRegister: JSON.parse(route.query.needRegister as string),
+        accessToken: route.query.accessToken,
+        refreshToken: route.query.refreshToken,
+        registerToken: route.query.registerToken,
+        email: route.query.email,
+        name: route.query.name,
+        profileImageUrl: route.query.profileImageUrl,
+      }),
     },
     {
       path: '/not-found',

@@ -100,9 +100,6 @@ export const accountStore: Module<AccountState, RootState> = {
       commit('setBlogId', account.blogId);
       commit('setProfileImageUrl', account.profileImageUrl ?? '');
     },
-    async signUp({ commit }, createAccountDto: CreateAccountDto) {
-      await signUp(createAccountDto);
-    },
     async signOut({ commit }, clearTokenOnly: boolean = false) {
       try {
         if (!clearTokenOnly) {
@@ -129,5 +126,11 @@ export const accountStore: Module<AccountState, RootState> = {
       commit('setBlogId', account.blogId);
       commit('setProfileImageUrl', account.profileImageUrl ?? '');
     },
+    async setToken({ commit }, token: TokenDto) {
+      commit('setToken', token);
+      const account = await getCurrentAccount();
+      commit('setBlogId', account.blogId);
+      commit('setProfileImageUrl', account.profileImageUrl ?? '');
+    }
   },
 };

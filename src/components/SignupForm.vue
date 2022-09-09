@@ -21,10 +21,11 @@
       </div>
       <div>
         <input :class="{'invalid': email && !isEmailValid}"
-               type="text" id="email" v-model="email" placeholder="이메일"/>
-        <a class="verify-code-button" :disabled="!isPasswordValid" v-on:click="sendEmailVerifyCode">인증코드 발송</a>
+               type="text" id="email" v-model="email" placeholder="이메일" :disabled="isRegisterBySocial"/>
+        <a v-if="!isRegisterBySocial" class="verify-code-button" :disabled="!isPasswordValid"
+           v-on:click="sendEmailVerifyCode">인증코드 발송</a>
       </div>
-      <div v-if="isEmailVerifyCodeSent">
+      <div v-if="isEmailVerifyCodeSent && !isRegisterBySocial">
         <input type="text" id="verify-code" v-model="emailVerifyCode" placeholder="이메일 인증코드"/>
       </div>
       <button
@@ -39,8 +40,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { sendVerifyCodeToEmail } from '@/api/accounts';
-import store from '@/store';
+import { sendVerifyCodeToEmail, signUp } from '@/api/accounts';
 import { HttpApiError } from '@/api/common/httpApiClient';
 
 export default defineComponent({
@@ -53,6 +53,7 @@ export default defineComponent({
       blogId: '',
       email: '',
       emailVerifyCode: '',
+      registerToken: '',
       isEmailVerifyCodeSent: false,
       isLoading: false,
     };
@@ -80,17 +81,20 @@ export default defineComponent({
           /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       return regex.test(this.email);
     },
+    isRegisterBySocial() {
+      return this.$route.params?.socialEmail !== undefined && this.$route.params?.registerToken !== undefined;
+    },
   },
   methods: {
     async signUp() {
       this.isLoading = true;
-      await store.dispatch('accountStore/signUp', {
+      await signUp({
         name: this.name,
         email: this.email,
         password: this.password,
         blogId: this.blogId,
         emailVerifyCode: this.emailVerifyCode,
-      })
+      }, this.registerToken ? this.registerToken : null)
       .then(() => {
         this.$router.push('/signin');
       })
@@ -119,6 +123,17 @@ export default defineComponent({
         alert(error.getErrorMessage());
       });
     },
+  },
+  mounted() {
+    if (this.$route.params.socialEmail) {
+      this.email = this.$route.params.socialEmail as string;
+    }
+    if (this.$route.params.socialName) {
+      this.name = this.$route.params.socialName as string;
+    }
+    if (this.$route.params.registerToken) {
+      this.registerToken = this.$route.params.registerToken as string;
+    }
   },
 });
 </script>

@@ -1,10 +1,14 @@
 import { accountsV1 } from './index';
 import { CreateAccountDto, AccountDto } from '@/api/models/account.dtos';
 import DataTransferObject from '@/api/models/common.dtos';
+import { marked } from 'marked';
+import defaults = marked.defaults;
 
 // 사용자 계정 생성
-function signUp(accountCreateDto: CreateAccountDto) {
-  return accountsV1.postRequest<AccountDto>('', null, accountCreateDto);
+function signUp(accountCreateDto: CreateAccountDto, registerToken: String | null = null) {
+  return accountsV1.postRequest<AccountDto>('', registerToken ? {
+    registerToken: registerToken,
+  } : null, accountCreateDto);
 }
 
 // 사용자 이메일 인증 코드 발송
