@@ -21,7 +21,7 @@
           회원가입
         </router-link>
       </div>
-      <div class="or-separator"><span>또는 아래 계정으로 로그인</span></div>
+      <div class="or-separator"><span>또는 아래 계정으로 시작하기</span></div>
       <div class="social-login-container">
         <a v-for="social in socials" :key="social.registrationId"
            :href="getSocialLoginUrl(social.registrationId)">
@@ -136,8 +136,8 @@ export default defineComponent({
 
 .or-separator span {
   font-size: 0.75em;
-  width: 12em;
-  left: calc(50% - 6em);
+  width: 14em;
+  left: calc(50% - 7em);
   position: absolute;
   text-align: center;
   background-color: var(--content-item-background-color);
