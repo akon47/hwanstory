@@ -3,7 +3,7 @@ const refreshTokenKey = 'refresh-token';
 const accessTokenExpiresInKey = 'access-token-expires-in';
 const refreshTokenExpiresInKey = 'refresh-token-expires-in';
 const blogIdKey = 'blog-id';
-const ThemeIdKey = 'theme';
+const ThemeKey = 'theme';
 
 function saveAccessTokenToLocalStorage(value: string) {
   localStorage.setItem(accessTokenKey, value);
@@ -46,11 +46,11 @@ function getBlogIdFromLocalStorage() {
 }
 
 function saveThemeToLocalStorage(value: string) {
-  localStorage.setItem(ThemeIdKey, value);
+  localStorage.setItem(ThemeKey, value);
 }
 
 function getThemeFromLocalStorage() {
-  return localStorage.getItem(ThemeIdKey);
+  return localStorage.getItem(ThemeKey);
 }
 
 
