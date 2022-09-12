@@ -32,13 +32,18 @@ export default defineComponent({
           return '#1ec800';
         case 'kakao':
           return '#fee500';
+        case 'discord':
+          return '#5865F2';
+        case 'microsoft':
+          return '#ffffff';
         default:
-          return 'ffffff'
+          return '#ffffff'
       }
     },
     borderColor() {
       switch (this.provider) {
         case 'google':
+        case 'microsoft':
           return 'var(--border-color)';
         default:
           return 'transparent'

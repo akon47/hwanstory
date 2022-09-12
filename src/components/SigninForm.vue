@@ -23,9 +23,9 @@
       </div>
       <div class="or-separator"><span>또는 아래 계정으로 시작하기</span></div>
       <div class="social-login-container">
-        <a v-for="social in socials" :key="social.registrationId"
-           :href="getSocialLoginUrl(social.registrationId)">
-          <provider-button :provider="social.registrationId" />
+        <a v-for="social in socials" :key="social"
+           :href="getSocialLoginUrl(social)">
+          <provider-button :provider="social"/>
         </a>
       </div>
     </div>
@@ -38,11 +38,6 @@ import store from '@/store';
 import { apiBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
 import ProviderButton from '@/components/common/ProviderButton.vue';
 
-interface Social {
-  readonly iconUrl: String,
-  readonly registrationId: String
-}
-
 export default defineComponent({
   name: 'SigninForm',
   components: { ProviderButton },
@@ -51,27 +46,14 @@ export default defineComponent({
       email: '',
       password: '',
       socials: [
-        {
-          iconUrl: '',
-          registrationId: 'github',
-        },
-        {
-          iconUrl: '',
-          registrationId: 'google',
-        },
-        {
-          iconUrl: '',
-          registrationId: 'facebook',
-        },
-        {
-          iconUrl: '',
-          registrationId: 'naver',
-        },
-        {
-          iconUrl: '',
-          registrationId: 'kakao',
-        },
-      ] as Array<Social>,
+        'github',
+        'google',
+        'facebook',
+        'naver',
+        'kakao',
+        'discord',
+        'microsoft',
+      ] as Array<String>,
       isLoading: false,
     };
   },
@@ -103,7 +85,7 @@ export default defineComponent({
     },
     getSocialLoginUrl(registrationId: String) {
       return `${apiBaseUrl}v1/authentication/oauth2/${registrationId}?redirect_uri=${location.protocol}//${location.hostname}/social-authentication-redirect`;
-    }
+    },
   },
 });
 </script>
@@ -144,22 +126,18 @@ export default defineComponent({
 }
 
 .social-login-container {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
 
-  grid-auto-columns: 48px;
-  grid-template-rows: 48px;
-
-  grid-auto-flow: column;
-
-  grid-column-gap: 1em;
+  gap: 1em;
 
   justify-items: center;
   justify-content: center;
 }
 
 .social-login-container a {
-  width: 100%;
-  height: 100%;
+  width: 48px;
+  height: 48px;
   cursor: pointer;
 }
 
