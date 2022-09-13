@@ -6,11 +6,11 @@
         <input :class="{'invalid': name && !isNameValid}"
                type="text" id="name" v-model="name" placeholder="이름"/>
       </div>
-      <div>
+      <div v-if="!isRegisterBySocial">
         <input type="password" id="password" v-model="password" autocomplete="off"
                placeholder="비밀번호"/>
       </div>
-      <div>
+      <div v-if="!isRegisterBySocial">
         <input :class="{'invalid': passwordRepeat && !isPasswordRepeatValid}"
                type="password" id="password-repeat" v-model="passwordRepeat" autocomplete="off"
                placeholder="비밀번호 확인"/>
@@ -29,7 +29,7 @@
         <input type="text" id="verify-code" v-model="emailVerifyCode" placeholder="이메일 인증코드"/>
       </div>
       <button
-          :disabled="!isNameValid || !isPasswordValid || !isPasswordRepeatValid || !isBlogIdValid || !isEmailValid || isLoading"
+          :disabled="!isNameValid || (!isPasswordValid && !isRegisterBySocial) || !isPasswordRepeatValid || !isBlogIdValid || !isEmailValid || isLoading"
           @click="signUp"
       >
         회원가입
@@ -91,9 +91,9 @@ export default defineComponent({
       await signUp({
         name: this.name,
         email: this.email,
-        password: this.password,
+        password: this.registerToken ? null : this.password,
         blogId: this.blogId,
-        emailVerifyCode: this.emailVerifyCode,
+        emailVerifyCode: this.registerToken ? null : this.emailVerifyCode,
       }, this.registerToken ? this.registerToken : null)
       .then(() => {
         this.$router.push('/signin');
@@ -105,15 +105,12 @@ export default defineComponent({
         this.isLoading = false;
       });
     },
-    clearForm() {
-      this.name = '';
-      this.email = '';
-      this.password = '';
-      this.passwordRepeat = '';
-      this.blogId = '';
-      this.emailVerifyCode = '';
-    },
     async sendEmailVerifyCode() {
+      if (!this.isEmailValid) {
+        alert('이메일 형식을 확인해주세요.');
+        return;
+      }
+
       await sendVerifyCodeToEmail(this.email)
       .then(() => {
         this.isEmailVerifyCodeSent = true;

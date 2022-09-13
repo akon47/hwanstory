@@ -5,13 +5,13 @@ export interface CreateAccountDto extends DataTransferObject {
   // 계정 사용자 이메일
   readonly email: string;
   // 사용자 로그인 비밀번호
-  readonly password: string;
+  readonly password: string | null;
   // 계정 사용자 이름
   readonly name: string;
   // 블로그 Id
   readonly blogId: string;
   // 사용자 이메일 인증 코드
-  readonly emailVerifyCode: string;
+  readonly emailVerifyCode: string | null;
 }
 
 // 역할 Dto
