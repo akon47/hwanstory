@@ -96,7 +96,10 @@ export default defineComponent({
 }
 
 .inner-container {
-  display: flex;
+  display: grid;
+
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto;
 
   aspect-ratio: 4.5 / 1;
   transition: box-shadow .2s;
@@ -110,6 +113,9 @@ export default defineComponent({
 .thumbnail {
   display: grid;
 
+  width: 100%;
+  height: 100%;
+
   aspect-ratio: 16 / 9;
   box-sizing: border-box;
 
@@ -117,12 +123,8 @@ export default defineComponent({
   background: white no-repeat;
 
   transition: 0.2s;
-}
 
-@media (max-width: 650px) {
-  .thumbnail {
-    aspect-ratio: 10 / 9;
-  }
+  overflow: hidden;
 }
 
 .thumbnail-title {
@@ -143,6 +145,28 @@ export default defineComponent({
   -webkit-line-clamp: 2;
 
   margin: 0 1em;
+}
+
+@media (max-width: 650px) {
+  .thumbnail {
+    aspect-ratio: 1;
+  }
+  .thumbnail-title {
+    font-size: 1.25em;
+  }
+}
+
+@media (max-width: 550px) {
+  .thumbnail-title {
+    font-size: 1em;
+  }
+}
+
+@media (max-width: 450px) {
+  .thumbnail-title {
+    font-size: 0.8em;
+    font-weight: normal;
+  }
 }
 
 .contents {
@@ -189,12 +213,6 @@ export default defineComponent({
 @media (max-width: 500px) {
   .summary {
     -webkit-line-clamp: 2;
-  }
-}
-
-@media (max-width: 400px) {
-  .summary {
-    -webkit-line-clamp: 1;
   }
 }
 

@@ -5,8 +5,7 @@
         <summary/>
         <div class="dropdown-content">
           <a @click="goToMyBlog">내 블로그</a>
-          <a @click="showCurrentAccountInfo">내 프로필</a>
-          <a @click="selectProfileImageFile">이미지 변경</a>
+          <a @click="goToSetting">내 정보 수정</a>
           <a @click="signOut">로그아웃</a>
         </div>
       </details>
@@ -16,7 +15,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { getCurrentAccount, setCurrentProfileImage } from '@/api/accounts';
+import { getCurrentAccount } from '@/api/accounts';
 import { HttpApiError, attachmentFileBaseUrl } from '@/api/common/httpApiClient';
 import store from '@/store';
 
@@ -27,10 +26,10 @@ export default defineComponent({
       const profileImageUrl = store.state.accountStore.profileImageUrl;
       if (profileImageUrl) {
         return {
-          backgroundImage: `url(${attachmentFileBaseUrl}${profileImageUrl})`
+          backgroundImage: `url(${attachmentFileBaseUrl}${profileImageUrl})`,
         };
       } else {
-        return { };
+        return {};
       }
     },
   },
@@ -56,31 +55,8 @@ export default defineComponent({
     goToMyBlog() {
       this.$router.push(`/${store.state.accountStore.blogId}`);
     },
-    selectProfileImageFile() {
-      const input = document.createElement('input') as HTMLInputElement;
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = async (e: Event) => {
-        const target = e.target as HTMLInputElement;
-        if (!target.files?.length) {
-          return;
-        }
-        const file = target.files[0];
-        if (!file.type.startsWith('image')) {
-          alert('이미지 파일을 선택해주세요.');
-          return;
-        }
-
-        await setCurrentProfileImage(file)
-        .then(() => {
-          store.dispatch('accountStore/updateCurrentAccountInfo');
-          alert('프로필 이미지를 변경하였습니다.');
-        })
-        .catch((error: HttpApiError) => {
-          alert(error.getErrorMessage());
-        });
-      };
-      input.click();
+    goToSetting() {
+      this.$router.push('/setting');
     },
   },
 });

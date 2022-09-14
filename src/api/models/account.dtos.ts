@@ -14,6 +14,20 @@ export interface CreateAccountDto extends DataTransferObject {
   readonly emailVerifyCode: string | null;
 }
 
+// 사용자 정보 수정 Dto
+export interface ModifyAccountDto extends DataTransferObject {
+  // 계정 사용자 이름
+  readonly name: string;
+  // 간단한 자기소개
+  readonly biography: string | null;
+  // 회사
+  readonly company: string | null;
+  // 위치
+  readonly location: string | null;
+  // 홈페이지
+  readonly homepage: string | null;
+}
+
 // 역할 Dto
 export interface RoleDto extends DataTransferObject {
   // 역할 이름
