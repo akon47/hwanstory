@@ -15,7 +15,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { getCurrentAccount } from '@/api/accounts';
 import { HttpApiError, attachmentFileBaseUrl } from '@/api/common/httpApiClient';
 import store from '@/store';
 
@@ -34,15 +33,6 @@ export default defineComponent({
     },
   },
   methods: {
-    async showCurrentAccountInfo() {
-      await getCurrentAccount()
-      .then((response) => {
-        alert(JSON.stringify(response, null, 2));
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
-    },
     async signOut() {
       await store.dispatch('accountStore/signOut')
       .then(() => {
@@ -81,7 +71,7 @@ export default defineComponent({
   max-width: 150px !important; /* any size */
   max-height: 150px !important; /* any size */
   margin: auto;
-  background-color: #6eafd4;
+
   border-radius: 100%;
   position: relative;
 

@@ -21,7 +21,7 @@
         <router-link to="/write">
           <button>새 글 작성</button>
         </router-link>
-        <account-summary-menu-button></account-summary-menu-button>
+        <account-summary-menu-button />
       </div>
       <div v-else>
         <router-link to="/signin">
