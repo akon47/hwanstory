@@ -113,7 +113,6 @@ export default defineComponent({
 .thumbnail {
   display: grid;
 
-  height: 100%;
   min-height: 100%;
 
   aspect-ratio: 16 / 9;
