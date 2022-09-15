@@ -68,6 +68,51 @@ export default defineComponent({
       placeholder: '내용을 입력하세요.',
       plugins: [codeSyntaxHighlight, colorSyntax],
       language: 'ko-KR',
+      toolbarItems: [
+        ['heading', 'bold', 'italic', 'strike'],
+        ['hr', 'quote'],
+        ['ul', 'ol', 'task', 'indent', 'outdent'],
+        ['table', 'image', {
+          name: 'video',
+          command: 'video',
+          tooltip: '동영상 삽입',
+          className: 'toastui-editor-toolbar-icons video',
+        }, 'link'],
+        ['code', 'codeblock'],
+        ['scrollSync'],
+      ],
+    });
+    editor.addCommand('markdown', 'video', () => {
+      const input = document.createElement('input') as HTMLInputElement;
+      input.type = 'file';
+      input.accept = 'video/mp4';
+      input.onchange = async (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        if (!target.files?.length) {
+          return;
+        }
+        const file = target.files[0];
+        if (!file.type.startsWith('video')) {
+          alert('비디오 파일을 선택해주세요.');
+          return;
+        }
+
+        await uploadFile(file)
+        .then((file) => {
+          const src = `${attachmentFileBaseUrl}${file.url}`;
+          editor.insertText(`<video src="${src}" controls><a href="${src}">${file.fileName ?? 'download'}</a></video>`);
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      };
+      input.click();
+
+      return true;
+    });
+    editor.addCommand('wysiwyg', 'video', () => {
+      alert('위지윅 모드에서는 지원되지 않습니다.');
+      return false;
     });
     editor.on('change', () => {
       this.$emit('update:modelValue', editor.getMarkdown());
@@ -101,5 +146,33 @@ export default defineComponent({
 @import '@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight.css';
 @import 'tui-color-picker/dist/tui-color-picker.css';
 @import '@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css';
+
+.toastui-editor-toolbar-icons.video::before,
+.toastui-editor-toolbar-icons.video::after {
+  content: '';
+  mask: url('@/assets/video.svg') no-repeat center;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: 0.2s ease;
+}
+
+.toastui-editor-toolbar-icons.video::before {
+  background: #555555;
+}
+
+.toastui-editor-toolbar-icons.video::after {
+  background: #eeeeee;
+}
+
+.toastui-editor-dark .video::before,
+.toastui-editor-dark .video::after{
+  transform: translateY(-100%);
+}
+
+.toastui-editor-toolbar-icons.video {
+  overflow: hidden;
+  background: transparent;
+}
 
 </style>
