@@ -82,3 +82,8 @@
 .toastui-editor-contents code > .token.operator {
     background: transparent;
 }
+
+.toastui-editor-contents video {
+    width: 100%;
+    max-width: max-content;
+}
