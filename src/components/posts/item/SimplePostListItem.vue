@@ -87,7 +87,6 @@ export default defineComponent({
 <style scoped>
 
 .simple-post-item-container {
-
   padding-bottom: var(--base-gap);
   margin-bottom: var(--base-gap);
 
@@ -102,6 +101,7 @@ export default defineComponent({
   grid-template-rows: auto;
 
   aspect-ratio: 4.5 / 1;
+  box-sizing: border-box;
   transition: box-shadow .2s;
 }
 
@@ -113,8 +113,7 @@ export default defineComponent({
 .thumbnail {
   display: grid;
 
-  width: 100%;
-  height: 100%;
+  min-height: 100%;
 
   aspect-ratio: 16 / 9;
   box-sizing: border-box;

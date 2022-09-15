@@ -136,6 +136,13 @@ export default defineComponent({
   margin-top: 1em;;
 }
 
+.blog-tabs-container {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+}
+
 .tabs {
   border-bottom: 1px solid var(--border-color);
 
