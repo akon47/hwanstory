@@ -90,7 +90,7 @@ export default defineComponent({
   display: grid;
 
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(auto, 1fr) auto;
 
   width: 100%;
 
@@ -118,8 +118,6 @@ export default defineComponent({
 }
 
 .thumbnail {
-  display: grid;
-
   width: 100%;
   height: 100%;
 
@@ -132,6 +130,9 @@ export default defineComponent({
   transition: 0.2s;
 
   overflow: hidden;
+
+  display: grid;
+  align-items: center;
 }
 
 .thumbnail-title {
@@ -139,8 +140,6 @@ export default defineComponent({
   font-weight: bold;
   color: #e5e5e5;
   text-shadow: 0 0 12px #000;
-  align-self: center;
-  justify-self: center;
 
   text-align: center;
 
