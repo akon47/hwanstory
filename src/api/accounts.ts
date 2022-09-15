@@ -1,5 +1,5 @@
 import { accountsV1 } from './index';
-import { CreateAccountDto, AccountDto, ModifyAccountDto } from '@/api/models/account.dtos';
+import { CreateAccountDto, AccountDto, ModifyAccountDto, ResetPasswordDto } from '@/api/models/account.dtos';
 import DataTransferObject from '@/api/models/common.dtos';
 import { marked } from 'marked';
 import defaults = marked.defaults;
@@ -23,6 +23,18 @@ function sendVerifyCodeToEmail(email: string) {
   });
 }
 
+// 사용자 계정 비밀번호 재설정 Url 이메일 발송
+function sendResetPasswordUrlToEmail(email: string) {
+  return accountsV1.postRequest<DataTransferObject>('/reset-password-email', {
+    email: email,
+  });
+}
+
+// 사용자 계정 비밀번호 재설정
+function resetPassword(resetPasswordDto: ResetPasswordDto) {
+  return accountsV1.putRequest('/password', null, resetPasswordDto);
+}
+
 // 현재 사용자 계정 조회
 function getCurrentAccount() {
   return accountsV1.getRequest<AccountDto>('/me');
@@ -33,4 +45,12 @@ function setCurrentProfileImage(blob: Blob) {
   return accountsV1.uploadFileRequest<AccountDto>('/me/profile-image', 'profileImageFile', Array.of(blob));
 }
 
-export { signUp, modifyAccountInfo, sendVerifyCodeToEmail, getCurrentAccount, setCurrentProfileImage };
+export {
+  signUp,
+  modifyAccountInfo,
+  sendVerifyCodeToEmail,
+  getCurrentAccount,
+  setCurrentProfileImage,
+  sendResetPasswordUrlToEmail,
+  resetPassword,
+};

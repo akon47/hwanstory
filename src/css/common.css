@@ -4,13 +4,13 @@
   --footer-background-color: #e5e5e5;
   --content-background-color: transparent;
   --content-item-background-color: #fafafa;
-  --hover-color: rgba(0,0,0,0.1);
+  --hover-color: rgba(0, 0, 0, 0.1);
   --border-color: #d0d0d0;
   --base-color: #202020;
-  --base-shadow-color: rgba(33,33,33,.2);
-  --button-color: #4E61FF;
-  --button-hover-color: #3F4FFA;
-  --link-accent-color: #218BFF;
+  --base-shadow-color: rgba(33, 33, 33, .2);
+  --button-color: #4e61ff;
+  --button-hover-color: #3f4ffa;
+  --link-accent-color: #218bff;
 
   --base-gap: 20px;
   --half-base-gab: calc(var(--base-gap) / 2);
@@ -26,13 +26,13 @@
   --footer-background-color: #303030;
   --content-background-color: transparent;
   --content-item-background-color: #232323;
-  --hover-color: rgba(255,255,255,0.1);
+  --hover-color: rgba(255, 255, 255, 0.1);
   --border-color: #3a3b3d;
   --base-color: #f0f0f0;
-  --base-shadow-color: rgba(222,222,222,.2);
-  --button-color: #5865F2;
+  --base-shadow-color: rgba(222, 222, 222, .2);
+  --button-color: #5865f2;
   --button-hover-color: #4752c4;
-  --link-accent-color: #539BF5;
+  --link-accent-color: #539bf5;
 
   --logo-brightness: 180%;
 
@@ -122,7 +122,7 @@ a:hover {
 }
 
 input,
-textarea{
+textarea {
   font-family: var(--base-font-family);
 }
 
@@ -134,6 +134,7 @@ button {
   transition: 0.2s;
   height: 30px;
   font-weight: bold;
+  font-size: 13px;
   color: #f0f0f0;
 }
 
@@ -207,8 +208,8 @@ button:disabled {
 }
 
 .form-wrapper button {
-  height: 42px;
-  font-size: 16px;
+  min-height: 42px;
+  font-size: 1em;
 }
 
 .form-wrapper a {

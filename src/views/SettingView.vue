@@ -28,6 +28,12 @@
                  placeholder="홈페이지" maxlength="255"/>
         </div>
       </div>
+      <div class="etc-container">
+        <button class="form-button"
+                :disabled="isLoading"
+                @click="sendResetPasswordUrlToEmail">비밀번호 재설정
+        </button>
+      </div>
     </div>
     <div class="footer">
       <button class="form-button"
@@ -43,7 +49,12 @@
 import { defineComponent } from 'vue';
 import { AccountDto } from '@/api/models/account.dtos';
 import { HttpApiError } from '@/api/common/httpApiClient';
-import { getCurrentAccount, modifyAccountInfo, setCurrentProfileImage } from '@/api/accounts';
+import {
+  getCurrentAccount,
+  modifyAccountInfo,
+  sendResetPasswordUrlToEmail,
+  setCurrentProfileImage,
+} from '@/api/accounts';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import store from '@/store';
 
@@ -154,6 +165,18 @@ export default defineComponent({
         });
       };
       input.click();
+    },
+    async sendResetPasswordUrlToEmail() {
+      this.isLoading = true;
+      await sendResetPasswordUrlToEmail(this.account.email)
+      .then(() => {
+        alert(`계정 비밀번호 재설정에 대한 방법을 ${this.account.email} 이메일로 보냈습니다.`);
+      }).catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.isLoading = false;
+      });
     },
   },
   created() {
@@ -272,8 +295,21 @@ export default defineComponent({
   padding: 0 var(--base-gap)
 }
 
-.footer .form-button {
+.setting-container .form-button {
   min-width: 100px;
+}
+
+.etc-container {
+  display: grid;
+
+  justify-content: end;
+
+  padding: var(--base-gap) 0;
+}
+
+.etc-container button {
+  min-height: 0;
+  font-size: 13px;
 }
 
 </style>

@@ -11,6 +11,9 @@
                type="password" id="password" v-model="password" autocomplete="off"
                placeholder="Password"/>
       </div>
+      <div class="signup-message">
+        <a v-on:click="sendResetPasswordUrlToEmail">비밀번호를 잊으셨나요?</a>
+      </div>
       <button :disabled="!isEmailValid || !isPasswordValid || isLoading"
               @click="signIn">
         로그인
@@ -37,6 +40,7 @@ import { defineComponent } from 'vue';
 import store from '@/store';
 import { apiBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
 import ProviderButton from '@/components/common/ProviderButton.vue';
+import { sendResetPasswordUrlToEmail } from '@/api/accounts';
 
 export default defineComponent({
   name: 'SigninForm',
@@ -86,6 +90,22 @@ export default defineComponent({
     getSocialLoginUrl(registrationId: String) {
       return `${apiBaseUrl}v1/authentication/oauth2/${registrationId}?redirect_uri=${location.protocol}//${location.hostname}/social-authentication-redirect`;
     },
+    async sendResetPasswordUrlToEmail() {
+      if (!this.isEmailValid) {
+        alert('이메일 형식을 확인해주세요.');
+        return;
+      }
+      this.isLoading = true;
+      await sendResetPasswordUrlToEmail(this.email)
+      .then(() => {
+        alert(`계정 비밀번호 재설정에 대한 방법을 ${this.email} 이메일로 보냈습니다.`);
+      }).catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.isLoading = false;
+      });
+    },
   },
 });
 </script>
@@ -97,7 +117,7 @@ export default defineComponent({
 }
 
 .signup-message {
-  margin-top: -5px;
+  margin-top: -8px;
   font-size: 10pt;
   color: #8e9297;
 }

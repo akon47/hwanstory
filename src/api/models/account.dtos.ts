@@ -28,6 +28,14 @@ export interface ModifyAccountDto extends DataTransferObject {
   readonly homepage: string | null;
 }
 
+// 사용자 비밀번호 재설정 Dto
+export interface ResetPasswordDto extends DataTransferObject {
+  // 새 로그인 비밀번호
+  readonly newPassword: string;
+  // 비밀번호 재설정 토큰
+  readonly resetPasswordToken: string;
+}
+
 // 역할 Dto
 export interface RoleDto extends DataTransferObject {
   // 역할 이름

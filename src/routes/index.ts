@@ -113,6 +113,24 @@ const router = createRouter({
       }),
     },
     {
+      path: '/reset-password',
+      name: 'ResetPassword',
+      component: () => import('../views/ResetPasswordView.vue'),
+      beforeEnter: (to, from, next) => {
+        if (to.query.token) {
+          next();
+        } else {
+          next('/main');
+        }
+      },
+      props: (route) => ({
+        token: route.query.token as string,
+      }),
+      meta: {
+        title: '비밀번호 재설정',
+      },
+    },
+    {
       path: '/privacy-policy',
       name: 'PrivacyPolicy',
       component: () => import('../views/PrivacyPolicyView.vue'),
