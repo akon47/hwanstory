@@ -87,6 +87,14 @@ export default defineComponent({
 <style scoped>
 
 .simple-post-item-container {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+
+  width: 100%;
+
+  aspect-ratio: 4 / 1;
 
   padding-bottom: var(--base-gap);
   margin-bottom: var(--base-gap);
@@ -98,10 +106,9 @@ export default defineComponent({
 .inner-container {
   display: grid;
 
-  grid-template-columns: auto 1fr;
+  grid-template-columns: minmax(0, 1fr) 2fr;
   grid-template-rows: auto;
 
-  aspect-ratio: 4.5 / 1;
   transition: box-shadow .2s;
 }
 
@@ -220,6 +227,8 @@ export default defineComponent({
   display: flex;
   font-size: 0.75em;
   justify-self: right;
+
+  width: 100%;
 
   justify-content: space-between;
   padding: 0.3em 0.3em 0 0.3em;

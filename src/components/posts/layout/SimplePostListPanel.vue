@@ -21,10 +21,8 @@ export default defineComponent({
 <style scoped>
 
 .list-panel-container {
-  display: grid;
-
-  grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 </style>
