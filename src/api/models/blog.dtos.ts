@@ -7,6 +7,9 @@ export interface BlogDetailsDto extends DataTransferObject {
   readonly owner: AccountDto;
 }
 
+// 게시글 공개 유형
+export type OpenType = 'PUBLIC' | 'PRIVATE'
+
 // 게시글 작성/수정 Dto
 export interface PostRequestDto extends DataTransferObject {
   // 게시글 URL
@@ -15,6 +18,8 @@ export interface PostRequestDto extends DataTransferObject {
   readonly title: string;
   // 내용
   readonly content: string;
+  // 공개 유형
+  readonly openType: OpenType;
   // 요약 내용
   readonly summary?: string;
   // 썸네일 이미지 파일 Id
@@ -35,6 +40,8 @@ export interface PostDto extends DataTransferObject {
   readonly title: string;
   // 내용
   readonly content: string;
+  // 공개 유형
+  readonly openType: OpenType;
   // 요약 내용
   readonly summary?: string;
   // 썸네일 이미지 URL
@@ -65,6 +72,8 @@ export interface SimplePostDto extends DataTransferObject {
   readonly title: string;
   // 요약 내용
   readonly summary: string;
+  // 공개 유형
+  readonly openType: OpenType;
   // 썸네일 이미지 URL
   readonly thumbnailImageUrl: string;
   // 작성자

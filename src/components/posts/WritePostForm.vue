@@ -62,7 +62,7 @@ export default defineComponent({
       return this.content.length > 0;
     },
     isPostUrlValid(): boolean {
-      if(this.newPostUrl.length == 0)
+      if (this.newPostUrl.length == 0)
         return true;
 
       const regex = /^[-a-zA-Z\d_]+$/;
@@ -79,6 +79,7 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         summary: this.createSummaryFromContent(this.content),
+        openType: 'PUBLIC',
         postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
@@ -99,6 +100,7 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         summary: this.createSummaryFromContent(this.content),
+        openType: 'PUBLIC',
         postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
@@ -164,13 +166,13 @@ export default defineComponent({
       renderer.paragraph = (text) => text;
 
       const summary = marked(content, {
-        renderer: renderer
+        renderer: renderer,
       }).split('\n').filter(Boolean)[0];
-      if(!summary) {
-        return "내용없음";
+      if (!summary) {
+        return '내용없음';
       }
       return summary.length > 255 ? summary.substring(0, 255) : summary;
-    }
+    },
   },
   created() {
     this.loadPost();
