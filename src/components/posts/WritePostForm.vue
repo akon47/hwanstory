@@ -7,10 +7,7 @@
       <post-editor id="editor" v-model="content"/>
     </div>
     <div class="footer">
-      <div>
-      </div>
-      <div>
-      </div>
+      <span><input id="private-post" type="checkbox" v-model="isPrivatePost" /><label for="private-post">비공개 게시글</label></span>
       <button v-if="isNewPost" class="form-button"
               :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || isLoading"
               @click="writePost">
@@ -52,6 +49,7 @@ export default defineComponent({
       newPostUrl: '',
       isLoading: false,
       tags: Array<string>(),
+      isPrivatePost: false,
     };
   },
   computed: {
@@ -79,7 +77,7 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         summary: this.createSummaryFromContent(this.content),
-        openType: 'PUBLIC',
+        openType: this.isPrivatePost ? 'PRIVATE' : 'PUBLIC',
         postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
@@ -100,7 +98,7 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         summary: this.createSummaryFromContent(this.content),
-        openType: 'PUBLIC',
+        openType: this.isPrivatePost ? 'PRIVATE' : 'PUBLIC',
         postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
@@ -123,6 +121,7 @@ export default defineComponent({
           this.newPostUrl = post.postUrl;
           this.content = post.content;
           this.tags = post.tags?.map(x => x.name);
+          this.isPrivatePost = post.openType == 'PRIVATE';
         })
         .catch((error: HttpApiError) => {
           alert(error.getErrorMessage());
@@ -242,13 +241,26 @@ export default defineComponent({
 .footer {
   display: grid;
 
-  grid-template-columns: auto 1fr auto;
+  grid-auto-columns: auto;
   grid-template-rows: 1fr;
 
   align-items: center;
+  align-content: center;
+  justify-content: end;
 
   background: var(--footer-background-color);
-  padding: 0 var(--base-gap)
+  padding: 0 var(--base-gap);
+
+  grid-auto-flow: column;
+
+  grid-column-gap: 10px;
+
+  font-size: 0.8em;
+}
+
+.footer span {
+  display: flex;
+  align-items: center;
 }
 
 .footer .form-button {
