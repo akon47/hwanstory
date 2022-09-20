@@ -130,6 +130,7 @@ export default defineComponent({
         this.likeCount = post.likeCount;
         this.comments = post.comments;
         this.tags = post.tags?.map(tag => tag.name) ?? [];
+        document.title = this.post.title;
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());

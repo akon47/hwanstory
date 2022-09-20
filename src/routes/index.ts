@@ -1,6 +1,6 @@
 import {
   createRouter,
-  createWebHashHistory, createWebHistory,
+  createWebHistory,
   NavigationGuardWithThis,
 } from 'vue-router';
 import store from '@/store';
@@ -134,11 +134,17 @@ const router = createRouter({
       path: '/privacy-policy',
       name: 'PrivacyPolicy',
       component: () => import('../views/PrivacyPolicyView.vue'),
+      meta: {
+        title: '개인정보처리방침',
+      },
     },
     {
       path: '/not-found',
       name: 'NotFound',
       component: () => import('../views/NotFoundView.vue'),
+      meta: {
+        title: 'NotFound',
+      },
     },
     {
       path: '/:pathMatch(.*)*',
@@ -154,7 +160,6 @@ const router = createRouter({
 
 router.afterEach((to, from) => {
   const title = (to.meta?.title ? to.meta.title : 'Hwan\'Story') as string;
-
   nextTick((): any => {
     document.title = title;
   });
