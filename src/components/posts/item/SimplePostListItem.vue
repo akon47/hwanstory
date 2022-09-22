@@ -1,20 +1,22 @@
 <template>
   <div class="simple-post-item-container">
-    <div class="inner-container" @click="moveToPost">
-      <div class="thumbnail" :style="thumbnailStyle">
-        <div v-if="!simplePost.thumbnailImageUrl" class="thumbnail-title">
-          {{ simplePost.title }}
+    <router-link :to="`/${this.simplePost?.blogId}/posts/${this.simplePost?.postUrl}`">
+      <div class="inner-container">
+        <div class="thumbnail" :style="thumbnailStyle">
+          <div v-if="!simplePost.thumbnailImageUrl" class="thumbnail-title">
+            {{ simplePost.title }}
+          </div>
+        </div>
+        <div class="contents">
+          <div class="title">
+            {{ simplePost.title }}
+          </div>
+          <div class="summary">
+            {{ simplePost.summary }}
+          </div>
         </div>
       </div>
-      <div class="contents">
-        <div class="title">
-          {{ simplePost.title }}
-        </div>
-        <div class="summary">
-          {{ simplePost.summary }}
-        </div>
-      </div>
-    </div>
+    </router-link>
     <div class="footer">
       <div>
         {{ createdAt }}
@@ -76,11 +78,6 @@ export default defineComponent({
       };
     },
   },
-  methods: {
-    moveToPost() {
-      this.$router.push(`/${this.simplePost?.blogId}/posts/${this.simplePost?.postUrl}`);
-    },
-  },
 });
 </script>
 
@@ -101,6 +98,11 @@ export default defineComponent({
 
   border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
+}
+
+.simple-post-item-container a {
+  color: var(--base-color);
+  text-decoration: none;
 }
 
 .inner-container {
@@ -139,7 +141,7 @@ export default defineComponent({
   font-size: 1.75em;
   font-weight: bold;
   color: #e5e5e5;
-  text-shadow: 0 0 12px #000;
+  text-shadow: 0 0 12px #000000;
 
   text-align: center;
 
@@ -157,6 +159,7 @@ export default defineComponent({
   .thumbnail {
     aspect-ratio: 1;
   }
+
   .thumbnail-title {
     font-size: 1.25em;
   }

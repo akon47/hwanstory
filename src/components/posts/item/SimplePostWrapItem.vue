@@ -1,26 +1,28 @@
 <template>
   <div class="simple-post-item-container">
-    <div class="main" @click="moveToPost">
-      <div class="thumbnail" :style="thumbnailStyle">
-        <div v-if="!simplePost.thumbnailImageUrl" class="thumbnail-title">
+    <router-link :to="`/${this.simplePost?.blogId}/posts/${this.simplePost?.postUrl}`">
+      <div class="main">
+        <div class="thumbnail" :style="thumbnailStyle">
+          <div v-if="!simplePost.thumbnailImageUrl" class="thumbnail-title">
+            {{ simplePost.title }}
+          </div>
+          <div class="author-profile-image">
+            <account-profile-image :simple-account="simplePost.author"/>
+          </div>
+        </div>
+        <div class="title">
           {{ simplePost.title }}
         </div>
-        <div class="author-profile-image">
-          <account-profile-image :simple-account="simplePost.author"/>
+        <div class="content">
+          {{ simplePost.summary }}
+        </div>
+        <div class="counts">
+          {{ simplePost.likeCount }} 개의 좋아요
+          <span>&#183;</span>
+          {{ simplePost.commentCount }} 개의 댓글
         </div>
       </div>
-      <div class="title">
-        {{ simplePost.title }}
-      </div>
-      <div class="content">
-        {{ simplePost.summary }}
-      </div>
-      <div class="counts">
-        {{ simplePost.likeCount }} 개의 좋아요
-        <span>&#183;</span>
-        {{ simplePost.commentCount }} 개의 댓글
-      </div>
-    </div>
+    </router-link>
     <div class="footer">
       <div class="footer-content">
         <div>
@@ -28,9 +30,11 @@
           <span>&#183;</span>
           {{ simplePost.hits }} 조회됨
         </div>
-        <div class="author" @click="moveToBlog">
-          by&nbsp;{{ simplePost.author?.name }}
-        </div>
+        <router-link :to="`/${this.simplePost?.blogId}`">
+          <div class="author">
+            by&nbsp;{{ simplePost.author?.name }}
+          </div>
+        </router-link>
       </div>
     </div>
   </div>
@@ -54,7 +58,7 @@ export default defineComponent({
       return dayjs(this.simplePost?.createdAt).format('YYYY.MM.DD H:mm');
     },
     thumbnailStyle() {
-      if(this.simplePost?.thumbnailImageUrl) {
+      if (this.simplePost?.thumbnailImageUrl) {
         return {
           backgroundImage: `url(${attachmentFileBaseUrl}${this.simplePost?.thumbnailImageUrl})`,
           backgroundSize: 'cover',
@@ -86,14 +90,6 @@ export default defineComponent({
       };
     },
   },
-  methods: {
-    moveToPost() {
-      this.$router.push(`/${this.simplePost?.blogId}/posts/${this.simplePost?.postUrl}`);
-    },
-    moveToBlog() {
-      this.$router.push(`/${this.simplePost?.blogId}`);
-    },
-  },
 });
 </script>
 
@@ -119,10 +115,19 @@ export default defineComponent({
   cursor: pointer;
 }
 
+.simple-post-item-container a {
+  color: var(--base-color);
+  text-decoration: none;
+}
+
 @media (max-width: 1080px) {
   .simple-post-item-container {
     aspect-ratio: auto;
   }
+}
+
+.simple-post-item-container > a {
+  display: grid;
 }
 
 .main {
@@ -161,7 +166,7 @@ export default defineComponent({
   font-size: 1.75em;
   font-weight: bold;
   color: #e5e5e5;
-  text-shadow: 0 0 12px #000;
+  text-shadow: 0 0 12px #000000;
   align-self: center;
   justify-self: stretch;
 
