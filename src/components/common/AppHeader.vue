@@ -6,10 +6,9 @@
         <img class="logo-symbol" src="@/assets/logo-symbol.svg"/>
       </router-link>
     </div>
-    <div class="search">
-
-    </div>
     <div>
+    </div>
+    <div class="search">
 
     </div>
     <div class="themes">
@@ -53,9 +52,6 @@ export default defineComponent({
       store.dispatch('accountStore/toggleTheme');
     },
   },
-  created() {
-
-  },
 });
 </script>
 
@@ -63,7 +59,7 @@ export default defineComponent({
 .header-container {
   display: grid;
 
-  grid-template-columns: auto auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto auto auto;
   grid-template-rows: 1fr;
 
   align-items: center;
@@ -134,6 +130,10 @@ export default defineComponent({
 .themes .switch:hover {
   cursor: pointer;
   background-color: var(--hover-color);
+}
+
+.header-container .search {
+
 }
 
 </style>
