@@ -4,7 +4,7 @@
     <observer-trigger
         class="observer-trigger-enable"
         :class="{'observer-trigger-disable': this.isNoMorePage}"
-        v-on:trigger="loadMorePosts" />
+        v-on:trigger="loadMorePosts"/>
   </div>
 </template>
 
@@ -13,8 +13,9 @@ import { defineComponent } from 'vue';
 import { SimplePostDto } from '@/api/models/blog.dtos';
 import { getAllPosts } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
-import SimplePostWrapPanel from "@/components/posts/layout/SimplePostWrapPanel.vue";
-import ObserverTrigger from "@/components/common/ObserverTrigger.vue";
+import SimplePostWrapPanel from '@/components/posts/layout/SimplePostWrapPanel.vue';
+import ObserverTrigger from '@/components/common/ObserverTrigger.vue';
+import store from '@/store';
 
 export default defineComponent({
   name: 'MainView',
@@ -29,8 +30,8 @@ export default defineComponent({
   methods: {
     async fetchPosts(cursorId: string | null = null) {
       await getAllPosts(20, cursorId)
-      .then((posts) => {
-        if(posts.first) {
+      .then(async (posts) => {
+        if (posts.first) {
           this.simplePosts = posts.data;
         } else {
           posts.data.forEach((post) => {
@@ -39,6 +40,12 @@ export default defineComponent({
         }
         this.cursorId = (!posts.last && posts.cursorId) ? posts.cursorId : '';
         this.isNoMorePage = posts.last;
+
+        await store.dispatch('cacheStore/setMainPosts', {
+          simplePosts: this.simplePosts,
+          cursorId: this.cursorId,
+          isNoMorePage: this.isNoMorePage,
+        });
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -51,7 +58,14 @@ export default defineComponent({
     },
   },
   mounted() {
-    this.fetchPosts();
+    const cachedMainPosts = store.getters['cacheStore/getCachedMainPosts'];
+    if (cachedMainPosts == null) {
+      this.fetchPosts();
+    } else {
+      this.simplePosts = cachedMainPosts.simplePosts;
+      this.cursorId = cachedMainPosts.cursorId;
+      this.isNoMorePage = cachedMainPosts.isNoMorePage;
+    }
   },
 });
 </script>

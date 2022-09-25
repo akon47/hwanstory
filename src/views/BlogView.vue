@@ -67,6 +67,7 @@ export default defineComponent({
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
+        this.$router.push(`/main`);
       });
     },
   },

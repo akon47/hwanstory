@@ -31,7 +31,7 @@ export default defineComponent({
   },
   computed: {
     isDarkTheme() {
-      return store.getters['accountStore/isDarkTheme'];
+      return store.getters['commonStore/isDarkTheme'];
     },
   },
   watch: {

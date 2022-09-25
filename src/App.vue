@@ -21,7 +21,7 @@ export default defineComponent({
   },
   computed: {
     theme() {
-      return store.getters["accountStore/getTheme"];
+      return store.getters["commonStore/getTheme"];
     },
   },
   watch: {

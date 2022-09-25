@@ -6,7 +6,6 @@ import {
   getBlogIdFromLocalStorage,
   getRefreshTokenExpiresInFromLocalStorage,
   getRefreshTokenFromLocalStorage,
-  getThemeFromLocalStorage,
   saveAccessTokenExpiresInToLocalStorage,
   saveAccessTokenToLocalStorage,
   saveBlogIdToLocalStorage,
@@ -16,8 +15,7 @@ import {
 } from '@/utils/storage';
 import { reissueToken, signIn, signOut } from '@/api/authentication';
 import { AuthenticationInfoDto, TokenDto } from '@/api/models/authentication.dtos';
-import { CreateAccountDto } from '@/api/models/account.dtos';
-import { getCurrentAccount, signUp } from '@/api/accounts';
+import { getCurrentAccount } from '@/api/accounts';
 
 export interface AccountState {
   accessToken: string;
@@ -25,7 +23,6 @@ export interface AccountState {
   refreshToken: string;
   refreshTokenExpiresIn: number;
   blogId: string;
-  theme: string;
   profileImageUrl: string | null;
 }
 
@@ -37,7 +34,6 @@ export const accountStore: Module<AccountState, RootState> = {
     refreshToken: getRefreshTokenFromLocalStorage() || '',
     refreshTokenExpiresIn: Number(getRefreshTokenExpiresInFromLocalStorage() || 0),
     blogId: getBlogIdFromLocalStorage() || '',
-    theme: getThemeFromLocalStorage() || '',
     profileImageUrl: null,
   }),
   mutations: {
@@ -69,10 +65,6 @@ export const accountStore: Module<AccountState, RootState> = {
       state.blogId = '';
       saveBlogIdToLocalStorage('');
     },
-    setTheme(state, theme: string) {
-      state.theme = theme;
-      saveThemeToLocalStorage(theme);
-    },
     setProfileImageUrl(state, profileImageUrl: string) {
       state.profileImageUrl = profileImageUrl;
     },
@@ -81,12 +73,6 @@ export const accountStore: Module<AccountState, RootState> = {
     // 로그인 되어있는지 여부
     isLoggedIn(state) {
       return state.accessToken && state.refreshToken && state.accessTokenExpiresIn > 0 && state.refreshTokenExpiresIn > 0;
-    },
-    getTheme(state) {
-      return state.theme;
-    },
-    isDarkTheme(state) {
-      return state.theme === 'dark-theme';
     },
     getProfileImageUrl(state) {
       return state.profileImageUrl;
@@ -114,13 +100,6 @@ export const accountStore: Module<AccountState, RootState> = {
       const token = await reissueToken(state.refreshToken);
       commit('setToken', token);
     },
-    async toggleTheme({ commit, state }) {
-      if (state.theme === 'dark-theme') {
-        commit('setTheme', 'light-theme');
-      } else {
-        commit('setTheme', 'dark-theme');
-      }
-    },
     async updateCurrentAccountInfo({ commit }) {
       const account = await getCurrentAccount();
       commit('setBlogId', account.blogId);
@@ -131,6 +110,6 @@ export const accountStore: Module<AccountState, RootState> = {
       const account = await getCurrentAccount();
       commit('setBlogId', account.blogId);
       commit('setProfileImageUrl', account.profileImageUrl ?? '');
-    }
+    },
   },
 };

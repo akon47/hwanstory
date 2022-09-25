@@ -44,12 +44,12 @@ export default defineComponent({
       return store.getters['accountStore/isLoggedIn'] ?? false;
     },
     isDarkTheme(): boolean {
-      return store.getters['accountStore/isDarkTheme'] ?? false;
+      return store.getters['commonStore/isDarkTheme'] ?? false;
     }
   },
   methods: {
     toggleTheme() {
-      store.dispatch('accountStore/toggleTheme');
+      store.dispatch('commonStore/toggleTheme');
     },
   },
 });
