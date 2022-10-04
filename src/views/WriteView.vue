@@ -20,6 +20,19 @@ export default defineComponent({
       default: '',
     },
   },
+  methods: {
+    onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = '';
+    },
+  },
+  mounted() {
+    window.addEventListener('beforeunload', this.onBeforeUnload);
+  },
+  beforeUnmount() {
+    window.removeEventListener('beforeunload', this.onBeforeUnload);
+  },
+
 });
 </script>
 
