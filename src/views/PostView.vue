@@ -6,6 +6,10 @@
       </h1>
       <div class="hits">
         조회수 {{ post.hits }} 회
+        <span class="modified-at" v-if="longCreateAt !== longLastModifiedAt">
+          {{ longLastModifiedAt }}
+          마지막으로 수정됨
+        </span>
       </div>
       <div class="author">
         <account-profile-image-button class="author-profile-image" :simple-account="post.author"/>
@@ -97,6 +101,15 @@ export default defineComponent({
         return null;
       }
       const date = new Date(this.post.createdAt);
+      const hours = `${date.getHours()}`.padStart(2, '0');
+      const minutes = `${date.getMinutes()}`.padStart(2, '0');
+      return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}. ${hours}:${minutes}`;
+    },
+    longLastModifiedAt() {
+      if (!this.post?.lastModifiedAt) {
+        return null;
+      }
+      const date = new Date(this.post.lastModifiedAt);
       const hours = `${date.getHours()}`.padStart(2, '0');
       const minutes = `${date.getMinutes()}`.padStart(2, '0');
       return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}. ${hours}:${minutes}`;
@@ -240,6 +253,9 @@ export default defineComponent({
 
 .hits {
   font-size: 0.75em;
+
+  display: flex;
+  justify-content: space-between;
 }
 
 .tags {
@@ -314,6 +330,13 @@ export default defineComponent({
   grid-row: 2 / span 1;
 
   font-size: 0.75em;
+  font-weight: 300;
+}
+
+.modified-at {
+  white-space: nowrap;
+
+  font-size: 1em;
   font-weight: 300;
 }
 

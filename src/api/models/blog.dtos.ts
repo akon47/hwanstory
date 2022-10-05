@@ -58,6 +58,8 @@ export interface PostDto extends DataTransferObject {
   readonly hits: number;
   // 작성 시간
   readonly createdAt: Date;
+  // 마지막 수정 시간
+  readonly lastModifiedAt: Date;
 }
 
 // 게시글 리스트 조회용 Dto
@@ -88,6 +90,8 @@ export interface SimplePostDto extends DataTransferObject {
   readonly hits: number;
   // 작성 시간
   readonly createdAt: Date;
+  // 마지막 수정 시간
+  readonly lastModifiedAt: Date;
 }
 
 // 댓글 작성/수정 Dto
