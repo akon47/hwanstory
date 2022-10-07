@@ -223,3 +223,13 @@ button:disabled {
 .form-wrapper input.invalid {
   border: 1px solid red;
 }
+
+.badge {
+  border-radius: 4px;
+  padding: 0.2em 0.4em;
+  font-size: 90%;
+  font-weight: bold;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-color);
+}

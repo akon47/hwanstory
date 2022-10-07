@@ -20,6 +20,11 @@
     <div class="footer">
       <div>
         {{ createdAt }}
+        <span>&#183;</span>
+        {{ simplePost.hits }} 조회됨
+        <span class="badge" v-if="simplePost.openType == 'PRIVATE'">
+          비공개 게시글
+        </span>
       </div>
       <div>
         {{ simplePost.likeCount }} 개의 좋아요

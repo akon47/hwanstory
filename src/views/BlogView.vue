@@ -1,5 +1,5 @@
 <template>
-  <div class="blog-simple-post-container">
+  <div v-show="isLoaded" class="blog-simple-post-container">
     <div class="profile-container">
       <div class="profile-image">
         <account-profile-image-button :simple-account="blogOwner"/>
@@ -52,6 +52,7 @@ export default defineComponent({
   data() {
     return {
       blogOwner: {} as AccountDto,
+      isLoaded: false,
     };
   },
   watch: {
@@ -64,10 +65,15 @@ export default defineComponent({
       await getBlogDetails(this.blogId)
       .then((blogDetails) => {
         this.blogOwner = blogDetails.owner;
+        this.isLoaded = true;
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-        this.$router.push(`/main`);
+        if (error.isNotFound()) {
+          this.$router.push(`/not-found`);
+        } else {
+          alert(error.getErrorMessage());
+          this.$router.push(`/main`);
+        }
       });
     },
   },
