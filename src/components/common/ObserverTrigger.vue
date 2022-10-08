@@ -20,8 +20,9 @@ export default defineComponent({
   },
   methods: {
     handleIntersect: function (target: IntersectionObserverEntry) {
-      if (target.isIntersecting)
+      if (target.isIntersecting) {
         this.$emit(`trigger`);
+      }
     },
   },
   mounted() {

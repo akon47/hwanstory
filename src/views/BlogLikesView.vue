@@ -2,9 +2,12 @@
   <div class="main-container">
     <simple-post-list-panel :simple-posts="simplePosts"></simple-post-list-panel>
     <observer-trigger
+        v-if="!this.isNoMorePage && !isLoading"
         class="observer-trigger-enable"
-        :class="{'observer-trigger-disable': this.isNoMorePage}"
         v-on:trigger="loadMorePosts"/>
+    <div class="loading" v-if="isLoading">
+      <loading-spinner />
+    </div>
   </div>
 </template>
 
@@ -15,10 +18,11 @@ import ObserverTrigger from '@/components/common/ObserverTrigger.vue';
 import { SimplePostDto } from '@/api/models/blog.dtos';
 import { getBloggerLikePosts } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 
 export default defineComponent({
   name: 'BlogLikesView',
-  components: { ObserverTrigger, SimplePostListPanel },
+  components: { LoadingSpinner, ObserverTrigger, SimplePostListPanel },
   props: {
     blogId: {
       type: String,
@@ -29,26 +33,32 @@ export default defineComponent({
     return {
       simplePosts: Array<SimplePostDto>(),
       cursorId: '',
-      isNoMorePage: false,
+      isNoMorePage: true,
+      isLoading: false,
     };
   },
   methods: {
     async fetchPosts(cursorId: string | null = null) {
-      await getBloggerLikePosts(this.blogId, 20, cursorId)
-      .then((posts) => {
-        if (posts.first) {
-          this.simplePosts = posts.data;
-        } else {
-          posts.data.forEach((post) => {
-            this.simplePosts.push(post);
-          });
-        }
-        this.cursorId = (!posts.last && posts.cursorId) ? posts.cursorId : '';
-        this.isNoMorePage = posts.last;
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
+      try {
+        this.isLoading = true;
+        await getBloggerLikePosts(this.blogId, 20, cursorId)
+        .then((posts) => {
+          if (posts.first) {
+            this.simplePosts = posts.data;
+          } else {
+            posts.data.forEach((post) => {
+              this.simplePosts.push(post);
+            });
+          }
+          this.cursorId = (!posts.last && posts.cursorId) ? posts.cursorId : '';
+          this.isNoMorePage = posts.last;
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      } finally {
+        this.isLoading = false;
+      }
     },
     async loadMorePosts() {
       if (this.cursorId) {
@@ -69,15 +79,16 @@ export default defineComponent({
 }
 
 .observer-trigger-enable {
-  height: 900px;
+  height: 680px;
   position: relative;
   margin-top: -600px;
 }
 
-.observer-trigger-disable {
-  height: 0px;
-  margin-top: 0px;
-  position: relative;
+.loading {
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 80px;
 }
 
 </style>

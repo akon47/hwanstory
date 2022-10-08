@@ -1,7 +1,7 @@
 <template>
   <div class="header-container">
     <div class="logo">
-      <router-link to="/main">
+      <router-link to="/main" @click="clearCachedMainPosts">
         <img class="logo-text" src="@/assets/logo-title.svg"/>
         <img class="logo-symbol" src="@/assets/logo-symbol.svg"/>
       </router-link>
@@ -20,7 +20,7 @@
         <router-link to="/write">
           <button>새 글 작성</button>
         </router-link>
-        <account-summary-menu-button />
+        <account-summary-menu-button/>
       </div>
       <div v-else>
         <router-link to="/signin">
@@ -45,11 +45,14 @@ export default defineComponent({
     },
     isDarkTheme(): boolean {
       return store.getters['commonStore/isDarkTheme'] ?? false;
-    }
+    },
   },
   methods: {
     toggleTheme() {
       store.dispatch('commonStore/toggleTheme');
+    },
+    clearCachedMainPosts() {
+      store.dispatch('cacheStore/clearMainPosts');
     },
   },
 });

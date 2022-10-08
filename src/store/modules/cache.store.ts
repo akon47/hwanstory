@@ -21,6 +21,9 @@ export const cacheStore: Module<CacheState, RootState> = {
     setMainPosts(state, postLoadedState: PostLoadedState) {
       state.cachedMainPosts = postLoadedState;
     },
+    clearMainPosts(state) {
+      state.cachedMainPosts = null;
+    },
   },
   getters: {
     getCachedMainPosts(state) {
@@ -30,6 +33,9 @@ export const cacheStore: Module<CacheState, RootState> = {
   actions: {
     async setMainPosts({ commit }, postLoadedState: PostLoadedState) {
       commit('setMainPosts', postLoadedState);
+    },
+    async clearMainPosts({ commit }) {
+      commit('clearMainPosts');
     },
   },
 };

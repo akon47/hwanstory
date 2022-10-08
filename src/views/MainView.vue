@@ -2,9 +2,12 @@
   <div class="main-container">
     <simple-post-wrap-panel :simple-posts="simplePosts"></simple-post-wrap-panel>
     <observer-trigger
+        v-if="!this.isNoMorePage && !isLoading"
         class="observer-trigger-enable"
-        :class="{'observer-trigger-disable': this.isNoMorePage}"
         v-on:trigger="loadMorePosts"/>
+    <div class="loading" v-if="isLoading">
+      <loading-spinner/>
+    </div>
   </div>
 </template>
 
@@ -16,40 +19,62 @@ import { HttpApiError } from '@/api/common/httpApiClient';
 import SimplePostWrapPanel from '@/components/posts/layout/SimplePostWrapPanel.vue';
 import ObserverTrigger from '@/components/common/ObserverTrigger.vue';
 import store from '@/store';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 
 export default defineComponent({
   name: 'MainView',
-  components: { ObserverTrigger, SimplePostWrapPanel },
+  components: { LoadingSpinner, ObserverTrigger, SimplePostWrapPanel },
   data() {
     return {
       simplePosts: Array<SimplePostDto>(),
       cursorId: '',
-      isNoMorePage: false,
+      isNoMorePage: true,
+      isLoading: false,
     };
   },
+  computed: {
+    cachedMainPosts() {
+      return store.getters['cacheStore/getCachedMainPosts'];
+    },
+  },
+  watch: {
+    cachedMainPosts(value) {
+      if (value === null) {
+        this.refresh();
+      }
+    },
+  },
   methods: {
+    async refresh() {
+      await this.fetchPosts();
+    },
     async fetchPosts(cursorId: string | null = null) {
-      await getAllPosts(20, cursorId)
-      .then(async (posts) => {
-        if (posts.first) {
-          this.simplePosts = posts.data;
-        } else {
-          posts.data.forEach((post) => {
-            this.simplePosts.push(post);
-          });
-        }
-        this.cursorId = (!posts.last && posts.cursorId) ? posts.cursorId : '';
-        this.isNoMorePage = posts.last;
+      try {
+        this.isLoading = true;
+        await getAllPosts(20, cursorId)
+        .then(async (posts) => {
+          if (posts.first) {
+            this.simplePosts = posts.data;
+          } else {
+            posts.data.forEach((post) => {
+              this.simplePosts.push(post);
+            });
+          }
+          this.cursorId = (!posts.last && posts.cursorId) ? posts.cursorId : '';
+          this.isNoMorePage = posts.last;
 
-        await store.dispatch('cacheStore/setMainPosts', {
-          simplePosts: this.simplePosts,
-          cursorId: this.cursorId,
-          isNoMorePage: this.isNoMorePage,
+          await store.dispatch('cacheStore/setMainPosts', {
+            simplePosts: this.simplePosts,
+            cursorId: this.cursorId,
+            isNoMorePage: this.isNoMorePage,
+          });
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
         });
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
+      } finally {
+        this.isLoading = false;
+      }
     },
     async loadMorePosts() {
       if (this.cursorId) {
@@ -77,15 +102,17 @@ export default defineComponent({
 }
 
 .observer-trigger-enable {
-  height: 900px;
+  height: 720px;
   position: relative;
   margin-top: -600px;
 }
 
-.observer-trigger-disable {
-  height: 0px;
-  margin-top: 0px;
-  position: relative;
+.loading {
+  display: flex;
+  justify-content: center;
+  margin-bottom: calc(var(--base-gap) * 2);
+  box-sizing: border-box;
+  height: 80px;
 }
 
 </style>

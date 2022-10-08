@@ -3,23 +3,23 @@
     <router-link :to="`/${this.simplePost?.blogId}/posts/${this.simplePost?.postUrl}`">
       <div class="main">
         <div class="thumbnail" :style="thumbnailStyle">
-          <div v-if="!simplePost.thumbnailImageUrl" class="thumbnail-title">
-            {{ simplePost.title }}
+          <div v-if="!simplePost?.thumbnailImageUrl" class="thumbnail-title">
+            {{ simplePost?.title }}
           </div>
           <div class="author-profile-image">
-            <account-profile-image :simple-account="simplePost.author"/>
+            <account-profile-image :simple-account="simplePost?.author"/>
           </div>
         </div>
         <div class="title">
-          {{ simplePost.title }}
+          {{ simplePost?.title }}
         </div>
         <div class="content">
-          {{ simplePost.summary }}
+          {{ simplePost?.summary }}
         </div>
         <div class="counts">
-          {{ simplePost.likeCount }} 개의 좋아요
+          {{ simplePost?.likeCount }} 개의 좋아요
           <span>&#183;</span>
-          {{ simplePost.commentCount }} 개의 댓글
+          {{ simplePost?.commentCount }} 개의 댓글
         </div>
       </div>
     </router-link>
@@ -28,11 +28,11 @@
         <div>
           {{ createdAt }}
           <span>&#183;</span>
-          {{ simplePost.hits }} 조회됨
+          {{ simplePost?.hits }} 조회됨
         </div>
         <router-link :to="`/${this.simplePost?.blogId}`">
           <div class="author">
-            by&nbsp;{{ simplePost.author?.name }}
+            by&nbsp;{{ simplePost?.author?.name }}
           </div>
         </router-link>
       </div>

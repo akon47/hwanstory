@@ -5,16 +5,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import { SimplePostDto } from "@/api/models/blog.dtos";
-import SimplePostWrapItem from "@/components/posts/item/SimplePostWrapItem.vue";
+import { defineComponent, PropType } from 'vue';
+import { SimplePostDto } from '@/api/models/blog.dtos';
+import SimplePostWrapItem from '@/components/posts/item/SimplePostWrapItem.vue';
 
 export default defineComponent({
   name: 'SimplePostWrapPanel',
   components: { SimplePostWrapItem },
   props: {
     simplePosts: Object as PropType<Array<SimplePostDto>>,
-  }
+  },
 });
 </script>
 
