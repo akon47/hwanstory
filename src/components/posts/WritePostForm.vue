@@ -2,7 +2,7 @@
   <div class="write-form-container">
     <div class="content">
       <textarea id="title" v-model="title" placeholder="제목을 입력하세요."/>
-      <textarea id="postUrl" v-model="newPostUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)"/>
+      <textarea id="postUrl" v-model="newPostUrl" placeholder="게시글 URL (입력하지 않으면 자동으로 생성됩니다.)" />
       <tag-input-box id="tags" v-model="tags"/>
       <post-editor id="editor" v-model="content"/>
     </div>
@@ -68,6 +68,11 @@ export default defineComponent({
     },
     isNewPost(): boolean {
       return !this.postUrl;
+    },
+  },
+  watch: {
+    newPostUrl() {
+      this.newPostUrl = this.newPostUrl.replace(/(\r\n|\n|\r)/gm, '');
     },
   },
   methods: {
@@ -232,6 +237,7 @@ export default defineComponent({
   border-bottom: 1px solid var(--border-color);
   margin-bottom: var(--base-gap);
   padding: 2px 0;
+  min-height: 30px;
 }
 
 #editor {
