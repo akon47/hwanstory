@@ -39,6 +39,9 @@
       <textarea v-model="newComment" placeholder="댓글 내용을 입력하세요."/>
       <button :disabled="!isValidNewComment" @click="writeComment">댓글 작성</button>
     </div>
+    <div v-else class="login-guide">
+      <span>댓글을 달기 위해서는 <router-link to="/signin">로그인</router-link>이 필요합니다.</span>
+    </div>
     <div class="comments">
       <div class="counts">
         <span>{{ allCommentCount }} 개의 댓글</span>
@@ -404,6 +407,12 @@ export default defineComponent({
 .comments .empty-comment-message {
   padding: 4em 0;
   justify-self: center;
+}
+
+.login-guide {
+  display: flex;
+  justify-content: center;
+  padding-top: 2em;
 }
 
 </style>
