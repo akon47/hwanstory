@@ -2,7 +2,7 @@ import store from '../../store';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import DataTransferObject, { ErrorResponseDto } from '@/api/models/common.dtos';
 
-export const serverUrl = 'https://api.blog.kimhwan.kr';
+export const serverUrl = process.env.VUE_APP_API_BASE_URI;
 export const apiBaseUrl = `${serverUrl}/api/`;
 export const attachmentFileBaseUrl = `${apiBaseUrl}v1`;
 
