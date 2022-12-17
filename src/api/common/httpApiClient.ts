@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } f
 import DataTransferObject, { ErrorResponseDto } from '@/api/models/common.dtos';
 
 export const serverUrl = process.env.VUE_APP_API_BASE_URI;
-export const apiBaseUrl = `${serverUrl}/api/`;
+export const apiBaseUrl = `${serverUrl}api/`;
 export const attachmentFileBaseUrl = `${apiBaseUrl}v1`;
 
 export interface HttpApiClient {

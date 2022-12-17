@@ -88,7 +88,7 @@ export default defineComponent({
       });
     },
     getSocialLoginUrl(registrationId: String) {
-      return `${apiBaseUrl}v1/authentication/oauth2/${registrationId}?redirect_uri=${process.env.VUE_APP_BASE_URI}/social-authentication-redirect`;
+      return `${apiBaseUrl}v1/authentication/oauth2/${registrationId}?redirect_uri=${process.env.VUE_APP_BASE_URI}social-authentication-redirect`;
     },
     async sendResetPasswordUrlToEmail() {
       if (!this.isEmailValid) {
