@@ -104,3 +104,13 @@
     width: 100%;
     max-width: max-content;
 }
+
+.toastui-editor-contents blockquote {
+    padding: 10px 16px;
+    border-left: 4px solid #428bca !important;
+    box-shadow: 0 0 5px var(--base-shadow-color);
+}
+
+.toastui-editor-contents blockquote p, ol, li:before {
+    color: var(--base-color) !important;
+}
