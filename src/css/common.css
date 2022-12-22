@@ -70,6 +70,7 @@ h6 {
 
 body {
   background: var(--background-color);
+  transition: var(--theme-changed-transition);
 }
 
 #app {
@@ -100,6 +101,7 @@ body {
 #app > .header {
   background-color: var(--header-background-color);
   border-bottom: 1px solid var(--border-color);
+  transition: var(--theme-changed-transition);
 }
 
 #app > .content {

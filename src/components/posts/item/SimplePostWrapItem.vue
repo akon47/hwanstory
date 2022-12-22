@@ -107,7 +107,7 @@ export default defineComponent({
   border-radius: var(--base-border-radius);
 
   background: var(--content-item-background-color);
-  transition: box-shadow .2s;
+  transition: all .2s;
 }
 
 .simple-post-item-container:hover {
