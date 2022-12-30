@@ -1,2 +1,2 @@
 User-agent: *
-Sitemap: https://blog.kimhwan.kr/sitemap/sitemap.xml
+Sitemap: https://hwanstory.kr/sitemap/sitemap.xml
