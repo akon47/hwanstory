@@ -66,7 +66,7 @@ pipeline {
                 sshagent(credentials: ['ssh']) {
                     sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker pull ${IMAGE_NAME}'"
                     sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker ps -q -a --filter name=${APP_NAME} | grep -q . && docker rm -f \$(docker ps -aq --filter name=${APP_NAME}) || true'"
-                    sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker run -d --restart always --name ${APP_NAME} -v /var/www/html:/usr/share/nginx/html --net=host ${IMAGE_NAME}'"
+                    sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker run -d --restart always --name ${APP_NAME} -v /var/www/html/sitemap:/usr/share/nginx/html/sitemap --net=host ${IMAGE_NAME}'"
                     sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker images -qf dangling=true | xargs -I{} docker rmi {} || true'"
                     sh "ssh -o StrictHostKeyChecking=no kimhwan@10.10.10.100 'docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true'"
                 }
