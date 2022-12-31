@@ -21,8 +21,7 @@ const router = createRouter({
     routes: [
       {
         path: '/',
-        name: 'Main',
-        component: () => import('../views/MainView.vue'),
+        redirect: '/main',
       },
       {
         path: '/main',
