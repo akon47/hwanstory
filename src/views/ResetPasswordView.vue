@@ -70,7 +70,7 @@ export default defineComponent({
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
-        this.$router.push('/main');
+        this.$router.push('/');
       })
       .finally(() => {
         this.isLoading = false;

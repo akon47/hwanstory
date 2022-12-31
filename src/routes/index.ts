@@ -10,7 +10,7 @@ import { nextTick } from 'vue';
 const routeToMainWhenIsLoggedIn: NavigationGuardWithThis<undefined> = (to, from, next) => {
 
   if (store.getters['accountStore/isLoggedIn']) {
-    next('/main');
+    next('/');
   } else {
     next();
   }
@@ -21,10 +21,6 @@ const router = createRouter({
     routes: [
       {
         path: '/',
-        redirect: '/main',
-      },
-      {
-        path: '/main',
         name: 'Main',
         component: () => import('../views/MainView.vue'),
       },
@@ -120,7 +116,7 @@ const router = createRouter({
           if (to.query.token) {
             next();
           } else {
-            next('/main');
+            next('/');
           }
         },
         props: (route) => ({

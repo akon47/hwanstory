@@ -150,7 +150,7 @@ export default defineComponent({
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
-        this.$router.push(`/main`);
+        this.$router.push(`/`);
       });
 
       if (this.isLoggedIn) {
@@ -160,7 +160,7 @@ export default defineComponent({
         })
         .catch((error: HttpApiError) => {
           alert(error.getErrorMessage());
-          this.$router.push(`/main`);
+          this.$router.push(`/`);
         });
       }
     },
@@ -215,7 +215,7 @@ export default defineComponent({
       await deletePost(this.postUrl)
       .then(() => {
         alert('게시글을 삭제했습니다.');
-        this.$router.push(`/main`);
+        this.$router.push(`/`);
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());

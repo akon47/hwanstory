@@ -64,7 +64,7 @@ export default defineComponent({
         alert(error.getErrorMessage());
       })
       .finally(() => {
-        this.$router.push('/main');
+        this.$router.push('/');
       });
     }
   },

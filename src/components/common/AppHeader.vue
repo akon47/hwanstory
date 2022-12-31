@@ -1,7 +1,7 @@
 <template>
   <div class="header-container">
     <div class="logo">
-      <router-link to="/main" @click="clearCachedMainPosts">
+      <router-link to="/" @click="clearCachedMainPosts">
         <img class="logo-text" src="@/assets/logo-title.svg"/>
         <img class="logo-symbol" src="@/assets/logo-symbol.svg"/>
       </router-link>

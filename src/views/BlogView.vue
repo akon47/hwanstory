@@ -72,7 +72,7 @@ export default defineComponent({
           this.$router.push(`/not-found`);
         } else {
           alert(error.getErrorMessage());
-          this.$router.push(`/main`);
+          this.$router.push(`/`);
         }
       });
     },

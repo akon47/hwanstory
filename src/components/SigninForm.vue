@@ -79,7 +79,7 @@ export default defineComponent({
         password: this.password,
       })
       .then(() => {
-        this.$router.push('/main');
+        this.$router.push('/');
       }).catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
       })
