@@ -11,4 +11,4 @@
 https://github.com/akon47/hwans-api-server
 
 ## 🚀 Demo
-https://blog.kimhwan.kr/
+https://hwanstory.kr/
