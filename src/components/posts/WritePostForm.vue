@@ -169,12 +169,16 @@ export default defineComponent({
       renderer.image = () => '\n';
       renderer.paragraph = (text) => text;
 
-      const summary = marked(content, {
+      let summary = marked(content, {
         renderer: renderer,
       }).split('\n').filter(Boolean)[0];
       if (!summary) {
         return '내용없음';
       }
+
+      const doc = new DOMParser().parseFromString(summary, "text/html");
+      summary = doc.documentElement.textContent ?? '';
+
       return summary.length > 255 ? summary.substring(0, 255) : summary;
     },
   },
