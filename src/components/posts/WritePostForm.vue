@@ -149,7 +149,7 @@ export default defineComponent({
     },
     createSummaryFromContent(content: string) {
       const renderer = new marked.Renderer();
-      renderer.code = (code) => code.trim();
+      renderer.code = () => '\n';
       renderer.blockquote = () => '\n';
       renderer.html = () => '\n';
       renderer.heading = () => '\n';
@@ -162,7 +162,7 @@ export default defineComponent({
       renderer.tablecell = () => '\n';
       renderer.strong = (text) => text.trim();
       renderer.em = (text) => text.trim();
-      renderer.codespan = () => '\n';
+      renderer.codespan = (code) => code.trim();
       renderer.br = () => '\n';
       renderer.del = () => '\n';
       renderer.link = (href, title, text) => text.trim();
