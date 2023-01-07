@@ -59,6 +59,21 @@ export default defineComponent({
     const refEditor = this.$refs['ref-editor'] as HTMLElement;
     this.onEditorSizeChanged(refEditor.getBoundingClientRect());
 
+    const customToolBarItems = [
+      {
+        name: 'video',
+        command: 'video',
+        tooltip: '동영상 삽입',
+        className: 'toastui-editor-toolbar-icons video',
+      },
+      {
+        name: 'attachment',
+        command: 'attachment',
+        tooltip: '파일 첨부',
+        className: 'toastui-editor-toolbar-icons attachment',
+      },
+    ];
+
     editor = new Editor({
       el: refEditor,
       previewStyle: this.previewStyle,
@@ -72,16 +87,12 @@ export default defineComponent({
         ['heading', 'bold', 'italic', 'strike'],
         ['hr', 'quote'],
         ['ul', 'ol', 'task', 'indent', 'outdent'],
-        ['table', 'image', {
-          name: 'video',
-          command: 'video',
-          tooltip: '동영상 삽입',
-          className: 'toastui-editor-toolbar-icons video',
-        }, 'link'],
+        ['table', 'image', ...customToolBarItems, 'link'],
         ['code', 'codeblock'],
         ['scrollSync'],
       ],
     });
+
     editor.addCommand('markdown', 'video', () => {
       const input = document.createElement('input') as HTMLInputElement;
       input.type = 'file';
@@ -114,6 +125,34 @@ export default defineComponent({
       alert('위지윅 모드에서는 지원되지 않습니다.');
       return false;
     });
+
+    editor.addCommand('markdown', 'attachment', () => {
+      const input = document.createElement('input') as HTMLInputElement;
+      input.type = 'file';
+      input.onchange = async (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        if (!target.files?.length) {
+          return;
+        }
+        const file = target.files[0];
+        await uploadFile(file)
+        .then((file) => {
+          const src = `${attachmentFileBaseUrl}${file.url}`;
+          editor.insertText(`[${file.fileName ?? src}](${src})`);
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      };
+      input.click();
+
+      return true;
+    });
+    editor.addCommand('wysiwyg', 'attachment', () => {
+      alert('위지윅 모드에서는 지원되지 않습니다.');
+      return false;
+    });
+
     editor.on('change', () => {
       this.$emit('update:modelValue', editor.getMarkdown());
     });
@@ -157,22 +196,38 @@ export default defineComponent({
   transition: 0.2s ease;
 }
 
-.toastui-editor-toolbar-icons.video::before {
+.toastui-editor-toolbar-icons.attachment::before,
+.toastui-editor-toolbar-icons.attachment::after {
+  content: '';
+  mask: url('@/assets/attach-file.svg') no-repeat center;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: 0.2s ease;
+}
+
+.toastui-editor-toolbar-icons.video::before,
+.toastui-editor-toolbar-icons.attachment::before {
   background: #555555;
 }
 
-.toastui-editor-toolbar-icons.video::after {
+.toastui-editor-toolbar-icons.video::after,
+.toastui-editor-toolbar-icons.attachment::after {
   background: #eeeeee;
 }
 
 .toastui-editor-dark .video::before,
-.toastui-editor-dark .video::after{
+.toastui-editor-dark .video::after,
+.toastui-editor-dark .attachment::before,
+.toastui-editor-dark .attachment::after {
   transform: translateY(-100%);
 }
 
-.toastui-editor-toolbar-icons.video {
+.toastui-editor-toolbar-icons.video,
+.toastui-editor-toolbar-icons.attachment {
   overflow: hidden;
   background: transparent;
 }
+
 
 </style>

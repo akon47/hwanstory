@@ -149,7 +149,7 @@ export default defineComponent({
     },
     createSummaryFromContent(content: string) {
       const renderer = new marked.Renderer();
-      renderer.code = (code) => code;
+      renderer.code = (code) => code.trim();
       renderer.blockquote = () => '\n';
       renderer.html = () => '\n';
       renderer.heading = () => '\n';
@@ -160,14 +160,14 @@ export default defineComponent({
       renderer.table = () => '\n';
       renderer.tablerow = () => '\n';
       renderer.tablecell = () => '\n';
-      renderer.strong = (text) => text;
-      renderer.em = (text) => text;
+      renderer.strong = (text) => text.trim();
+      renderer.em = (text) => text.trim();
       renderer.codespan = () => '\n';
       renderer.br = () => '\n';
       renderer.del = () => '\n';
-      renderer.link = (href, title, text) => text;
+      renderer.link = (href, title, text) => text.trim();
       renderer.image = () => '\n';
-      renderer.paragraph = (text) => text;
+      renderer.paragraph = (text) => text.trim();
 
       let summary = marked(content, {
         renderer: renderer,
