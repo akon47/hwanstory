@@ -32,6 +32,9 @@
             <textarea v-model="newComment" placeholder="대댓글 내용을 입력하세요."/>
             <button :disabled="!isValidNewComment" @click="writeComment">대댓글 작성</button>
           </div>
+          <div v-else class="login-guide">
+            <span>대댓글을 달기 위해서는 <router-link to="/signin">로그인</router-link>이 필요합니다.</span>
+          </div>
           <simple-comment-item
               v-for="comment in nestedComments" :key="comment.id"
               :simple-comment="comment"
@@ -291,6 +294,12 @@ export default defineComponent({
 .modify-actions a {
   color: var(--base-color);
   margin: 0 3px;
+}
+
+.login-guide {
+  display: flex;
+  justify-content: center;
+  padding: 2em 0 1em 0;
 }
 
 </style>

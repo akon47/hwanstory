@@ -100,6 +100,16 @@ export interface CommentRequestDto extends DataTransferObject {
   readonly content: string;
 }
 
+// 비회원 댓글 작성/수정 Dto
+export interface GuestCommentRequestDto extends DataTransferObject {
+  // 내용
+  readonly content: string;
+  // 이름
+  readonly name: string;
+  // 비밀번호
+  readonly password: string;
+}
+
 // 댓글 Dto
 export interface CommentDto extends DataTransferObject {
   // 댓글 Id
