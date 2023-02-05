@@ -29,7 +29,9 @@ export default defineComponent({
   },
   methods: {
     async moveToBlog() {
-      this.$router.push(`/${this.simpleAccount?.blogId}`);
+      if (!this.simpleAccount?.guest) {
+        this.$router.push(`/${this.simpleAccount?.blogId}`);
+      }
     },
   },
 });

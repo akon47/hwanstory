@@ -27,11 +27,6 @@ export default defineComponent({
       }
     },
   },
-  methods: {
-    async moveToBlog() {
-      this.$router.push(`/${this.simpleAccount?.blogId}`);
-    },
-  },
 });
 </script>
 
