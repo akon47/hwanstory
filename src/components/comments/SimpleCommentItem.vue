@@ -210,6 +210,8 @@ export default defineComponent({
 
 .comment-item-container .content {
   padding-top: 1em;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .comment-item-container .footer {

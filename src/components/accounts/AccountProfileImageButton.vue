@@ -21,7 +21,9 @@ export default defineComponent({
           backgroundImage: `url(${attachmentFileBaseUrl}${this.simpleAccount?.profileImageUrl})`,
         };
       } else {
-        return {};
+        return {
+          backgroundImage: `url(${require('@/assets/profile.svg')})`,
+        };
       }
     },
   },
