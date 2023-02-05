@@ -34,13 +34,17 @@
     <div class="content">
       <post-viewer :content="post.content"/>
     </div>
-    <div v-if="isLoggedIn" class="write-comment">
+    <div class="write-comment">
       댓글 남기기
       <textarea v-model="newComment" placeholder="댓글 내용을 입력하세요."/>
+      <div v-if="!isLoggedIn" class="guest-comment-info">
+        <input v-model="guestCommentName" placeholder="이름" />
+        <input v-model="guestCommentPassword" placeholder="비밀번호" type="password" autocomplete="off" />
+        <div class="login-guide">
+          <span>이름과 비밀번호 없이 댓글을 달기 위해서는 <router-link to="/signin">로그인</router-link>이 필요합니다.</span>
+        </div>
+      </div>
       <button :disabled="!isValidNewComment" @click="writeComment">댓글 작성</button>
-    </div>
-    <div v-else class="login-guide">
-      <span>댓글을 달기 위해서는 <router-link to="/signin">로그인</router-link>이 필요합니다.</span>
     </div>
     <div class="comments">
       <div class="counts">
@@ -68,7 +72,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { PostDto, SimpleCommentDto } from '@/api/models/blog.dtos';
-import { createComment, deletePost, getPost, isLikePost, likePost, unlikePost } from '@/api/blog';
+import { createComment, createGuestComment, deletePost, getPost, isLikePost, likePost, unlikePost } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import store from '@/store';
@@ -96,6 +100,8 @@ export default defineComponent({
       likeCount: 0,
       isLike: false,
       newComment: '',
+      guestCommentName: '',
+      guestCommentPassword: '',
     };
   },
   computed: {
@@ -124,7 +130,7 @@ export default defineComponent({
       return store.getters['accountStore/isLoggedIn'] ?? false;
     },
     isValidNewComment() {
-      return this.newComment.length > 0;
+      return this.newComment.length > 0 && (this.isLoggedIn || (this.guestCommentName.length > 0 && this.guestCommentPassword.length > 0));
     },
     allCommentCount() {
       return this.comments?.reduce?.((previous, current) => previous + 1 + current.childrenCount, 0) ?? 0;
@@ -165,18 +171,36 @@ export default defineComponent({
       }
     },
     async writeComment() {
-      await createComment(this.blogId, this.postUrl, {
-        content: this.newComment,
-      })
-      .then((comment) => {
-        this.newComment = '';
-        this.comments.push(Object.assign(comment, {
-          childrenCount: comment.children.length,
-        }));
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
+      if(this.isLoggedIn) {
+        await createComment(this.blogId, this.postUrl, {
+          content: this.newComment,
+        })
+        .then((comment) => {
+          this.newComment = '';
+          this.comments.push(Object.assign(comment, {
+            childrenCount: comment.children.length,
+          }));
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      } else {
+        await createGuestComment(this.blogId, this.postUrl, {
+          content: this.newComment,
+          name: this.guestCommentName,
+          password: this.guestCommentPassword
+        })
+        .then((comment) => {
+          this.newComment = '';
+          this.guestCommentPassword = '';
+          this.comments.push(Object.assign(comment, {
+            childrenCount: comment.children.length,
+          }));
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      }
     },
     commentDeleted(commentId: string) {
       this.comments = this.comments.filter((x) => x.id !== commentId);
@@ -381,6 +405,26 @@ export default defineComponent({
   justify-self: end;
 }
 
+.guest-comment-info {
+  justify-self: start;
+
+  display: grid;
+
+  grid-auto-flow: column;
+
+  grid-auto-columns: auto;
+  grid-column-gap: 0.5em;
+}
+
+.guest-comment-info input {
+  width: 100px;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  border-radius: var(--base-border-radius);
+  border: 1px solid var(--border-color);
+  outline: none;
+}
+
 .comments {
   padding: 2em 0;
   display: grid;
@@ -410,9 +454,8 @@ export default defineComponent({
 }
 
 .login-guide {
-  display: flex;
-  justify-content: center;
-  padding-top: 2em;
+  font-size: 0.9em;
+  align-self: center;
 }
 
 </style>

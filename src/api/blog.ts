@@ -2,7 +2,7 @@ import { blogV1 } from './index';
 import DataTransferObject, { SliceDto } from '@/api/models/common.dtos';
 import {
   BlogDetailsDto, CommentDto,
-  CommentRequestDto,
+  CommentRequestDto, GuestCommentRequestDto,
   PostDto,
   PostRequestDto,
   SimplePostDto
@@ -64,6 +64,11 @@ function createComment(blogId: string, postUrl: string, commentRequestDto: Comme
   return blogV1.postRequest<CommentDto>(`/${blogId}/posts/${postUrl}/comments`, null, commentRequestDto);
 }
 
+// 비회원 댓글 작성
+function createGuestComment(blogId: string, postUrl: string, guestCommentRequestDto: GuestCommentRequestDto) {
+  return blogV1.postRequest<CommentDto>(`/${blogId}/posts/${postUrl}/comments/guest`, null, guestCommentRequestDto);
+}
+
 // 댓글 조회
 function getComment(commentId: string) {
   return blogV1.getRequest<CommentDto>(`/comments/${commentId}`);
@@ -74,14 +79,19 @@ function createCommentToComment(commentId: string, commentRequestDto: CommentReq
   return blogV1.postRequest<CommentDto>(`/comments/${commentId}`, null, commentRequestDto);
 }
 
-// 게시글 수정
-function modifyComment(commentId: string, commentRequestDto: CommentRequestDto) {
-  return blogV1.putRequest<CommentDto>(`/comments/${commentId}`, null, commentRequestDto);
+// 비회원 대댓글 작성
+function createGuestCommentToComment(commentId: string, guestCommentRequestDto: GuestCommentRequestDto) {
+  return blogV1.postRequest<CommentDto>(`/comments/${commentId}/guest`, null, guestCommentRequestDto);
 }
 
-// 게시글 삭제
-function deleteComment(commentId: string) {
-  return blogV1.deleteRequest(`/comments/${commentId}`);
+// 댓글 수정
+function modifyComment(commentId: string, commentRequestDto: CommentRequestDto, password: string | null = null) {
+  return blogV1.putRequest<CommentDto>(`/comments/${commentId}`, password ? { password: password } : null, commentRequestDto);
+}
+
+// 댓글 삭제
+function deleteComment(commentId: string, password: string | null = null) {
+  return blogV1.deleteRequest(`/comments/${commentId}`, password ? { password: password } : null);
 }
 
 // 게시글 좋아요
@@ -117,10 +127,12 @@ export {
   modifyPost,
   deletePost,
   createComment,
+  createGuestComment,
   modifyComment,
   deleteComment,
   getComment,
   createCommentToComment,
+  createGuestCommentToComment,
   getPost,
   getBlogAllPosts,
   getBloggerLikePosts,

@@ -7,7 +7,7 @@
       </div>
       <div class="created-at">
         {{ longCreatedAt }}
-        <span class="modify-actions" v-if="isMyComment">
+        <span class="modify-actions" v-if="isMyComment || isGuestComment">
             <a @click="modifyComment">수정</a>
             <span>&#183;</span>
             <a @click="deleteComment">삭제</a>
@@ -84,6 +84,9 @@ export default defineComponent({
     isMyComment() {
       return this.simpleComment?.author.blogId === store.state.accountStore.blogId;
     },
+    isGuestComment() {
+      return this.simpleComment?.author?.guest;
+    },
     isLoggedIn(): boolean {
       return store.getters['accountStore/isLoggedIn'] ?? false;
     },
@@ -94,7 +97,7 @@ export default defineComponent({
         return;
       }
       const id = this.simpleComment.id;
-      const newContent = prompt('수정할 내용', this.simpleComment.content);
+      const newContent = prompt('수정할 내용을 입력하세요.', this.simpleComment.content);
       if (!newContent) {
         return;
       }
@@ -116,7 +119,8 @@ export default defineComponent({
         return;
       }
       const id = this.simpleComment.id;
-      await deleteComment(id)
+      const password = this.isGuestComment ? prompt("비밀번호를 입력하세요.") : null;
+      await deleteComment(id, password)
       .then(() => {
         this.$emit('deleted', id);
       })
@@ -194,7 +198,7 @@ export default defineComponent({
   grid-column-gap: 20px;
 
   padding-bottom: 1em;
-  margin: 1em 0;
+  margin-top: 1em;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -205,7 +209,7 @@ export default defineComponent({
 }
 
 .comment-item-container .content {
-  padding: 1em 0;
+  padding-top: 1em;
 }
 
 .comment-item-container .footer {
@@ -217,6 +221,7 @@ export default defineComponent({
 
 .footer .toggle-nested-replies {
   justify-self: start;
+  margin-top: 1em;
 }
 
 .footer .nested-comments-container {

@@ -72,4 +72,6 @@ export interface SimpleAccountDto extends DataTransferObject {
   readonly blogId: string;
   // 프로필 이미지 URL
   readonly profileImageUrl: string;
+  // 비회원인지 여부
+  readonly guest: boolean;
 }
