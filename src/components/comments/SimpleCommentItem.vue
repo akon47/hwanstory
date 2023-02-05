@@ -101,10 +101,14 @@ export default defineComponent({
       if (!newContent) {
         return;
       }
+      const password = this.isGuestComment ? prompt("비밀번호를 입력하세요.") : null;
+      if (!password) {
+        return;
+      }
 
       await modifyComment(id, {
         content: newContent,
-      })
+      }, password)
       .then((comment) => {
         alert('댓글을 수정했습니다.');
         this.content = comment.content;
@@ -120,6 +124,10 @@ export default defineComponent({
       }
       const id = this.simpleComment.id;
       const password = this.isGuestComment ? prompt("비밀번호를 입력하세요.") : null;
+      if (!password) {
+        return;
+      }
+
       await deleteComment(id, password)
       .then(() => {
         this.$emit('deleted', id);
