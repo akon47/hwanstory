@@ -17,6 +17,9 @@
         </div>
       </div>
     </router-link>
+    <div class="tags">
+      <tag-item v-for="tag in simplePost.tags" :key="tag.name" :name="tag.name" />
+    </div>
     <div class="footer">
       <div>
         {{ createdAt }}
@@ -40,9 +43,11 @@ import { SimplePostDto } from '@/api/models/blog.dtos';
 import { defineComponent, PropType } from 'vue';
 import dayjs from 'dayjs';
 import { attachmentFileBaseUrl } from '@/api/common/httpApiClient';
+import TagItem from "@/components/posts/TagItem.vue";
 
 export default defineComponent({
   name: 'SimplePostListItem',
+  components: { TagItem },
   props: {
     simplePost: Object as PropType<SimplePostDto>,
   },
@@ -92,7 +97,7 @@ export default defineComponent({
   display: grid;
 
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(auto, 1fr) auto;
+  grid-template-rows: minmax(auto, 1fr) auto auto;
 
   width: 100%;
 
@@ -228,6 +233,16 @@ export default defineComponent({
   .summary {
     -webkit-line-clamp: 2;
   }
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+
+  align-self: end;
+  justify-self: end;
+
+  margin-top: 10px;
 }
 
 .footer {

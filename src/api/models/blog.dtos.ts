@@ -5,6 +5,10 @@ import { AccountDto, SimpleAccountDto } from '@/api/models/account.dtos';
 export interface BlogDetailsDto extends DataTransferObject {
   // 블로그 주인
   readonly owner: AccountDto;
+  // 총 게시굴 수
+  readonly postCount: number;
+  // 태그 개수 목록
+  readonly tagCounts: Array<TagCountDto>;
 }
 
 // 게시글 공개 유형
@@ -148,4 +152,12 @@ export interface SimpleCommentDto extends DataTransferObject {
 export interface TagDto extends DataTransferObject {
   // 태그 이름
   readonly name: string;
+}
+
+// 태그 개수 Dto
+export interface TagCountDto extends DataTransferObject {
+  // 태그 이름
+  readonly name: string;
+  // 태그 개수
+  readonly count: number;
 }

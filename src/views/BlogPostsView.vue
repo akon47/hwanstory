@@ -28,6 +28,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    tag: {
+      type: String,
+      required: false,
+    }
   },
   data() {
     return {
@@ -37,11 +41,19 @@ export default defineComponent({
       isLoading: false,
     };
   },
+  watch: {
+    blogId() {
+      this.fetchPosts();
+    },
+    tag() {
+      this.fetchPosts();
+    },
+  },
   methods: {
     async fetchPosts(cursorId: string | null = null) {
       try {
         this.isLoading = true;
-        await getBlogAllPosts(this.blogId, 20, cursorId)
+        await getBlogAllPosts(this.blogId, this.tag ?? null, 20, cursorId)
         .then((posts) => {
           if (posts.first) {
             this.simplePosts = posts.data;

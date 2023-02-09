@@ -78,6 +78,7 @@ const router = createRouter({
             component: () => import('../views/BlogPostsView.vue'),
             props: (route) => ({
               blogId: route.params.blogId,
+              tag: route.query.tag as string,
             }),
           },
           {
