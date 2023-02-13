@@ -17,6 +17,7 @@
     </div>
     <div class="account">
       <div v-if="isLoggedIn" class="logged-in-container">
+        <notification-list-button />
         <router-link to="/write">
           <button>새 글 작성</button>
         </router-link>
@@ -35,10 +36,11 @@
 import { defineComponent } from 'vue';
 import store from '@/store';
 import AccountSummaryMenuButton from '@/components/accounts/AccountSummaryMenuButton.vue';
+import NotificationListButton from "@/components/notifications/NotificationListButton.vue";
 
 export default defineComponent({
   name: 'AppHeader',
-  components: { AccountSummaryMenuButton },
+  components: { NotificationListButton, AccountSummaryMenuButton },
   computed: {
     isLoggedIn(): boolean {
       return store.getters['accountStore/isLoggedIn'] ?? false;
@@ -75,7 +77,7 @@ export default defineComponent({
 .logged-in-container {
   display: grid;
 
-  grid-template-columns: auto auto;
+  grid-template-columns: auto auto auto;
   grid-template-rows: 1fr;
 
   align-items: center;
