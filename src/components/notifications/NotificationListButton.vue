@@ -97,7 +97,6 @@ export default defineComponent({
 }
 
 .notification-container:hover {
-
   background-color: var(--hover-color);
 }
 
@@ -119,8 +118,6 @@ export default defineComponent({
 
   width: 100% !important;
   height: 100% !important;
-  max-width: 150px !important; /* any size */
-  max-height: 150px !important; /* any size */
   margin: auto;
 
   border-radius: 100%;
@@ -181,6 +178,12 @@ export default defineComponent({
   padding: var(--half-base-gab);
 
   font-size: 12px;
+}
+
+@media (max-width: 500px) {
+  .dropdown-container .dropdown-content {
+    grid-template-columns: auto;
+  }
 }
 
 .dropdown-content .header {

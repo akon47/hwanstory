@@ -8,9 +8,6 @@
     </div>
     <div>
     </div>
-    <div class="search">
-
-    </div>
     <div class="themes">
       <input id="theme-button" type="checkbox" :checked="isDarkTheme" @change="toggleTheme"/>
       <label class="switch" for="theme-button"/>
@@ -64,7 +61,7 @@ export default defineComponent({
 .header-container {
   display: grid;
 
-  grid-template-columns: auto 1fr auto auto auto;
+  grid-template-columns: auto 1fr auto auto;
   grid-template-rows: 1fr;
 
   align-items: center;
@@ -100,6 +97,10 @@ export default defineComponent({
 }
 
 @media (max-width: 500px) {
+  .header-container {
+    grid-column-gap: var(--half-base-gab);
+  }
+
   .header-container .logo-text {
     display: none;
   }
@@ -135,10 +136,6 @@ export default defineComponent({
 .themes .switch:hover {
   cursor: pointer;
   background-color: var(--hover-color);
-}
-
-.header-container .search {
-
 }
 
 </style>
