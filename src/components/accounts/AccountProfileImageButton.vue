@@ -58,9 +58,11 @@ export default defineComponent({
   border-radius: inherit;
 }
 
-.profile:hover {
-  box-shadow: 0 0 12px var(--base-shadow-color);
-  transition: 0.2s;
+@media (hover: hover) and (pointer: fine) {
+  .profile:hover {
+    box-shadow: 0 0 12px var(--base-shadow-color);
+    transition: 0.2s;
+  }
 }
 
 </style>

@@ -14,7 +14,7 @@
     </div>
     <div class="account">
       <div v-if="isLoggedIn" class="logged-in-container">
-        <notification-list-button />
+        <notification-list-button/>
         <router-link to="/write">
           <button>새 글 작성</button>
         </router-link>
@@ -133,9 +133,11 @@ export default defineComponent({
   transform: rotate(0deg);
 }
 
-.themes .switch:hover {
-  cursor: pointer;
-  background-color: var(--hover-color);
+@media (hover: hover) and (pointer: fine) {
+  .themes .switch:hover {
+    cursor: pointer;
+    background-color: var(--hover-color);
+  }
 }
 
 </style>

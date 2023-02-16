@@ -43,7 +43,9 @@
                     <a :href="href">전체보기</a><span>&nbsp;({{ postCount }})</span>
                   </div>
                 </router-link>
-                <router-link v-for="tagCount in tagCounts" :key="tagCount.name" :to="{path: `/${blogId}/posts`, query: {tag: tagCount.name}}" v-slot="{ route, href, navigate }" custom>
+                <router-link v-for="tagCount in tagCounts" :key="tagCount.name"
+                             :to="{path: `/${blogId}/posts`, query: {tag: tagCount.name}}"
+                             v-slot="{ route, href, navigate }" custom>
                   <div :class="$route.fullPath === route.fullPath ? 'tag-active' : null" @click="navigate">
                     <a :href="href">{{ tagCount.name }}</a><span>&nbsp;({{ tagCount.count }})</span>
                   </div>
@@ -196,9 +198,11 @@ export default defineComponent({
   transition: 0.2s;
 }
 
-.tabs a:hover {
-  background-color: var(--border-color);
-  text-decoration: none;
+@media (hover: hover) and (pointer: fine) {
+  .tabs a:hover {
+    background-color: var(--border-color);
+    text-decoration: none;
+  }
 }
 
 .tabs a.router-link-exact-active {
@@ -244,8 +248,10 @@ export default defineComponent({
   color: var(--base-color);
 }
 
-.tag-list a:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .tag-list a:hover {
+    text-decoration: underline;
+  }
 }
 
 .tag-active a {

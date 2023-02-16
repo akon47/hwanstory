@@ -140,9 +140,11 @@ button {
   color: #f0f0f0;
 }
 
-button:hover:not([disabled]) {
-  background-color: var(--button-hover-color);
-  cursor: pointer;
+@media(hover: hover) and (pointer: fine) {
+  button:hover:not([disabled]) {
+    background-color: var(--button-hover-color);
+    cursor: pointer;
+  }
 }
 
 button:disabled {

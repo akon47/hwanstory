@@ -96,8 +96,10 @@ export default defineComponent({
   transition: 0.5s;
 }
 
-.notification-container:hover {
-  background-color: var(--hover-color);
+@media(hover: hover) and (pointer: fine) {
+  .notification-container:hover {
+    background-color: var(--hover-color);
+  }
 }
 
 .notification-container .icon {
@@ -116,8 +118,8 @@ export default defineComponent({
 .dropdown-container {
   display: inline-block;
 
-  width: 100% !important;
-  height: 100% !important;
+  width: 100%;
+  height: 100%;
   margin: auto;
 
   border-radius: 100%;
@@ -181,6 +183,12 @@ export default defineComponent({
 }
 
 @media (max-width: 500px) {
+  .dropdown-container .dropdown-content {
+    position: fixed;
+    left: 0;
+    margin: var(--half-base-gab);
+  }
+
   .dropdown-container .dropdown-content {
     grid-template-columns: auto;
   }

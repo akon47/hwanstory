@@ -18,7 +18,7 @@
       </div>
     </router-link>
     <div class="tags">
-      <tag-item v-for="tag in simplePost.tags" :key="tag.name" :name="tag.name" />
+      <tag-item v-for="tag in simplePost.tags" :key="tag.name" :name="tag.name"/>
     </div>
     <div class="footer">
       <div>
@@ -124,9 +124,11 @@ export default defineComponent({
   transition: box-shadow .2s;
 }
 
-.inner-container:hover {
-  box-shadow: 0 0 11px var(--base-shadow-color);
-  cursor: pointer;
+@media (hover: hover) and (pointer: fine) {
+  .inner-container:hover {
+    box-shadow: 0 0 11px var(--base-shadow-color);
+    cursor: pointer;
+  }
 }
 
 .thumbnail {

@@ -84,8 +84,10 @@ export default defineComponent({
   z-index: 1;
 }
 
-.dropdown-container:hover {
-  box-shadow: 0 0 12px var(--base-shadow-color);
+@media (hover: hover) and (pointer: fine) {
+  .dropdown-container:hover {
+    box-shadow: 0 0 12px var(--base-shadow-color);
+  }
 }
 
 .dropdown-container details {

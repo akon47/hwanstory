@@ -110,9 +110,11 @@ export default defineComponent({
   transition: all .2s;
 }
 
-.simple-post-item-container:hover {
-  box-shadow: 0 0 11px var(--base-shadow-color);
-  cursor: pointer;
+@media (hover: hover) and (pointer: fine) {
+  .simple-post-item-container:hover {
+    box-shadow: 0 0 11px var(--base-shadow-color);
+    cursor: pointer;
+  }
 }
 
 .simple-post-item-container a {
