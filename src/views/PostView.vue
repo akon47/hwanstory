@@ -423,6 +423,8 @@ export default defineComponent({
   border-radius: var(--base-border-radius);
   border: 1px solid var(--border-color);
   outline: none;
+
+  align-self: start;
 }
 
 .comments {

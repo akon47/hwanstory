@@ -27,13 +27,17 @@
       <div v-if="isNestedCommentsOpened" class="nested-comments-container">
         <div class="line"/>
         <div class="nested-comments">
-          <div v-if="isLoggedIn" class="write-comment">
+          <div class="write-comment">
             댓글 남기기
             <textarea v-model="newComment" placeholder="대댓글 내용을 입력하세요."/>
+            <div v-if="!isLoggedIn" class="guest-comment-info">
+              <input v-model="guestCommentName" placeholder="이름" />
+              <input v-model="guestCommentPassword" placeholder="비밀번호" type="password" autocomplete="off" />
+              <div class="login-guide">
+                <span>이름과 비밀번호 없이 댓글을 달기 위해서는 <router-link to="/signin">로그인</router-link>이 필요합니다.</span>
+              </div>
+            </div>
             <button :disabled="!isValidNewComment" @click="writeComment">대댓글 작성</button>
-          </div>
-          <div v-else class="login-guide">
-            <span>대댓글을 달기 위해서는 <router-link to="/signin">로그인</router-link>이 필요합니다.</span>
           </div>
           <simple-comment-item
               v-for="comment in nestedComments" :key="comment.id"
@@ -51,7 +55,13 @@ import { SimpleCommentDto } from '@/api/models/blog.dtos';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import dayjs from 'dayjs';
 import store from '@/store';
-import { createCommentToComment, deleteComment, getComment, modifyComment } from '@/api/blog';
+import {
+  createCommentToComment,
+  createGuestCommentToComment,
+  deleteComment,
+  getComment,
+  modifyComment
+} from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
 
 export default defineComponent({
@@ -64,6 +74,8 @@ export default defineComponent({
     return {
       content: '',
       newComment: '',
+      guestCommentName: '',
+      guestCommentPassword: '',
       isNestedCommentsOpened: false,
       nestedComments: {} as Array<SimpleCommentDto>,
       isNestedCommentsLoaded: false,
@@ -141,19 +153,39 @@ export default defineComponent({
         return;
       }
 
-      await createCommentToComment(this.simpleComment.id, {
-        content: this.newComment,
-      })
-      .then((comment) => {
-        this.newComment = '';
-        this.nestedComments.push(Object.assign(comment, {
-          childrenCount: comment.children.length
-        }));
-        this.onCommentChanged();
-      })
-      .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-      });
+      if(this.isLoggedIn) {
+        await createCommentToComment(this.simpleComment.id, {
+          content: this.newComment,
+        })
+        .then((comment) => {
+          this.newComment = '';
+          this.nestedComments.push(Object.assign(comment, {
+            childrenCount: comment.children.length
+          }));
+          this.onCommentChanged();
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      } else {
+        await createGuestCommentToComment(this.simpleComment.id, {
+          content: this.newComment,
+          name: this.guestCommentName,
+          password: this.guestCommentPassword
+        })
+        .then((comment) => {
+          console.log(comment);
+          this.newComment = '';
+          this.guestCommentPassword = '';
+          this.nestedComments.push(Object.assign(comment, {
+            childrenCount: comment.children.length
+          }));
+          this.onCommentChanged();
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      }
     },
     async toggleNestedReplies() {
       if (!this.simpleComment?.id) {
@@ -270,6 +302,28 @@ export default defineComponent({
   justify-self: end;
 }
 
+.guest-comment-info {
+  justify-self: start;
+
+  display: grid;
+
+  grid-auto-flow: column;
+
+  grid-auto-columns: auto;
+  grid-column-gap: 0.5em;
+}
+
+.guest-comment-info input {
+  width: 100px;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  border-radius: var(--base-border-radius);
+  border: 1px solid var(--border-color);
+  outline: none;
+
+  align-self: start;
+}
+
 .author .profile-image {
   width: 3em;
   height: 3em;
@@ -312,9 +366,8 @@ export default defineComponent({
 }
 
 .login-guide {
-  display: flex;
-  justify-content: center;
-  padding: 2em 0 1em 0;
+  font-size: 0.9em;
+  align-self: center;
 }
 
 </style>
