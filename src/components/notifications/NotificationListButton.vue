@@ -1,6 +1,9 @@
 <template>
   <div class="notification-container">
     <div class="icon"/>
+    <div class="count" v-show="notifications.length > 0">
+      {{ notifications.length }}
+    </div>
     <div class="dropdown-container">
       <details>
         <summary/>
@@ -96,7 +99,7 @@ export default defineComponent({
   transition: 0.5s;
 }
 
-@media(hover: hover) and (pointer: fine) {
+@media (hover: hover) and (pointer: fine) {
   .notification-container:hover {
     background-color: var(--hover-color);
   }
@@ -113,6 +116,19 @@ export default defineComponent({
 
   transform: rotate(30deg);
   transition: 0.5s;
+}
+
+.notification-container .count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+
+  font-size: 12px;
+
+  padding: 0 5px;
+
+  background: red;
+  border-radius: 100%;
 }
 
 .dropdown-container {
