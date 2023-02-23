@@ -31,7 +31,7 @@
       <div class="content-container">
         <div class="content-sidebar">
           <router-link :to="{path: `/${blogId}/posts`}" v-slot="{ isActive }" custom>
-            <div v-if="isActive" class="tag-container">
+            <div v-if="isActive && postCount > 0" class="tag-container">
               <div class="tag-title">
                 태그 목록
               </div>

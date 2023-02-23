@@ -1,5 +1,8 @@
 <template>
-  <post-viewer :content="content"/>
+  <post-viewer :content="content" />
+  <div class="empty-message" v-if="isEmpty && emptyMessage">
+    {{ emptyMessage }}
+  </div>
 </template>
 
 <script lang="ts">
@@ -23,10 +26,14 @@ export default defineComponent({
     defaultContent: {
       type: String,
     },
+    emptyMessage: {
+      type: String,
+    },
   },
   data() {
     return {
       content: '',
+      isEmpty: false,
     };
   },
   async mounted() {
@@ -37,6 +44,7 @@ export default defineComponent({
     .catch((error: HttpApiError) => {
       if (error.isNotFound()) {
         this.content = this.defaultContent ?? '';
+        this.isEmpty = !this.content || this.content.length === 0;
       } else {
         alert(error.getErrorMessage());
       }
@@ -46,5 +54,12 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
+.empty-message {
+  text-align: center;
+  font-size: 1.25em;
+  font-weight: bold;
+  padding-top: 2em;
+}
 
 </style>

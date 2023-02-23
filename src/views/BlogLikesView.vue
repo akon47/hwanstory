@@ -1,8 +1,11 @@
 <template>
   <div class="main-container">
+    <div class="empty-message" v-if="!isLoading && isEmpty">
+      좋아요 한 게시글이 존재하지 않습니다.
+    </div>
     <simple-post-list-panel :simple-posts="simplePosts"></simple-post-list-panel>
     <observer-trigger
-        v-if="!this.isNoMorePage && !isLoading"
+        v-if="!isNoMorePage && !isLoading"
         class="observer-trigger-enable"
         v-on:trigger="loadMorePosts"/>
     <div class="loading" v-if="isLoading">
@@ -35,6 +38,7 @@ export default defineComponent({
       cursorId: '',
       isNoMorePage: true,
       isLoading: false,
+      isEmpty: false,
     };
   },
   methods: {
@@ -52,6 +56,7 @@ export default defineComponent({
           }
           this.cursorId = (!posts.last && posts.cursorId) ? posts.cursorId : '';
           this.isNoMorePage = posts.last;
+          this.isEmpty = posts.last && this.simplePosts.length === 0;
         })
         .catch((error: HttpApiError) => {
           alert(error.getErrorMessage());
@@ -75,7 +80,7 @@ export default defineComponent({
 <style scoped>
 
 .main-container {
-  min-height: 100vh;
+
 }
 
 .observer-trigger-enable {
@@ -89,6 +94,13 @@ export default defineComponent({
   justify-content: center;
   box-sizing: border-box;
   height: 80px;
+}
+
+.empty-message {
+  text-align: center;
+  font-size: 1.25em;
+  font-weight: bold;
+  padding-top: 2em;
 }
 
 </style>

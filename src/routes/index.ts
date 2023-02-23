@@ -70,7 +70,7 @@ const router = createRouter({
             props: (route) => ({
               blogId: route.params.blogId,
               postUrl: 'about-me',
-              defaultContent: '#### 소개 게시글이 존재하지 않습니다.',
+              emptyMessage: '소개 게시글이 존재하지 않습니다.',
             }),
           },
           {
