@@ -108,8 +108,12 @@ export default defineComponent({
   height: 35px;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 550px) {
   .header-container {
+    grid-column-gap: var(--half-base-gab);
+  }
+
+  .logged-in-container {
     grid-column-gap: var(--half-base-gab);
   }
 
