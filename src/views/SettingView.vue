@@ -155,6 +155,7 @@ export default defineComponent({
       .then(async () => {
         alert('탈퇴되었습니다.');
         await store.dispatch('accountStore/signOut', true);
+        await store.dispatch('cacheStore/clearMainPosts');
         this.$router.push(`/`);
       })
       .catch((error: HttpApiError) => {
@@ -180,7 +181,8 @@ export default defineComponent({
         }
 
         await setCurrentProfileImage(file)
-        .then(() => {
+        .then((account) => {
+          this.account = account;
           store.dispatch('accountStore/updateCurrentAccountInfo');
           alert('프로필 이미지를 변경하였습니다.');
         })
