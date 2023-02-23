@@ -67,7 +67,7 @@ export default defineComponent({
         return false;
       }
 
-      const regex = /^@?[-a-zA-Z\d_]+$/;
+      const regex = /^[-a-zA-Z\d_]+$/;
       return regex.test(this.blogId);
     },
     isPasswordValid(): boolean {
@@ -92,7 +92,7 @@ export default defineComponent({
         name: this.name,
         email: this.email,
         password: this.registerToken ? null : this.password,
-        blogId: this.blogId,
+        blogId: `@${this.blogId}`,
         emailVerifyCode: this.registerToken ? null : this.emailVerifyCode,
       }, this.registerToken ? this.registerToken : null)
       .then(() => {
@@ -110,7 +110,7 @@ export default defineComponent({
         alert('이메일 형식을 확인해주세요.');
         return;
       }
-
+      this.isLoading = true;
       await sendVerifyCodeToEmail(this.email)
       .then(() => {
         this.isEmailVerifyCodeSent = true;
@@ -118,6 +118,9 @@ export default defineComponent({
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.isLoading = false;
       });
     },
   },
