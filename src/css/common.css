@@ -10,6 +10,8 @@
   --base-shadow-color: rgba(33, 33, 33, .2);
   --button-color: #4e61ff;
   --button-hover-color: #3f4ffa;
+  --button-red-color: #da373c;
+  --button-red-hover-color: #a12829;
   --link-accent-color: #218bff;
 
   --base-gap: 20px;
@@ -32,6 +34,8 @@
   --base-shadow-color: rgba(222, 222, 222, .2);
   --button-color: #5865f2;
   --button-hover-color: #4752c4;
+  --button-red-color: #da373c;
+  --button-red-hover-color: #a12829;
   --link-accent-color: #539bf5;
 
   --logo-brightness: 180%;
@@ -140,9 +144,18 @@ button {
   color: #f0f0f0;
 }
 
+.red-button {
+  background-color: var(--button-red-color);
+}
+
 @media(hover: hover) and (pointer: fine) {
   button:hover:not([disabled]) {
     background-color: var(--button-hover-color);
+    cursor: pointer;
+  }
+
+  button:hover:not([disabled]).red-button {
+    background-color: var(--button-red-hover-color);
     cursor: pointer;
   }
 }

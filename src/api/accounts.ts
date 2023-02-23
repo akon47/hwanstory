@@ -45,12 +45,18 @@ function setCurrentProfileImage(blob: Blob) {
   return accountsV1.uploadFileRequest<AccountDto>('/me/profile-image', 'profileImageFile', Array.of(blob));
 }
 
+// 현재 사용자 계정 삭제
+function deleteCurrentAccount() {
+  return accountsV1.deleteRequest('/me');
+}
+
 export {
   signUp,
   modifyAccountInfo,
   sendVerifyCodeToEmail,
   getCurrentAccount,
   setCurrentProfileImage,
+  deleteCurrentAccount,
   sendResetPasswordUrlToEmail,
   resetPassword,
 };

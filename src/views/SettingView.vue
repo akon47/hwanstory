@@ -36,6 +36,10 @@
       </div>
     </div>
     <div class="footer">
+      <button class="form-button red-button"
+              @click="deleteAccount">
+        탈퇴하기
+      </button>
       <button class="form-button"
               :disabled="!isDirty || isLoading"
               @click="modifyAccount">
@@ -50,6 +54,7 @@ import { defineComponent } from 'vue';
 import { AccountDto } from '@/api/models/account.dtos';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import {
+  deleteCurrentAccount,
   getCurrentAccount,
   modifyAccountInfo,
   sendResetPasswordUrlToEmail,
@@ -132,6 +137,25 @@ export default defineComponent({
       .then((account) => {
         this.updateAccount(account);
         alert('수정되었습니다.');
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.isLoading = false;
+      });
+    },
+    async deleteAccount() {
+      if (!confirm('탈퇴 시 모든 게시글과 댓글이 완전히 삭제되며 복구할 수 없습니다.\n탈퇴 하시겠습니까?')) {
+        return;
+      }
+
+      this.isLoading = true;
+      await deleteCurrentAccount()
+      .then(async () => {
+        alert('탈퇴되었습니다.');
+        await store.dispatch('accountStore/signOut', true);
+        this.$router.push(`/`);
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -283,13 +307,10 @@ export default defineComponent({
 }
 
 .footer {
-  display: grid;
+  display: flex;
 
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-
+  justify-content: space-between;
   align-items: center;
-  justify-items: end;
 
   background: var(--footer-background-color);
   padding: 0 var(--base-gap)
