@@ -116,3 +116,8 @@
 .toastui-editor-contents blockquote p, ol, li:before {
     color: var(--base-color) !important;
 }
+
+.toastui-editor-dark img {
+    background: #ffffff;
+    border-radius: 4px;
+}
