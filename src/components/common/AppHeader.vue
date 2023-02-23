@@ -1,4 +1,5 @@
 <template>
+  <div class="header-background" />
   <div class="header-container">
     <div class="logo">
       <router-link to="/" @click="clearCachedMainPosts">
@@ -58,6 +59,16 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
+.header-background {
+  position: absolute;
+  background-color: var(--header-background-color);
+  opacity: 0.85;
+  height: 100%;
+  width: 100%;
+  z-index: -1;
+}
+
 .header-container {
   display: grid;
 
@@ -68,7 +79,8 @@ export default defineComponent({
 
   padding: 0px var(--base-gap);
   grid-column-gap: var(--base-gap);
-  height: 80px;
+
+  height: 100%;
 }
 
 .logged-in-container {

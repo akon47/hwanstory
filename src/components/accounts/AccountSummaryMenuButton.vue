@@ -59,7 +59,7 @@ export default defineComponent({
 .account-summary-container {
   width: 50px;
   height: 50px;
-  cursor: pointer;
+  cursor: default;
 
   background-color: #6eafd4;
   border-radius: 100%;
@@ -121,6 +121,7 @@ export default defineComponent({
   left: 0;
   content: "";
   cursor: default;
+  height: 100vh;
 }
 
 .dropdown-container .dropdown-content {

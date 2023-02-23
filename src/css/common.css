@@ -83,7 +83,7 @@ body {
   display: grid;
 
   grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: 1fr;
 
   width: 100%;
   height: 100%;
@@ -103,13 +103,21 @@ body {
 }
 
 #app > .header {
-  background-color: var(--header-background-color);
   border-bottom: 1px solid var(--border-color);
   transition: var(--theme-changed-transition);
+
+  height: 70px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 1;
+
+  backdrop-filter: blur(6px);
 }
 
 #app > .content {
   background-color: var(--content-background-color);
+  margin-top: 70px;
 }
 
 a {

@@ -179,6 +179,7 @@ export default defineComponent({
   left: 0;
   content: "";
   cursor: default;
+  height: 100vh;
 }
 
 .dropdown-container .dropdown-content {
