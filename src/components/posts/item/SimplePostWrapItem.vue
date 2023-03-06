@@ -1,6 +1,6 @@
 <template>
   <div class="simple-post-item-container">
-    <router-link :to="`/${this.simplePost?.blogId}/posts/${this.simplePost?.postUrl}`">
+    <router-link :to="`/${this.simplePost?.author?.blogId}/posts/${this.simplePost?.postUrl}`">
       <div class="main">
         <div class="thumbnail" :style="thumbnailStyle">
           <div v-if="!simplePost?.thumbnailImageUrl" class="thumbnail-title">
@@ -30,7 +30,7 @@
           <span>&#183;</span>
           {{ simplePost?.hits }} 조회됨
         </div>
-        <router-link :to="`/${this.simplePost?.blogId}`">
+        <router-link :to="`/${this.simplePost?.author?.blogId}`">
           <div class="author">
             by&nbsp;{{ simplePost?.author?.name }}
           </div>

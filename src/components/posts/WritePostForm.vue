@@ -88,7 +88,7 @@ export default defineComponent({
         tags: this.tags?.map(name => ({ name } as TagDto)),
       })
       .then((post) => {
-        this.$router.push(`/${post.blogId}/posts/${post.postUrl}`);
+        this.$router.push(`/${post.author.blogId}/posts/${post.postUrl}`);
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -109,7 +109,7 @@ export default defineComponent({
         tags: this.tags?.map(name => ({ name } as TagDto)),
       })
       .then((post) => {
-        this.$router.push(`/${post.blogId}/posts/${post.postUrl}`);
+        this.$router.push(`/${post.author.blogId}/posts/${post.postUrl}`);
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());

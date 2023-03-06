@@ -124,7 +124,7 @@ export default defineComponent({
       return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}. ${hours}:${minutes}`;
     },
     isMyPost() {
-      return this.post?.blogId === store.state.accountStore.blogId;
+      return this.post?.author?.blogId === store.state.accountStore.blogId;
     },
     isLoggedIn(): boolean {
       return store.getters['accountStore/isLoggedIn'] ?? false;

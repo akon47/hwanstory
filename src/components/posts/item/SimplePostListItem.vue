@@ -1,6 +1,6 @@
 <template>
   <div class="simple-post-item-container">
-    <router-link :to="`/${this.simplePost?.blogId}/posts/${this.simplePost?.postUrl}`">
+    <router-link :to="`/${this.simplePost?.author?.blogId}/posts/${this.simplePost?.postUrl}`">
       <div class="inner-container">
         <div class="thumbnail" :style="thumbnailStyle">
           <div v-if="!simplePost.thumbnailImageUrl" class="thumbnail-title">
