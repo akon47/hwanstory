@@ -204,7 +204,7 @@ class AxiosHttpApiClientImpl implements HttpApiClient {
               try {
                 await store.dispatch('accountStore/reissueToken');
               } catch (error) {
-                return Promise.reject(error);
+                return store.dispatch('accountStore/signOut', true);
               }
 
               // 토큰이 만료되어 실패했던 요청을 다시 재요청 시도한다.
