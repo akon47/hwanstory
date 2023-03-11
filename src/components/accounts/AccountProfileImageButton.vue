@@ -43,7 +43,6 @@ export default defineComponent({
   aspect-ratio: 1 / 1;
   cursor: pointer;
 
-  background-color: #6eafd4;
   border-radius: 100%;
 
   display: grid;
@@ -52,6 +51,7 @@ export default defineComponent({
 }
 
 .profile {
+  background-color: #6eafd4;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

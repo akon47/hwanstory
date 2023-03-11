@@ -61,7 +61,6 @@ export default defineComponent({
   height: 50px;
   cursor: default;
 
-  background-color: #6eafd4;
   border-radius: 100%;
 }
 
@@ -77,6 +76,7 @@ export default defineComponent({
   border-radius: 100%;
   position: relative;
 
+  background-color: #6eafd4;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
