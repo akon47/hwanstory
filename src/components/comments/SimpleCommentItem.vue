@@ -18,18 +18,23 @@
       {{ content }}
     </div>
     <div v-if="!simpleComment.parentId" class="footer">
-      <button class="toggle-nested-replies" @click="toggleNestedReplies">
-        {{ isNestedCommentsLoaded ? nestedComments.length ?? 0 : simpleComment.childrenCount }}
-        개의 대댓글
+      <div v-if="nestedCommentsCount > 0" class="toggle-nested-replies" @click="toggleNestedReplies">
         <span v-if="isNestedCommentsOpened">숨기기</span>
-        <span v-else>보기</span>
-      </button>
+        <span v-else>{{ nestedCommentsCount }} 개의 답글 보기</span>
+      </div>
+      <div v-else class="toggle-nested-replies" @click="toggleNestedReplies">
+        <span v-if="isNestedCommentsOpened">숨기기</span>
+        <span v-else>답글 달기</span>
+      </div>
       <div v-if="isNestedCommentsOpened" class="nested-comments-container">
         <div class="line"/>
         <div class="nested-comments">
+          <simple-comment-item
+              v-for="comment in nestedComments" :key="comment.id"
+              :simple-comment="comment"
+              @deleted="commentDeleted"/>
           <div class="write-comment">
-            댓글 남기기
-            <textarea v-model="newComment" placeholder="대댓글 내용을 입력하세요."/>
+            <textarea v-model="newComment" placeholder="댓글 내용을 입력하세요."/>
             <div v-if="!isLoggedIn" class="guest-comment-info">
               <input v-model="guestCommentName" placeholder="이름" />
               <input v-model="guestCommentPassword" placeholder="비밀번호" type="password" autocomplete="off" />
@@ -37,12 +42,8 @@
                 <span>이름과 비밀번호 없이 댓글을 달기 위해서는 <router-link to="/signin">로그인</router-link>이 필요합니다.</span>
               </div>
             </div>
-            <button :disabled="!isValidNewComment" @click="writeComment">대댓글 작성</button>
+            <button :disabled="!isValidNewComment" @click="writeComment">답글 작성</button>
           </div>
-          <simple-comment-item
-              v-for="comment in nestedComments" :key="comment.id"
-              :simple-comment="comment"
-              @deleted="commentDeleted"/>
         </div>
       </div>
     </div>
@@ -102,6 +103,9 @@ export default defineComponent({
     isLoggedIn(): boolean {
       return store.getters['accountStore/isLoggedIn'] ?? false;
     },
+    nestedCommentsCount(): number {
+      return this.isNestedCommentsLoaded ? this.nestedComments.length ?? 0 : this.simpleComment?.childrenCount ?? 0;
+    }
   },
   methods: {
     async modifyComment() {
@@ -264,6 +268,15 @@ export default defineComponent({
 .footer .toggle-nested-replies {
   justify-self: start;
   margin-top: 1em;
+  font-size: 0.8em;
+  color: var(--link-accent-color);
+}
+
+@media(hover: hover) and (pointer: fine) {
+  .footer .toggle-nested-replies:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
 }
 
 .footer .nested-comments-container {
@@ -276,7 +289,7 @@ export default defineComponent({
 .nested-comments-container .line {
   width: 5px;
   background-color: var(--border-color);
-  margin: 20px 10px 0 10px;
+  margin: 0.5em var(--half-base-gab) 0 1em;
 }
 
 .write-comment {
