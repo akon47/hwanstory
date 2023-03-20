@@ -47,6 +47,7 @@ export default defineComponent({
       title: '',
       content: '',
       newPostUrl: '',
+      seriesUrl: '',
       isLoading: false,
       tags: Array<string>(),
       isPrivatePost: false,
@@ -86,6 +87,7 @@ export default defineComponent({
         postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
+        seriesUrl: null
       })
       .then((post) => {
         this.$router.push(`/${post.author.blogId}/posts/${post.postUrl}`);
@@ -107,6 +109,7 @@ export default defineComponent({
         postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
+        seriesUrl: this.seriesUrl ? this.seriesUrl : null
       })
       .then((post) => {
         this.$router.push(`/${post.author.blogId}/posts/${post.postUrl}`);
@@ -127,6 +130,7 @@ export default defineComponent({
           this.content = post.content;
           this.tags = post.tags?.map(x => x.name);
           this.isPrivatePost = post.openType == 'PRIVATE';
+          this.seriesUrl = post.seriesUrl ? post.seriesUrl : '';
         })
         .catch((error: HttpApiError) => {
           alert(error.getErrorMessage());

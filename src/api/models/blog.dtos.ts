@@ -30,6 +30,8 @@ export interface PostRequestDto extends DataTransferObject {
   readonly thumbnailFileId?: string;
   // 태그
   readonly tags: Array<TagDto>;
+  // 시리즈 URL
+  readonly seriesUrl: string | null;
 }
 
 // 게시글 Dto
@@ -62,6 +64,8 @@ export interface PostDto extends DataTransferObject {
   readonly createdAt: Date;
   // 마지막 수정 시간
   readonly lastModifiedAt: Date;
+  // 시리즈 URL
+  readonly seriesUrl: string | null;
 }
 
 // 게시글 리스트 조회용 Dto
@@ -92,6 +96,8 @@ export interface SimplePostDto extends DataTransferObject {
   readonly createdAt: Date;
   // 마지막 수정 시간
   readonly lastModifiedAt: Date;
+  // 시리즈 URL
+  readonly seriesUrl: string | null;
 }
 
 // 댓글 작성/수정 Dto
