@@ -163,3 +163,31 @@ export interface TagCountDto extends DataTransferObject {
   // 태그 개수
   readonly count: number;
 }
+
+// 시리즈 Dto
+export interface SeriesDto extends DataTransferObject {
+  // 시리즈 URL
+  readonly seriesUrl: string;
+  // 제목
+  readonly title: string;
+  // 게시글 목록
+  readonly posts: Array<PostDto>;
+}
+
+// 시리즈 생성/수정 Dto
+export interface SeriesRequestDto extends DataTransferObject {
+  // 시리즈 URL
+  readonly seriesUrl: string;
+  // 제목
+  readonly title: string;
+}
+
+// 시리즈 리스트 조회용 Dto
+export interface SimpleSeriesDto extends DataTransferObject {
+  // 시리즈 URL
+  readonly seriesUrl: string;
+  // 제목
+  readonly title: string;
+  // 게시글 수
+  readonly postCount: number;
+}

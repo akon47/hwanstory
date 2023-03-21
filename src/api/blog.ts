@@ -1,11 +1,16 @@
 import { blogV1 } from './index';
-import DataTransferObject, { SliceDto } from '@/api/models/common.dtos';
+import { SliceDto } from '@/api/models/common.dtos';
 import {
-  BlogDetailsDto, CommentDto,
-  CommentRequestDto, GuestCommentRequestDto,
+  BlogDetailsDto,
+  CommentDto,
+  CommentRequestDto,
+  GuestCommentRequestDto,
   PostDto,
   PostRequestDto,
-  SimplePostDto
+  SeriesDto,
+  SeriesRequestDto,
+  SimplePostDto,
+  SimpleSeriesDto
 } from '@/api/models/blog.dtos';
 import { HttpApiError } from '@/api/common/httpApiClient';
 
@@ -122,6 +127,36 @@ function isLikePost(blogId: string, postUrl: string): Promise<boolean> {
   });
 }
 
+// 특정 블로그 시리즈 게시글 조회
+function getBlogSeriesPosts(blogId: string, seriesUrl: string) {
+  return blogV1.getRequest<Array<SimplePostDto>>(`/${blogId}/series/${seriesUrl}/posts`);
+}
+
+// 시리즈 생성
+function createSeries(seriesRequestDto: SeriesRequestDto) {
+  return blogV1.postRequest<SeriesDto>(`/series`, null, seriesRequestDto);
+}
+
+// 시리즈 수정
+function modifySeries(seriesUrl: string, seriesRequestDto: SeriesRequestDto) {
+  return blogV1.putRequest<SeriesDto>(`/series/${seriesUrl}`, null, seriesRequestDto);
+}
+
+// 시리즈 삭제
+function deleteSeries(seriesUrl: string) {
+  return blogV1.deleteRequest(`/series/${seriesUrl}`);
+}
+
+// 특정 블로그 시리즈 상세 조회
+function getBlogSeriesDetail(blogId: string, seriesUrl: string) {
+  return blogV1.getRequest<SeriesDto>(`/${blogId}/series/${seriesUrl}`);
+}
+
+// 특정 블로그 시리즈 목록 조회
+function getBlogSeries(blogId: string) {
+  return blogV1.getRequest<Array<SimpleSeriesDto>>(`/${blogId}/series`);
+}
+
 export {
   getBlogDetails,
   createPost,
@@ -141,4 +176,10 @@ export {
   likePost,
   unlikePost,
   isLikePost,
+  getBlogSeriesPosts,
+  createSeries,
+  modifySeries,
+  deleteSeries,
+  getBlogSeriesDetail,
+  getBlogSeries,
 };

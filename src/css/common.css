@@ -4,6 +4,7 @@
   --footer-background-color: #e5e5e5;
   --content-background-color: transparent;
   --content-item-background-color: #fafafa;
+  --series-background-color: #eaedee;
   --hover-color: rgba(0, 0, 0, 0.1);
   --border-color: #d0d0d0;
   --base-color: #202020;
@@ -28,6 +29,7 @@
   --footer-background-color: #303030;
   --content-background-color: transparent;
   --content-item-background-color: #232323;
+  --series-background-color: #232428;
   --hover-color: rgba(255, 255, 255, 0.1);
   --border-color: #3a3b3d;
   --base-color: #f0f0f0;

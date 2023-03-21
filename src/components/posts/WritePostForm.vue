@@ -7,6 +7,7 @@
       <post-editor id="editor" v-model="content"/>
     </div>
     <div class="footer">
+      <series-selector :blog-id="blogId" v-model="seriesUrl"/>
       <span><input id="private-post" type="checkbox" v-model="isPrivatePost" /><label for="private-post">비공개 게시글</label></span>
       <button v-if="isNewPost" class="form-button"
               :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || isLoading"
@@ -32,10 +33,11 @@ import PostEditor from '@/components/posts/PostEditor.vue';
 import { uploadFileFromUrl } from '@/api/attachments';
 import TagInputBox from '@/components/posts/TagInputBox.vue';
 import { marked } from 'marked';
+import SeriesSelector from "@/components/series/SeriesSelector.vue";
 
 export default defineComponent({
   name: 'WritePostForm',
-  components: { TagInputBox, PostEditor },
+  components: { SeriesSelector, TagInputBox, PostEditor },
   props: {
     postUrl: {
       type: String,
@@ -70,6 +72,9 @@ export default defineComponent({
     isNewPost(): boolean {
       return !this.postUrl;
     },
+    blogId(): string {
+      return store.state.accountStore.blogId;
+    }
   },
   watch: {
     newPostUrl() {

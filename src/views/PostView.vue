@@ -32,14 +32,27 @@
       </div>
     </div>
     <div class="content">
+      <div v-if="series" class="series-container">
+        <div class="series-title">{{ series.title }}</div>
+        <div class="series-list">
+          <router-link v-for="seriesPost in series.posts"
+                       :key="seriesPost.postUrl"
+                       :to="{path: `/${blogId}/posts/${seriesPost.postUrl}`}"
+                       v-slot="{ route, href, navigate }" custom>
+            <div :class="$route.fullPath === route.fullPath ? 'series-active' : null" @click="navigate">
+              <a :href="href">{{ seriesPost.title }}</a>
+            </div>
+          </router-link>
+        </div>
+      </div>
       <post-viewer :content="post.content"/>
     </div>
     <div class="write-comment">
       댓글 남기기
       <textarea v-model="newComment" placeholder="댓글 내용을 입력하세요."/>
       <div v-if="!isLoggedIn" class="guest-comment-info">
-        <input v-model="guestCommentName" placeholder="이름" />
-        <input v-model="guestCommentPassword" placeholder="비밀번호" type="password" autocomplete="off" />
+        <input v-model="guestCommentName" placeholder="이름"/>
+        <input v-model="guestCommentPassword" placeholder="비밀번호" type="password" autocomplete="off"/>
         <div class="login-guide">
           <span>이름과 비밀번호 없이 댓글을 달기 위해서는 <router-link to="/signin">로그인</router-link>이 필요합니다.</span>
         </div>
@@ -71,8 +84,17 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { PostDto, SimpleCommentDto } from '@/api/models/blog.dtos';
-import { createComment, createGuestComment, deletePost, getPost, isLikePost, likePost, unlikePost } from '@/api/blog';
+import { PostDto, SeriesDto, SimpleCommentDto } from '@/api/models/blog.dtos';
+import {
+  createComment,
+  createGuestComment,
+  deletePost,
+  getBlogSeriesDetail,
+  getPost,
+  isLikePost,
+  likePost,
+  unlikePost
+} from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import store from '@/store';
@@ -102,6 +124,7 @@ export default defineComponent({
       newComment: '',
       guestCommentName: '',
       guestCommentPassword: '',
+      series: {} as SeriesDto | null,
     };
   },
   computed: {
@@ -147,12 +170,18 @@ export default defineComponent({
         return;
 
       await getPost(this.blogId, this.postUrl)
-      .then((post) => {
+      .then(async (post) => {
         this.post = post;
         this.likeCount = post.likeCount;
         this.comments = post.comments;
         this.tags = post.tags?.map(tag => tag.name) ?? [];
         document.title = this.post.title;
+
+        if (post.seriesUrl) {
+          this.series = await getBlogSeriesDetail(this.blogId, post.seriesUrl);
+        } else {
+          this.series = null;
+        }
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -171,7 +200,7 @@ export default defineComponent({
       }
     },
     async writeComment() {
-      if(this.isLoggedIn) {
+      if (this.isLoggedIn) {
         await createComment(this.blogId, this.postUrl, {
           content: this.newComment,
         })
@@ -458,6 +487,33 @@ export default defineComponent({
 .login-guide {
   font-size: 0.9em;
   align-self: center;
+}
+
+.series-container {
+  border-radius: var(--base-border-radius);
+  border: 1px solid var(--series-background-color);
+  background: var(--series-background-color);
+  padding: var(--base-gap);
+}
+
+.series-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: var(--base-gap);
+}
+
+.series-list {
+  line-height: 1.75;
+}
+
+.series-container a {
+  color: var(--base-color);
+  font-weight: normal;
+}
+
+.series-active a {
+  color: var(--link-accent-color);
+  font-weight: bold;
 }
 
 </style>

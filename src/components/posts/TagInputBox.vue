@@ -56,15 +56,19 @@ export default defineComponent({
   display: flex;
 
   align-items: center;
-  justify-items: start;
+  justify-items: flex-start;
+
+  flex-wrap: wrap;
 }
 
 .tag-input-box-container input {
-  padding-left: 10px;
   background: none;
   outline: none;
   border: none;
   box-sizing: border-box;
+
+  width: 80px;
+  flex-grow: 1;
 }
 
 .tag-item {
