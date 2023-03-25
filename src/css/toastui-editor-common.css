@@ -1,5 +1,6 @@
 .toastui-editor-contents {
     font-size: 1em;
+    font-family: var(--base-font-family) !important;
 }
 
 .toastui-editor-contents p {
