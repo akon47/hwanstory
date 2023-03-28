@@ -35,14 +35,18 @@
       <div v-if="series" class="series-container">
         <div class="series-title">{{ series.title }}</div>
         <div class="series-list">
-          <router-link v-for="seriesPost in series.posts"
-                       :key="seriesPost.postUrl"
-                       :to="{path: `/${blogId}/posts/${seriesPost.postUrl}`}"
-                       v-slot="{ route, href, navigate }" custom>
-            <div :class="$route.fullPath === route.fullPath ? 'series-active' : null" @click="navigate">
-              <a :href="href">{{ seriesPost.title }}</a>
-            </div>
-          </router-link>
+          <ol>
+            <router-link v-for="seriesPost in series.posts"
+                         :key="seriesPost.postUrl"
+                         :to="{path: `/${blogId}/posts/${seriesPost.postUrl}`}"
+                         v-slot="{ route, href, navigate }" custom>
+              <li>
+                <div :class="$route.fullPath === route.fullPath ? 'series-active' : null" @click="navigate">
+                  <a :href="href">{{ seriesPost.title }}</a>
+                </div>
+              </li>
+            </router-link>
+          </ol>
         </div>
       </div>
       <post-viewer :content="post.content"/>
@@ -514,6 +518,11 @@ export default defineComponent({
 .series-active a {
   color: var(--link-accent-color);
   font-weight: bold;
+}
+
+.series-list ol {
+  list-style-type: decimal;
+  margin-left: var(--base-gap);
 }
 
 </style>
