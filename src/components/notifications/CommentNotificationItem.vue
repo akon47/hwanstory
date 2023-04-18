@@ -1,7 +1,7 @@
 <template>
   <div class="notification-item-container">
     <div class="header">
-      <span class="title">댓글</span>&nbsp;<span class="content">{{ notification.comment.content }}</span>
+      <span class="title">댓글</span>&nbsp;<span class="content"><a :href="relatedPostUrl">{{ notification.comment.content }}</a></span>
     </div>
     <div class="footer">
       by {{ notification.comment.author.name }} <span>&#183;</span> {{ longCreateAt }}
@@ -27,6 +27,15 @@ export default defineComponent({
       const hours = `${date.getHours()}`.padStart(2, '0');
       const minutes = `${date.getMinutes()}`.padStart(2, '0');
       return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}. ${hours}:${minutes}`;
+    },
+    relatedPostUrl() {
+      const simplePost = this.notification?.comment?.post;
+      const blogId = simplePost?.author?.blogId;
+      const postUrl = simplePost?.postUrl;
+      if(!blogId || !postUrl)
+        return null;
+
+      return `/${blogId}/posts/${postUrl}`
     },
   },
   methods: {},
@@ -59,6 +68,10 @@ export default defineComponent({
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.notification-item-container a {
+  color: var(--base-color);
 }
 
 </style>

@@ -7,6 +7,9 @@
       <post-editor id="editor" v-model="content"/>
     </div>
     <div class="footer">
+      <button class="form-button" @click="createSeries">
+        시리즈 생성하기
+      </button>
       <series-selector :blog-id="blogId" v-model="seriesUrl"/>
       <span><input id="private-post" type="checkbox" v-model="isPrivatePost" /><label for="private-post">비공개 게시글</label></span>
       <button v-if="isNewPost" class="form-button"
@@ -82,6 +85,17 @@ export default defineComponent({
     },
   },
   methods: {
+    async createSeries() {
+      const seriesTitle = prompt('시리즈 제목을 입력하세요.');
+      if (!seriesTitle) {
+        return;
+      }
+
+      const seriesUrl = prompt('시리즈 URL을 입력하세요.');
+      if (!seriesUrl) {
+        return;
+      }
+    },
     async writePost() {
       this.isLoading = true;
       await createPost({
