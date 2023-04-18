@@ -29,7 +29,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { HttpApiError } from '@/api/common/httpApiClient';
-import { createPost, getPost, modifyPost } from '@/api/blog';
+import { createPost, createSeries, getPost, modifyPost } from '@/api/blog';
 import store from '@/store';
 import { TagDto } from '@/api/models/blog.dtos';
 import PostEditor from '@/components/posts/PostEditor.vue';
@@ -95,6 +95,17 @@ export default defineComponent({
       if (!seriesUrl) {
         return;
       }
+
+      await createSeries({
+        seriesUrl: seriesUrl,
+        title: seriesTitle,
+      })
+      .then(() => {
+        alert('시리즈가 생성되었습니다.');
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
     },
     async writePost() {
       this.isLoading = true;
