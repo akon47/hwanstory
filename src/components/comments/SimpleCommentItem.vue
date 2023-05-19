@@ -118,7 +118,7 @@ export default defineComponent({
         return;
       }
       const password = this.isGuestComment ? prompt("비밀번호를 입력하세요.") : null;
-      if (!password) {
+      if (this.isGuestComment && !password) {
         return;
       }
 
@@ -140,7 +140,7 @@ export default defineComponent({
       }
       const id = this.simpleComment.id;
       const password = this.isGuestComment ? prompt("비밀번호를 입력하세요.") : null;
-      if (!password) {
+      if (this.isGuestComment && !password) {
         return;
       }
 
