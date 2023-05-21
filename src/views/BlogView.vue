@@ -11,6 +11,9 @@
         <div class="contact">
           <a :href="`mailto:${blogOwner.email}}`">{{ blogOwner.email }}</a>
         </div>
+        <div class="homepage" v-if="blogOwner.homepage">
+          <a :href="`${blogOwner.homepage}`">{{ blogOwner.homepage }}</a>
+        </div>
         <div class="content">
           {{ blogOwner.biography }}
         </div>
@@ -156,7 +159,7 @@ export default defineComponent({
   display: grid;
 
   grid-template-columns: 1fr;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr;
 
   margin-left: 4em;
 }
@@ -167,7 +170,12 @@ export default defineComponent({
 
 .bio .contact {
   font-size: 0.75em;
-  color: var(--link-accent-color)
+  color: var(--link-accent-color);
+}
+
+.bio .homepage {
+  font-size: 0.75em;
+  color: var(--link-accent-color);
 }
 
 .bio .content {
