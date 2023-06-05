@@ -118,7 +118,7 @@
     color: var(--base-color) !important;
 }
 
-.toastui-editor-dark img {
+.toastui-editor-contents img {
     background: #ffffff;
     border-radius: 4px;
 }
