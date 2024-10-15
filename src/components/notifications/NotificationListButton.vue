@@ -129,6 +129,8 @@ export default defineComponent({
 
   background: red;
   border-radius: 100%;
+
+  color: white;
 }
 
 .dropdown-container {
