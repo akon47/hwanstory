@@ -52,7 +52,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { SimpleCommentDto } from '@/api/models/blog.dtos';
+import { PostDto, SimpleCommentDto } from '@/api/models/blog.dtos';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import dayjs from 'dayjs';
 import store from '@/store';
@@ -70,6 +70,7 @@ export default defineComponent({
   components: { AccountProfileImageButton },
   props: {
     simpleComment: Object as PropType<SimpleCommentDto>,
+    post: Object as PropType<PostDto>,
   },
   data() {
     return {
@@ -99,6 +100,9 @@ export default defineComponent({
     },
     isGuestComment() {
       return this.simpleComment?.author?.guest;
+    },
+    isMyPost() {
+      return this.post?.author.blogId === store.state.accountStore.blogId;
     },
     isLoggedIn(): boolean {
       return store.getters['accountStore/isLoggedIn'] ?? false;
@@ -139,8 +143,9 @@ export default defineComponent({
         return;
       }
       const id = this.simpleComment.id;
-      const password = this.isGuestComment ? prompt("비밀번호를 입력하세요.") : null;
-      if (this.isGuestComment && !password) {
+      const passwordRequired = this.isGuestComment && !this.isMyPost;
+      const password = passwordRequired ? prompt("비밀번호를 입력하세요.") : null;
+      if (passwordRequired && !password) {
         return;
       }
 

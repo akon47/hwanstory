@@ -80,6 +80,7 @@
       <simple-comment-item
           v-for="comment in comments" :key="comment.id"
           :simple-comment="comment"
+          :post="post"
           @deleted="commentDeleted"
           @changed="commentChanged"/>
     </div>
