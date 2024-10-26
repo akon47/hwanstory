@@ -12,6 +12,7 @@ import { defineComponent } from 'vue';
 import AppHeader from './components/common/AppHeader.vue';
 import AppContent from './components/common/AppContent.vue';
 import store from "@/store";
+import blogWebSocketClient from "@/utils/websocket";
 
 export default defineComponent({
   name: 'App',
@@ -46,6 +47,9 @@ export default defineComponent({
     if(store.getters['accountStore/isLoggedIn']) {
       store.dispatch('accountStore/updateCurrentAccountInfo');
     }
+    blogWebSocketClient.onsessioncountchanged = () => {
+      store.dispatch('commonStore/updateSessionCount');
+    };
   },
 });
 </script>

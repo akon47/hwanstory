@@ -191,3 +191,12 @@ export interface SimpleSeriesDto extends DataTransferObject {
   // 게시글 수
   readonly postCount: number;
 }
+
+// 웹소켓 메시지 유형
+export type MessageType = 'SESSION_COUNT_CHANGED' | null
+
+// 웹소켓 메시지 Dto
+export interface MessageDto extends DataTransferObject {
+  readonly type: MessageType;
+  readonly payload: unknown;
+}
