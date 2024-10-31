@@ -25,6 +25,13 @@ const router = createRouter({
         component: () => import('../views/MainView.vue'),
       },
       {
+        path: '/top',
+        component: () => import('../views/MainView.vue'),
+        props: (route) => ({
+          sortBy: 'hits',
+        }),
+      },
+      {
         path: '/setting',
         name: 'Setting',
         component: () => import('../views/SettingView.vue'),

@@ -57,11 +57,12 @@ function getBloggerLikePosts(blogId: string, size: number, cursorId: string | nu
 }
 
 // 전체 게시글 조회
-function getAllPosts(size: number, cursorId: string | null = null, search: string | null = null) {
+function getAllPosts(size: number, cursorId: string | null = null, sortBy: string | null = null, search: string | null = null) {
   return blogV1.getRequest<SliceDto<SimplePostDto>>('/posts', {
     cursorId: cursorId,
     size: size,
-    search: search
+    search: search,
+    sortBy: sortBy
   });
 }
 
