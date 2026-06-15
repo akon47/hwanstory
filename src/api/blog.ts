@@ -124,6 +124,13 @@ async function isLikePost(blogId: string, postUrl: string): Promise<boolean> {
   }
 }
 
+// 관련 게시글 조회 (태그가 겹치는 공개 게시글)
+function getRelatedPosts(blogId: string, postUrl: string, size = 5) {
+  return blogV1.getRequest<Array<SimplePostDto>>(`/${blogId}/posts/${postUrl}/related`, {
+    size: size,
+  });
+}
+
 // 특정 블로그 시리즈 게시글 조회
 function getBlogSeriesPosts(blogId: string, seriesUrl: string) {
   return blogV1.getRequest<Array<SimplePostDto>>(`/${blogId}/series/${seriesUrl}/posts`);
@@ -170,6 +177,7 @@ export {
   getBlogAllPosts,
   getBloggerLikePosts,
   getAllPosts,
+  getRelatedPosts,
   likePost,
   unlikePost,
   isLikePost,

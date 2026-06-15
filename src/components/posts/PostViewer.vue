@@ -20,6 +20,7 @@ export default defineComponent({
       type: String,
     },
   },
+  emits: ['rendered'],
   computed: {
     isDarkTheme() {
       return store.getters['commonStore/isDarkTheme'];
@@ -29,6 +30,7 @@ export default defineComponent({
     content(newValue, preValue) {
       if (newValue !== preValue) {
         viewer.setMarkdown(newValue);
+        this.emitRendered();
       }
     },
   },
@@ -42,6 +44,16 @@ export default defineComponent({
       plugins: [codeSyntaxHighlight, colorSyntax],
       viewer: true,
     });
+
+    this.emitRendered();
+  },
+  methods: {
+    // 뷰어 렌더링이 DOM에 반영된 뒤 루트 엘리먼트를 전달한다. (목차 생성 등에 사용)
+    emitRendered() {
+      this.$nextTick(() => {
+        this.$emit('rendered', this.$refs['ref-viewer'] as HTMLElement);
+      });
+    },
   },
 });
 </script>

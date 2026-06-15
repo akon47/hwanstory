@@ -1,11 +1,14 @@
 <template>
   <div class="post-container">
+    <div class="reading-progress">
+      <div class="reading-progress-bar" :style="{ width: readingProgress + '%' }"/>
+    </div>
     <div class="title">
       <h1>
         {{ post.title }}
       </h1>
       <div class="hits">
-        조회수 {{ post.hits }} 회
+        <span>조회수 {{ post.hits }} 회 &#183; 읽는 시간 약 {{ readingTime }}분</span>
         <span class="modified-at" v-if="longCreateAt !== longLastModifiedAt">
           {{ longLastModifiedAt }}
           마지막으로 수정됨
@@ -49,7 +52,27 @@
           </ol>
         </div>
       </div>
-      <post-viewer :content="post.content"/>
+      <div v-if="toc.length > 0" class="toc">
+        <div class="toc-title">목차</div>
+        <ul>
+          <li v-for="item in toc" :key="item.id" :class="`toc-level-${item.level}`">
+            <a @click="scrollToHeading(item.id)">{{ item.text }}</a>
+          </li>
+        </ul>
+      </div>
+      <post-viewer :content="post.content" @rendered="buildToc"/>
+    </div>
+    <div v-if="relatedPosts.length > 0" class="related-posts">
+      <div class="related-title">관련 게시글</div>
+      <div class="related-list">
+        <router-link v-for="relatedPost in relatedPosts"
+                     :key="relatedPost.id"
+                     :to="`/${relatedPost.author.blogId}/posts/${relatedPost.postUrl}`"
+                     class="related-item">
+          <div class="related-item-title">{{ relatedPost.title }}</div>
+          <div class="related-item-summary">{{ relatedPost.summary }}</div>
+        </router-link>
+      </div>
     </div>
     <div class="write-comment">
       댓글 남기기
@@ -89,13 +112,14 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { PostDto, SeriesDto, SimpleCommentDto } from '@/api/models/blog.dtos';
+import { PostDto, SeriesDto, SimpleCommentDto, SimplePostDto } from '@/api/models/blog.dtos';
 import {
   createComment,
   createGuestComment,
   deletePost,
   getBlogSeriesDetail,
   getPost,
+  getRelatedPosts,
   isLikePost,
   likePost,
   unlikePost
@@ -130,6 +154,9 @@ export default defineComponent({
       guestCommentName: '',
       guestCommentPassword: '',
       series: {} as SeriesDto | null,
+      toc: [] as Array<{ id: string; text: string; level: number }>,
+      readingProgress: 0,
+      relatedPosts: [] as Array<SimplePostDto>,
     };
   },
   computed: {
@@ -163,6 +190,18 @@ export default defineComponent({
     allCommentCount() {
       return this.comments?.reduce?.((previous, current) => previous + 1 + current.childrenCount, 0) ?? 0;
     },
+    // 본문 글자 수를 기반으로 예상 읽기 시간(분)을 계산한다. (한글 약 500자/분, 영어 약 200단어/분)
+    readingTime(): number {
+      const text = (this.post?.content ?? '')
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/`[^`]*`/g, '')
+        .replace(/!\[[^\]]*]\([^)]*\)/g, '')
+        .replace(/\[[^\]]*]\([^)]*\)/g, '')
+        .replace(/[#>*_~\->|]/g, ' ');
+      const cjkCount = (text.match(/[ㄱ-힝一-鿿]/g) ?? []).length;
+      const wordCount = (text.replace(/[ㄱ-힝一-鿿]/g, ' ').match(/[A-Za-z0-9]+/g) ?? []).length;
+      return Math.max(1, Math.ceil(cjkCount / 500 + wordCount / 200));
+    },
   },
   watch: {
     postUrl() {
@@ -187,6 +226,8 @@ export default defineComponent({
         } else {
           this.series = null;
         }
+
+        this.loadRelatedPosts();
       })
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
@@ -279,9 +320,54 @@ export default defineComponent({
         alert(error.getErrorMessage());
       });
     },
+    async loadRelatedPosts() {
+      this.relatedPosts = [];
+      await getRelatedPosts(this.blogId, this.postUrl, 5)
+      .then((posts) => {
+        this.relatedPosts = posts;
+      })
+      .catch(() => {
+        // 관련 게시글 조회 실패는 본문 노출에 영향을 주지 않으므로 조용히 무시한다.
+      });
+    },
+    // 뷰어 렌더링 완료 시 본문 제목(h1~h3)으로부터 목차를 생성한다.
+    buildToc(viewerRoot: HTMLElement) {
+      if (!viewerRoot) {
+        this.toc = [];
+        return;
+      }
+      const contents = viewerRoot.querySelector('.toastui-editor-contents') ?? viewerRoot;
+      const headings = Array.from(contents.querySelectorAll('h1, h2, h3')) as Array<HTMLElement>;
+      this.toc = headings.map((heading, index) => {
+        if (!heading.id) {
+          heading.id = `post-heading-${index}`;
+        }
+        return {
+          id: heading.id,
+          text: heading.textContent?.trim() ?? '',
+          level: Number(heading.tagName.substring(1)),
+        };
+      }).filter((item) => item.text.length > 0);
+    },
+    scrollToHeading(id: string) {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    // 페이지 스크롤 진행률(0~100)을 계산하여 상단 진행률 바에 반영한다.
+    updateReadingProgress() {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollableHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      this.readingProgress = scrollableHeight > 0 ? Math.min(100, Math.max(0, (scrollTop / scrollableHeight) * 100)) : 0;
+    },
   },
   created() {
     this.loadPost();
+  },
+  mounted() {
+    window.addEventListener('scroll', this.updateReadingProgress, { passive: true });
+    this.updateReadingProgress();
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.updateReadingProgress);
   },
 });
 </script>
@@ -524,6 +610,105 @@ export default defineComponent({
 .series-list ol {
   list-style-type: decimal;
   margin-left: var(--base-gap);
+}
+
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  z-index: 1000;
+}
+
+.reading-progress-bar {
+  height: 100%;
+  background: var(--link-accent-color);
+  transition: width 0.1s linear;
+}
+
+.toc {
+  border: 1px solid var(--series-background-color);
+  background: var(--series-background-color);
+  border-radius: var(--base-border-radius);
+  padding: var(--base-gap);
+  margin-bottom: 2em;
+}
+
+.toc-title {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+.toc ul {
+  list-style: none;
+  line-height: 1.8;
+}
+
+.toc li a {
+  color: var(--base-color);
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.toc li a:hover {
+  color: var(--link-accent-color);
+  text-decoration: underline;
+}
+
+.toc-level-2 {
+  margin-left: 1em;
+}
+
+.toc-level-3 {
+  margin-left: 2em;
+  font-size: 0.95em;
+}
+
+.related-posts {
+  border-bottom: 6px double var(--border-color);
+  padding: 2em 0;
+}
+
+.related-title {
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-bottom: var(--base-gap);
+}
+
+.related-list {
+  display: grid;
+  grid-auto-rows: auto;
+  grid-row-gap: 0.75em;
+}
+
+.related-item {
+  display: block;
+  border: 1px solid var(--border-color);
+  border-radius: var(--base-border-radius);
+  padding: 0.75em 1em;
+  color: var(--base-color);
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.related-item:hover {
+  border-color: var(--link-accent-color);
+}
+
+.related-item-title {
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+.related-item-summary {
+  font-size: 0.85em;
+  font-weight: 300;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 </style>
