@@ -32,6 +32,13 @@ const router = createRouter({
         }),
       },
       {
+        path: '/viewing',
+        component: () => import('../views/MainView.vue'),
+        props: (route) => ({
+          sortBy: 'viewing',
+        }),
+      },
+      {
         path: '/setting',
         name: 'Setting',
         component: () => import('../views/SettingView.vue'),

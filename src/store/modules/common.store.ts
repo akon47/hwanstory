@@ -43,6 +43,9 @@ export const commonStore: Module<CommonState, RootState> = {
     postViewerCount: (state) => (postId: string | undefined | null) => {
       return (postId && state.postViewerCounts[postId]) || 0;
     },
+    postViewerCounts(state) {
+      return state.postViewerCounts;
+    },
   },
   actions: {
     async toggleTheme({ commit, state }) {

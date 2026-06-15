@@ -131,6 +131,11 @@ function getRelatedPosts(blogId: string, postUrl: string, size = 5) {
   });
 }
 
+// 현재 한 명 이상이 보고 있는 공개 게시글 조회 (시청자 수 내림차순)
+function getViewingPosts() {
+  return blogV1.getRequest<Array<SimplePostDto>>('/posts/viewing');
+}
+
 // 특정 블로그 시리즈 게시글 조회
 function getBlogSeriesPosts(blogId: string, seriesUrl: string) {
   return blogV1.getRequest<Array<SimplePostDto>>(`/${blogId}/series/${seriesUrl}/posts`);
@@ -178,6 +183,7 @@ export {
   getBloggerLikePosts,
   getAllPosts,
   getRelatedPosts,
+  getViewingPosts,
   likePost,
   unlikePost,
   isLikePost,
