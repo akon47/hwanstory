@@ -112,20 +112,16 @@ function unlikePost(blogId: string, postUrl: string) {
 }
 
 // 게시글 좋아요 여부
-function isLikePost(blogId: string, postUrl: string): Promise<boolean> {
-  return new Promise<boolean>((resolve, reject) => {
-    blogV1.getRequest(`/${blogId}/posts/${postUrl}/likes`)
-    .then(() => {
-      resolve(true);
-    })
-    .catch((error: HttpApiError) => {
-      if(error.isNotFound()) {
-        resolve(false);
-      } else {
-        reject(error);
-      }
-    });
-  });
+async function isLikePost(blogId: string, postUrl: string): Promise<boolean> {
+  try {
+    await blogV1.getRequest(`/${blogId}/posts/${postUrl}/likes`);
+    return true;
+  } catch (error) {
+    if ((error as HttpApiError).isNotFound()) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 // 특정 블로그 시리즈 게시글 조회

@@ -146,16 +146,8 @@ class AxiosHttpApiClientImpl implements HttpApiClient {
     );
   }
 
-  private createHttpApiResponse<T extends DataTransferObject | void = void>(response: Promise<AxiosResponse>): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      response
-      .then(response => {
-        resolve(response.data);
-      })
-      .catch(error => {
-        reject(error);
-      });
-    });
+  private async createHttpApiResponse<T extends DataTransferObject | void = void>(response: Promise<AxiosResponse>): Promise<T> {
+    return (await response).data;
   }
 
   private buildAxiosRequestConfig(params?: any, headers?: any): AxiosRequestConfig {
