@@ -8,7 +8,7 @@
         {{ post.title }}
       </h1>
       <div class="hits">
-        <span>조회수 {{ post.hits }} 회 &#183; 읽는 시간 약 {{ readingTime }}분</span>
+        <span>조회수 {{ post.hits }} 회 &#183; 읽는 시간 약 {{ readingTime }}분<span v-if="currentViewerCount > 0" class="now-viewing">&#183; 지금 {{ currentViewerCount }}명 보는 중</span></span>
         <span class="modified-at" v-if="longCreateAt !== longLastModifiedAt">
           {{ longLastModifiedAt }}
           마지막으로 수정됨
@@ -129,6 +129,7 @@ import AccountProfileImageButton from '@/components/accounts/AccountProfileImage
 import store from '@/store';
 import SimpleCommentItem from '@/components/comments/SimpleCommentItem.vue';
 import PostViewer from '@/components/posts/PostViewer.vue';
+import blogWebSocketClient from '@/utils/websocket';
 
 export default defineComponent({
   name: 'PostView',
@@ -190,6 +191,10 @@ export default defineComponent({
     allCommentCount() {
       return this.comments?.reduce?.((previous, current) => previous + 1 + current.childrenCount, 0) ?? 0;
     },
+    // 현재 이 게시글을 함께 보고 있는 사람 수 (자신 포함)
+    currentViewerCount(): number {
+      return store.getters['commonStore/postViewerCount'](this.post?.id);
+    },
     // 본문 글자 수를 기반으로 예상 읽기 시간(분)을 계산한다. (한글 약 500자/분, 영어 약 200단어/분)
     readingTime(): number {
       const text = (this.post?.content ?? '')
@@ -220,6 +225,9 @@ export default defineComponent({
         this.comments = post.comments;
         this.tags = post.tags?.map(tag => tag.name) ?? [];
         document.title = this.post.title;
+
+        // 현재 이 게시글을 보고 있다고 서버에 알린다. (실시간 시청자 수 집계)
+        blogWebSocketClient.viewPost(post.id);
 
         if (post.seriesUrl) {
           this.series = await getBlogSeriesDetail(this.blogId, post.seriesUrl);
@@ -368,6 +376,8 @@ export default defineComponent({
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.updateReadingProgress);
+    // 게시글을 떠나므로 더 이상 보고 있지 않음을 알린다.
+    blogWebSocketClient.viewPost(null);
   },
 });
 </script>
@@ -403,6 +413,11 @@ export default defineComponent({
 
   display: flex;
   justify-content: space-between;
+}
+
+.now-viewing {
+  color: var(--link-accent-color);
+  margin-left: 0.2em;
 }
 
 .tags {

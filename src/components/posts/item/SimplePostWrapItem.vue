@@ -17,6 +17,8 @@
           {{ simplePost?.summary }}
         </div>
         <div class="counts">
+          <post-viewer-count :post-id="simplePost?.id"/>
+          <span v-if="viewerCount > 0">&#183;</span>
           {{ simplePost?.likeCount }} 개의 좋아요
           <span>&#183;</span>
           {{ simplePost?.commentCount }} 개의 댓글
@@ -44,16 +46,21 @@
 import { SimplePostDto } from '@/api/models/blog.dtos';
 import { defineComponent, PropType } from 'vue';
 import AccountProfileImage from '@/components/accounts/AccountProfileImage.vue';
+import PostViewerCount from '@/components/posts/PostViewerCount.vue';
 import dayjs from 'dayjs';
 import { attachmentFileBaseUrl } from '@/api/common/httpApiClient';
+import store from '@/store';
 
 export default defineComponent({
   name: 'SimplePostWrapItem',
-  components: { AccountProfileImage },
+  components: { AccountProfileImage, PostViewerCount },
   props: {
     simplePost: Object as PropType<SimplePostDto>,
   },
   computed: {
+    viewerCount(): number {
+      return store.getters['commonStore/postViewerCount'](this.simplePost?.id);
+    },
     createdAt() {
       return dayjs(this.simplePost?.createdAt).format('YYYY.MM.DD H:mm');
     },

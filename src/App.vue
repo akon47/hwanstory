@@ -50,6 +50,9 @@ export default defineComponent({
     blogWebSocketClient.onsessioncountchanged = () => {
       store.dispatch('commonStore/updateSessionCount');
     };
+    blogWebSocketClient.onpostviewercountschanged = () => {
+      store.dispatch('commonStore/updatePostViewerCounts');
+    };
   },
 });
 </script>

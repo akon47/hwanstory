@@ -8,6 +8,7 @@ import blogWebSocketClient from "@/utils/websocket";
 export interface CommonState {
   theme: string;
   sessionCount: number | null;
+  postViewerCounts: Record<string, number>;
 }
 
 export const commonStore: Module<CommonState, RootState> = {
@@ -15,6 +16,7 @@ export const commonStore: Module<CommonState, RootState> = {
   state: () => ({
     theme: getThemeFromLocalStorage() || '',
     sessionCount: blogWebSocketClient.sessionCount,
+    postViewerCounts: { ...blogWebSocketClient.postViewerCounts },
   }),
   mutations: {
     setTheme(state, theme: string) {
@@ -23,6 +25,9 @@ export const commonStore: Module<CommonState, RootState> = {
     },
     setSessionCount(state, sessionCount: number | null) {
       state.sessionCount = sessionCount;
+    },
+    setPostViewerCounts(state, postViewerCounts: Record<string, number>) {
+      state.postViewerCounts = postViewerCounts;
     },
   },
   getters: {
@@ -35,6 +40,9 @@ export const commonStore: Module<CommonState, RootState> = {
     sessionCount(state) {
       return state.sessionCount;
     },
+    postViewerCount: (state) => (postId: string | undefined | null) => {
+      return (postId && state.postViewerCounts[postId]) || 0;
+    },
   },
   actions: {
     async toggleTheme({ commit, state }) {
@@ -46,6 +54,9 @@ export const commonStore: Module<CommonState, RootState> = {
     },
     async updateSessionCount({commit}) {
       commit('setSessionCount', blogWebSocketClient.sessionCount)
+    },
+    async updatePostViewerCounts({commit}) {
+      commit('setPostViewerCounts', { ...blogWebSocketClient.postViewerCounts })
     },
   },
 };
