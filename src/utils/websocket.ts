@@ -2,6 +2,8 @@ import {
   MessageDto,
   PostViewerCountDto,
 } from '@/api/models/blog.dtos';
+import { NotificationDto } from '@/api/models/notification.dtos';
+import { getAccessTokenFromLocalStorage } from '@/utils/storage';
 import SockJS from 'sockjs-client';
 
 // 재연결 백오프(ms): 최초 지연부터 시작해 실패할 때마다 2배씩, 최대 지연까지 증가
@@ -42,8 +44,10 @@ class BlogWebSocketClient {
     this.socket = socket;
 
     socket.onopen = () => {
-      // 연결에 성공하면 백오프를 초기화하고, 현재 시청/구독 상태를 서버에 다시 알린다.
+      // 연결에 성공하면 백오프를 초기화하고, 현재 시청/구독/인증 상태를 서버에 다시 알린다.
       this.reconnectDelay = INITIAL_RECONNECT_DELAY;
+      // 로그인 상태라면 이 세션을 사용자와 연결해 실시간 알림을 받을 수 있게 한다.
+      this.authenticate();
       if (this.viewingPostId) {
         this.sendMessage('VIEW_POST', this.viewingPostId);
       }
@@ -80,6 +84,11 @@ class BlogWebSocketClient {
             this.postViewerCounts[viewerCount.postId] = viewerCount.count;
           });
           this.onpostviewercountschanged?.();
+          break;
+        }
+        case 'NOTIFICATION': {
+          const notification = message.payload as NotificationDto;
+          this.onnotification?.(notification);
           break;
         }
       }
@@ -120,6 +129,15 @@ class BlogWebSocketClient {
     this.watchedPostIds.delete(postId);
   }
 
+  // 현재 로그인 토큰으로 이 세션을 사용자와 연결한다.
+  // 로그인 직후(이미 연결된 소켓)와 (재)연결 시 onopen 양쪽에서 호출되어 인증을 보장한다.
+  public authenticate() {
+    const accessToken = getAccessTokenFromLocalStorage();
+    if (accessToken) {
+      this.sendMessage('AUTHENTICATE', accessToken);
+    }
+  }
+
   // 소켓이 열려 있을 때만 전송한다. 보내지 못한 상태는 viewingPostId/watchedPostIds에
   // 보존되어 있으므로 재연결 시 onopen에서 다시 전송된다.
   private sendMessage(type: string, payload: unknown) {
@@ -130,6 +148,7 @@ class BlogWebSocketClient {
 
   public onsessioncountchanged: { (count: number): void } | undefined;
   public onpostviewercountschanged: { (): void } | undefined;
+  public onnotification: { (notification: NotificationDto): void } | undefined;
 }
 
 const blogWebSocketClient = new BlogWebSocketClient();

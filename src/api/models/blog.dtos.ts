@@ -197,8 +197,10 @@ export type MessageType =
   | 'SESSION_COUNT_CHANGED'
   | 'VIEW_POST'
   | 'WATCH_POSTS'
+  | 'AUTHENTICATE'
   | 'POST_VIEWER_COUNT_CHANGED'
   | 'POST_VIEWER_COUNTS'
+  | 'NOTIFICATION'
   | null
 
 // 웹소켓 메시지 Dto

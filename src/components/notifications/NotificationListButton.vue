@@ -33,6 +33,7 @@ import { NotificationDto } from "@/api/models/notification.dtos";
 import { deleteNotification, getNotifications } from "@/api/notifications";
 import { HttpApiError } from "@/api/common/httpApiClient";
 import CommentNotificationItem from "@/components/notifications/CommentNotificationItem.vue";
+import blogWebSocketClient from "@/utils/websocket";
 
 export default defineComponent({
   name: 'NotificationListButton',
@@ -81,10 +82,24 @@ export default defineComponent({
       } finally {
         this.isLoading = false;
       }
+    },
+    onNotificationReceived(notification: NotificationDto) {
+      // 이미 목록에 있는 알림이면 중복 추가하지 않는다.
+      if (this.notifications.some((x) => x.id === notification.id)) {
+        return;
+      }
+      this.notifications.unshift(notification);
     }
   },
   mounted() {
     this.fetchNotifications();
+    // 이 컴포넌트는 로그인 상태에서만 렌더링되므로, 마운트 시점에 세션을 인증해
+    // 실시간 알림을 수신할 수 있도록 한다. (이미 연결된 소켓의 로그인 직후 케이스 포함)
+    blogWebSocketClient.authenticate();
+    blogWebSocketClient.onnotification = this.onNotificationReceived;
+  },
+  unmounted() {
+    blogWebSocketClient.onnotification = undefined;
   }
 });
 </script>
