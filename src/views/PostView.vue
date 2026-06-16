@@ -62,6 +62,28 @@
       </div>
       <post-viewer :content="post.content" @rendered="buildToc"/>
     </div>
+    <div class="reactions">
+      <button v-for="reaction in displayReactions" :key="reaction.emoji"
+              class="reaction-chip" :class="{ reacted: reaction.reacted }"
+              @click="toggleReaction(reaction)">
+        <span class="reaction-emoji">{{ reaction.emoji }}</span>
+        <span v-if="reaction.count > 0" class="reaction-count">{{ reaction.count }}</span>
+      </button>
+    </div>
+    <div v-if="seriesNav.prev || seriesNav.next" class="series-nav">
+      <router-link v-if="seriesNav.prev" class="series-nav-item prev"
+                   :to="`/${blogId}/posts/${seriesNav.prev.postUrl}`">
+        <span class="series-nav-dir">&#8592; 이전 글</span>
+        <span class="series-nav-title">{{ seriesNav.prev.title }}</span>
+      </router-link>
+      <span v-else class="series-nav-item-empty"/>
+      <router-link v-if="seriesNav.next" class="series-nav-item next"
+                   :to="`/${blogId}/posts/${seriesNav.next.postUrl}`">
+        <span class="series-nav-dir">다음 글 &#8594;</span>
+        <span class="series-nav-title">{{ seriesNav.next.title }}</span>
+      </router-link>
+      <span v-else class="series-nav-item-empty"/>
+    </div>
     <div v-if="relatedPosts.length > 0" class="related-posts">
       <div class="related-title">관련 게시글</div>
       <div class="related-list">
@@ -91,9 +113,11 @@
         <span>{{ allCommentCount }} 개의 댓글</span>
         <span>&#183;</span>
         <span>{{ likeCount }} 개의 좋아요</span>
-        <div v-if="isLoggedIn">
+        <div v-if="isLoggedIn" class="action-buttons">
           <button v-if="!this.isLike" @click="likePost">좋아요 하기</button>
           <button v-else @click="unlikePost">좋아요 취소</button>
+          <button v-if="!this.isBookmarkedPost" @click="bookmark">북마크</button>
+          <button v-else @click="unbookmark">북마크 취소</button>
         </div>
       </div>
 
@@ -112,19 +136,28 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { PostDto, SeriesDto, SimpleCommentDto, SimplePostDto } from '@/api/models/blog.dtos';
+import { PostDto, ReactionDto, SeriesDto, SimpleCommentDto, SimplePostDto } from '@/api/models/blog.dtos';
 import {
+  addReaction,
+  bookmarkPost,
   createComment,
   createGuestComment,
   deletePost,
   getBlogSeriesDetail,
   getPost,
+  getReactions,
   getRelatedPosts,
+  isBookmarked,
   isLikePost,
   likePost,
+  removeReaction,
+  unbookmarkPost,
   unlikePost
 } from '@/api/blog';
-import { HttpApiError } from '@/api/common/httpApiClient';
+import { HttpApiError, attachmentFileBaseUrl } from '@/api/common/httpApiClient';
+
+// 게시글에 사용할 수 있는 이모지 반응 목록 (백엔드 허용 목록과 일치해야 한다)
+const ALLOWED_REACTIONS = ['👍', '❤️', '😄', '🎉', '🤔', '👏', '🚀', '👀'];
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import store from '@/store';
 import SimpleCommentItem from '@/components/comments/SimpleCommentItem.vue';
@@ -151,6 +184,8 @@ export default defineComponent({
       tags: {} as Array<string>,
       likeCount: 0,
       isLike: false,
+      isBookmarkedPost: false,
+      reactions: [] as Array<ReactionDto>,
       newComment: '',
       guestCommentName: '',
       guestCommentPassword: '',
@@ -190,6 +225,28 @@ export default defineComponent({
     },
     allCommentCount() {
       return this.comments?.reduce?.((previous, current) => previous + 1 + current.childrenCount, 0) ?? 0;
+    },
+    // 허용된 모든 이모지를 표시하되, 서버 집계값(개수/내 반응 여부)을 합쳐서 보여준다.
+    displayReactions(): Array<ReactionDto> {
+      return ALLOWED_REACTIONS.map((emoji) => {
+        const found = this.reactions.find((r) => r.emoji === emoji);
+        return found ?? { emoji, count: 0, reacted: false } as ReactionDto;
+      });
+    },
+    // 같은 시리즈 안에서의 이전/다음 게시글
+    seriesNav(): { prev: SimplePostDto | null; next: SimplePostDto | null } {
+      const posts = this.series?.posts;
+      if (!posts || posts.length === 0) {
+        return { prev: null, next: null };
+      }
+      const index = posts.findIndex((p) => p.postUrl === this.postUrl);
+      if (index < 0) {
+        return { prev: null, next: null };
+      }
+      return {
+        prev: index > 0 ? (posts[index - 1] as unknown as SimplePostDto) : null,
+        next: index < posts.length - 1 ? (posts[index + 1] as unknown as SimplePostDto) : null,
+      };
     },
     // 현재 이 게시글을 함께 보고 있는 사람 수 (자신 포함)
     currentViewerCount(): number {
@@ -235,6 +292,8 @@ export default defineComponent({
           this.series = null;
         }
 
+        this.applyOpenGraph(post);
+        this.loadReactions();
         this.loadRelatedPosts();
       })
       .catch((error: HttpApiError) => {
@@ -250,6 +309,14 @@ export default defineComponent({
         .catch((error: HttpApiError) => {
           alert(error.getErrorMessage());
           this.$router.push(`/`);
+        });
+
+        isBookmarked(this.blogId, this.postUrl)
+        .then((bookmarked) => {
+          this.isBookmarkedPost = bookmarked;
+        })
+        .catch(() => {
+          // 북마크 여부 조회 실패는 본문 노출에 영향을 주지 않으므로 조용히 무시한다.
         });
       }
     },
@@ -310,6 +377,74 @@ export default defineComponent({
       .catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
       });
+    },
+    async bookmark() {
+      await bookmarkPost(this.blogId, this.postUrl)
+      .then(() => {
+        this.isBookmarkedPost = true;
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
+    },
+    async unbookmark() {
+      await unbookmarkPost(this.blogId, this.postUrl)
+      .then(() => {
+        this.isBookmarkedPost = false;
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
+    },
+    async loadReactions() {
+      await getReactions(this.blogId, this.postUrl)
+      .then((reactions) => {
+        this.reactions = reactions;
+      })
+      .catch(() => {
+        // 반응 조회 실패는 본문 노출에 영향을 주지 않으므로 조용히 무시한다.
+      });
+    },
+    async toggleReaction(reaction: ReactionDto) {
+      if (!this.isLoggedIn) {
+        alert('이모지 반응을 남기려면 로그인이 필요합니다.');
+        return;
+      }
+      const action = reaction.reacted
+        ? removeReaction(this.blogId, this.postUrl, reaction.emoji)
+        : addReaction(this.blogId, this.postUrl, reaction.emoji);
+      await action
+      .then(() => this.loadReactions())
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      });
+    },
+    // 게시글 정보로 Open Graph / Twitter Card 메타 태그를 갱신한다. (공유 시 미리보기용)
+    applyOpenGraph(post: PostDto) {
+      const url = `${window.location.origin}/${post.author?.blogId}/posts/${post.postUrl}`;
+      const description = post.summary ?? '';
+      const image = post.thumbnailImageUrl ? `${attachmentFileBaseUrl}${post.thumbnailImageUrl}` : '';
+      this.setMetaTag('name', 'description', description);
+      this.setMetaTag('property', 'og:title', post.title);
+      this.setMetaTag('property', 'og:description', description);
+      this.setMetaTag('property', 'og:type', 'article');
+      this.setMetaTag('property', 'og:url', url);
+      this.setMetaTag('name', 'twitter:title', post.title);
+      this.setMetaTag('name', 'twitter:description', description);
+      this.setMetaTag('name', 'twitter:card', image ? 'summary_large_image' : 'summary');
+      if (image) {
+        this.setMetaTag('property', 'og:image', image);
+        this.setMetaTag('name', 'twitter:image', image);
+      }
+    },
+    setMetaTag(attr: 'name' | 'property', key: string, content: string) {
+      let el = document.head.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
     },
     async modifyPost() {
       this.$router.push(`/write?post=${this.postUrl}`);
@@ -721,6 +856,85 @@ export default defineComponent({
 .related-item-summary {
   font-size: 0.85em;
   font-weight: 300;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 1.5em 0 0.5em;
+}
+
+.reaction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1em;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.reaction-chip:hover {
+  border-color: var(--link-accent-color);
+}
+
+.reaction-chip.reacted {
+  border-color: var(--link-accent-color);
+  background: var(--series-background-color);
+}
+
+.reaction-count {
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.series-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column-gap: 10px;
+  padding: 1.5em 0;
+}
+
+.series-nav-item {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: var(--base-border-radius);
+  padding: 0.75em 1em;
+  color: var(--base-color);
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.series-nav-item:hover {
+  border-color: var(--link-accent-color);
+}
+
+.series-nav-item.next {
+  text-align: right;
+}
+
+.series-nav-dir {
+  font-size: 0.8em;
+  font-weight: 300;
+  color: var(--link-accent-color);
+  margin-bottom: 0.25em;
+}
+
+.series-nav-title {
+  font-weight: bold;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -14,8 +14,12 @@
           </span>
       </div>
     </div>
-    <div class="content">
-      {{ content }}
+    <!-- 댓글 내용을 마크다운으로 렌더링한다. (원시 HTML 은 이스케이프되어 XSS 를 방지한다) -->
+    <div class="content markdown-content" v-html="renderedContent"/>
+    <div class="comment-actions">
+      <button class="like-button" :class="{ liked: isLiked }" @click="toggleCommentLike">
+        &#9829; {{ likeCount }}
+      </button>
     </div>
     <div v-if="!simpleComment.parentId" class="footer">
       <div v-if="nestedCommentsCount > 0" class="toggle-nested-replies" @click="toggleNestedReplies">
@@ -61,9 +65,13 @@ import {
   createGuestCommentToComment,
   deleteComment,
   getComment,
-  modifyComment
+  isCommentLiked,
+  likeComment,
+  modifyComment,
+  unlikeComment
 } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
+import { marked } from 'marked';
 
 export default defineComponent({
   name: 'SimpleCommentItem',
@@ -81,16 +89,56 @@ export default defineComponent({
       isNestedCommentsOpened: false,
       nestedComments: {} as Array<SimpleCommentDto>,
       isNestedCommentsLoaded: false,
+      likeCount: 0,
+      isLiked: false,
     };
   },
   watch: {
     simpleComment() {
       this.content = this.simpleComment?.content ?? '';
+      this.likeCount = this.simpleComment?.likeCount ?? 0;
     },
   },
   computed: {
     longCreatedAt() {
       return dayjs(this.simpleComment?.createdAt).format('YYYY.MM.DD H:mm');
+    },
+    // 댓글 내용을 마크다운으로 렌더링한다.
+    // 1) 원시 HTML 특수문자를 먼저 이스케이프하고, 2) 링크/이미지의 위험한 프로토콜(javascript: 등)을 제거하여 XSS 를 방지한다.
+    renderedContent(): string {
+      const escaped = (this.content ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      const sanitizeUrl = (href: string | null): string => {
+        if (!href) {
+          return '';
+        }
+        const lowered = href.trim().toLowerCase();
+        if (lowered.startsWith('javascript:') || lowered.startsWith('data:') || lowered.startsWith('vbscript:')) {
+          return '';
+        }
+        return href.replace(/"/g, '&quot;');
+      };
+
+      const renderer = new marked.Renderer();
+      renderer.link = (href, title, text) => {
+        const safe = sanitizeUrl(href);
+        if (!safe) {
+          return text;
+        }
+        return `<a href="${safe}" target="_blank" rel="noopener noreferrer nofollow">${text}</a>`;
+      };
+      renderer.image = (href, title, text) => {
+        const safe = sanitizeUrl(href);
+        if (!safe) {
+          return text ?? '';
+        }
+        return `<img src="${safe}" alt="${(text ?? '').replace(/"/g, '&quot;')}">`;
+      };
+
+      return marked(escaped, { breaks: true, renderer });
     },
     isValidNewComment() {
       return this.newComment.length > 0;
@@ -218,6 +266,35 @@ export default defineComponent({
       this.nestedComments = this.nestedComments.filter((x) => x.id !== commentId);
       this.onCommentChanged();
     },
+    async toggleCommentLike() {
+      if (!this.simpleComment?.id) {
+        return;
+      }
+      if (!this.isLoggedIn) {
+        alert('좋아요를 하려면 로그인이 필요합니다.');
+        return;
+      }
+      const id = this.simpleComment.id;
+      if (this.isLiked) {
+        await unlikeComment(id)
+        .then(() => {
+          this.isLiked = false;
+          this.likeCount = Math.max(0, this.likeCount - 1);
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      } else {
+        await likeComment(id)
+        .then(() => {
+          this.isLiked = true;
+          this.likeCount++;
+        })
+        .catch((error: HttpApiError) => {
+          alert(error.getErrorMessage());
+        });
+      }
+    },
     onCommentChanged() {
       if (!this.simpleComment) {
         return;
@@ -229,12 +306,23 @@ export default defineComponent({
         parentId: this.simpleComment.parentId,
         childrenCount: this.nestedComments.length,
         author: this.simpleComment.author,
-        createdAt: this.simpleComment.createdAt
+        createdAt: this.simpleComment.createdAt,
+        likeCount: this.likeCount
       } as SimpleCommentDto);
     },
   },
   created() {
     this.content = this.simpleComment?.content ?? '';
+    this.likeCount = this.simpleComment?.likeCount ?? 0;
+    if (this.isLoggedIn && this.simpleComment?.id) {
+      isCommentLiked(this.simpleComment.id)
+      .then((liked) => {
+        this.isLiked = liked;
+      })
+      .catch(() => {
+        // 좋아요 여부 조회 실패는 무시한다.
+      });
+    }
   },
 });
 </script>
@@ -259,8 +347,56 @@ export default defineComponent({
 
 .comment-item-container .content {
   padding-top: 1em;
-  white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.markdown-content :deep(p) {
+  margin: 0 0 0.5em;
+}
+
+.markdown-content :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.markdown-content :deep(pre) {
+  background: var(--series-background-color);
+  padding: 0.75em;
+  border-radius: var(--base-border-radius);
+  overflow-x: auto;
+}
+
+.markdown-content :deep(code) {
+  background: var(--series-background-color);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.markdown-content :deep(pre code) {
+  padding: 0;
+  background: transparent;
+}
+
+.markdown-content :deep(a) {
+  color: var(--link-accent-color);
+}
+
+.comment-actions {
+  margin-top: 0.5em;
+}
+
+.like-button {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--base-border-radius);
+  padding: 2px 10px;
+  font-size: 0.8em;
+  color: var(--base-color);
+  cursor: pointer;
+}
+
+.like-button.liked {
+  color: #e0245e;
+  border-color: #e0245e;
 }
 
 .comment-item-container .footer {

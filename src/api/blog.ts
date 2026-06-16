@@ -2,11 +2,13 @@ import { blogV1 } from './index';
 import { SliceDto } from '@/api/models/common.dtos';
 import {
   BlogDetailsDto,
+  BlogStatisticsDto,
   CommentDto,
   CommentRequestDto,
   GuestCommentRequestDto,
   PostDto,
   PostRequestDto,
+  ReactionDto,
   SeriesDto,
   SeriesRequestDto,
   SimplePostDto,
@@ -124,6 +126,80 @@ async function isLikePost(blogId: string, postUrl: string): Promise<boolean> {
   }
 }
 
+// 게시글 북마크 추가
+function bookmarkPost(blogId: string, postUrl: string) {
+  return blogV1.postRequest(`/${blogId}/posts/${postUrl}/bookmarks`);
+}
+
+// 게시글 북마크 취소
+function unbookmarkPost(blogId: string, postUrl: string) {
+  return blogV1.deleteRequest(`/${blogId}/posts/${postUrl}/bookmarks`);
+}
+
+// 게시글 북마크 여부
+async function isBookmarked(blogId: string, postUrl: string): Promise<boolean> {
+  try {
+    await blogV1.getRequest(`/${blogId}/posts/${postUrl}/bookmarks`);
+    return true;
+  } catch (error) {
+    if ((error as HttpApiError).isNotFound()) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+// 내가 북마크 한 게시글 목록 조회
+function getMyBookmarks(size: number, cursorId: string | null = null) {
+  return blogV1.getRequest<SliceDto<SimplePostDto>>('/me/bookmarks', {
+    cursorId: cursorId,
+    size: size,
+  });
+}
+
+// 게시글 이모지 반응 집계 조회
+function getReactions(blogId: string, postUrl: string) {
+  return blogV1.getRequest<Array<ReactionDto>>(`/${blogId}/posts/${postUrl}/reactions`);
+}
+
+// 게시글 이모지 반응 추가
+function addReaction(blogId: string, postUrl: string, emoji: string) {
+  return blogV1.postRequest(`/${blogId}/posts/${postUrl}/reactions`, null, { emoji });
+}
+
+// 게시글 이모지 반응 취소
+function removeReaction(blogId: string, postUrl: string, emoji: string) {
+  return blogV1.deleteRequest(`/${blogId}/posts/${postUrl}/reactions`, { emoji });
+}
+
+// 댓글 좋아요
+function likeComment(commentId: string) {
+  return blogV1.postRequest(`/comments/${commentId}/likes`);
+}
+
+// 댓글 좋아요 취소
+function unlikeComment(commentId: string) {
+  return blogV1.deleteRequest(`/comments/${commentId}/likes`);
+}
+
+// 댓글 좋아요 여부
+async function isCommentLiked(commentId: string): Promise<boolean> {
+  try {
+    await blogV1.getRequest(`/comments/${commentId}/likes`);
+    return true;
+  } catch (error) {
+    if ((error as HttpApiError).isNotFound()) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+// 내 블로그 통계 조회
+function getMyStatistics() {
+  return blogV1.getRequest<BlogStatisticsDto>('/me/statistics');
+}
+
 // 관련 게시글 조회 (태그가 겹치는 공개 게시글)
 function getRelatedPosts(blogId: string, postUrl: string, size = 5) {
   return blogV1.getRequest<Array<SimplePostDto>>(`/${blogId}/posts/${postUrl}/related`, {
@@ -187,6 +263,17 @@ export {
   likePost,
   unlikePost,
   isLikePost,
+  bookmarkPost,
+  unbookmarkPost,
+  isBookmarked,
+  getMyBookmarks,
+  getReactions,
+  addReaction,
+  removeReaction,
+  likeComment,
+  unlikeComment,
+  isCommentLiked,
+  getMyStatistics,
   getBlogSeriesPosts,
   createSeries,
   modifySeries,

@@ -11,14 +11,24 @@
         시리즈 생성하기
       </button>
       <series-selector :blog-id="blogId" v-model="seriesUrl"/>
-      <span><input id="private-post" type="checkbox" v-model="isPrivatePost" /><label for="private-post">비공개 게시글</label></span>
+      <span class="open-type">
+        <select id="open-type" v-model="openType">
+          <option value="PUBLIC">공개</option>
+          <option value="PRIVATE">비공개</option>
+          <option value="DRAFT">임시저장</option>
+          <option value="SCHEDULED">예약 발행</option>
+        </select>
+      </span>
+      <span v-if="openType === 'SCHEDULED'" class="scheduled-at">
+        <input type="datetime-local" v-model="scheduledAt"/>
+      </span>
       <button v-if="isNewPost" class="form-button"
-              :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || isLoading"
+              :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || !isScheduleValid || isLoading"
               @click="writePost">
-        글쓰기
+        {{ submitLabel }}
       </button>
       <button v-else class="form-button"
-              :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || isLoading"
+              :disabled="!isTitleValid || !isContentValid || !isPostUrlValid || !isScheduleValid || isLoading"
               @click="modifyPost">
         수정하기
       </button>
@@ -31,7 +41,7 @@ import { defineComponent } from 'vue';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import { createPost, createSeries, getPost, modifyPost } from '@/api/blog';
 import store from '@/store';
-import { TagDto } from '@/api/models/blog.dtos';
+import { OpenType, TagDto } from '@/api/models/blog.dtos';
 import PostEditor from '@/components/posts/PostEditor.vue';
 import { uploadFileFromUrl } from '@/api/attachments';
 import TagInputBox from '@/components/posts/TagInputBox.vue';
@@ -55,12 +65,23 @@ export default defineComponent({
       seriesUrl: '',
       isLoading: false,
       tags: Array<string>(),
-      isPrivatePost: false,
+      openType: 'PUBLIC' as OpenType,
+      // datetime-local 입력값 (yyyy-MM-ddTHH:mm)
+      scheduledAt: '',
     };
   },
   computed: {
     isTitleValid(): boolean {
       return this.title.length > 0;
+    },
+    // 예약 발행을 선택한 경우 발행 시각이 입력되어 있어야 한다.
+    isScheduleValid(): boolean {
+      return this.openType !== 'SCHEDULED' || this.scheduledAt.length > 0;
+    },
+    submitLabel(): string {
+      if (this.openType === 'DRAFT') return '임시저장';
+      if (this.openType === 'SCHEDULED') return '예약 발행';
+      return '글쓰기';
     },
     isContentValid(): boolean {
       return this.content.length > 0;
@@ -113,11 +134,12 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         summary: this.createSummaryFromContent(this.content),
-        openType: this.isPrivatePost ? 'PRIVATE' : 'PUBLIC',
+        openType: this.openType,
+        scheduledAt: this.openType === 'SCHEDULED' ? this.scheduledAt : null,
         postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
-        seriesUrl: null
+        seriesUrl: this.seriesUrl ? this.seriesUrl : null
       })
       .then((post) => {
         this.$router.push(`/${post.author.blogId}/posts/${post.postUrl}`);
@@ -135,7 +157,8 @@ export default defineComponent({
         title: this.title,
         content: this.content,
         summary: this.createSummaryFromContent(this.content),
-        openType: this.isPrivatePost ? 'PRIVATE' : 'PUBLIC',
+        openType: this.openType,
+        scheduledAt: this.openType === 'SCHEDULED' ? this.scheduledAt : null,
         postUrl: this.newPostUrl ? this.newPostUrl : null,
         thumbnailFileId: await this.getThumbnailFileId(),
         tags: this.tags?.map(name => ({ name } as TagDto)),
@@ -159,7 +182,8 @@ export default defineComponent({
           this.newPostUrl = post.postUrl;
           this.content = post.content;
           this.tags = post.tags?.map(x => x.name);
-          this.isPrivatePost = post.openType == 'PRIVATE';
+          this.openType = post.openType;
+          this.scheduledAt = post.scheduledAt ? post.scheduledAt.substring(0, 16) : '';
           this.seriesUrl = post.seriesUrl ? post.seriesUrl : '';
         })
         .catch((error: HttpApiError) => {
@@ -309,6 +333,17 @@ export default defineComponent({
 
 .footer .form-button {
   min-width: 100px;
+}
+
+.footer .open-type select,
+.footer .scheduled-at input {
+  padding: 4px 8px;
+  border-radius: var(--base-border-radius);
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--base-color);
+  outline: none;
+  font-size: 1em;
 }
 
 </style>

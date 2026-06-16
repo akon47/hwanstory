@@ -16,7 +16,7 @@ export interface BlogDetailsDto extends DataTransferObject {
 }
 
 // 게시글 공개 유형
-export type OpenType = 'PUBLIC' | 'PRIVATE'
+export type OpenType = 'PUBLIC' | 'PRIVATE' | 'DRAFT' | 'SCHEDULED'
 
 // 게시글 작성/수정 Dto
 export interface PostRequestDto extends DataTransferObject {
@@ -36,6 +36,8 @@ export interface PostRequestDto extends DataTransferObject {
   readonly tags: Array<TagDto>;
   // 시리즈 URL
   readonly seriesUrl: string | null;
+  // 예약 발행 시각 (openType 이 SCHEDULED 인 경우 사용)
+  readonly scheduledAt?: string | null;
 }
 
 // 게시글 Dto
@@ -70,6 +72,8 @@ export interface PostDto extends DataTransferObject {
   readonly lastModifiedAt: Date;
   // 시리즈 URL
   readonly seriesUrl: string | null;
+  // 예약 발행 시각
+  readonly scheduledAt?: string | null;
 }
 
 // 게시글 리스트 조회용 Dto
@@ -102,6 +106,8 @@ export interface SimplePostDto extends DataTransferObject {
   readonly lastModifiedAt: Date;
   // 시리즈 URL
   readonly seriesUrl: string | null;
+  // 예약 발행 시각
+  readonly scheduledAt?: string | null;
 }
 
 // 댓글 작성/수정 Dto
@@ -136,6 +142,8 @@ export interface CommentDto extends DataTransferObject {
   readonly author: SimpleAccountDto;
   // 작성 시간
   readonly createdAt: Date;
+  // 좋아요 수
+  readonly likeCount: number;
 }
 
 // 댓글 리스트 조회용 Dto
@@ -152,6 +160,34 @@ export interface SimpleCommentDto extends DataTransferObject {
   readonly author: SimpleAccountDto;
   // 작성 시간
   readonly createdAt: Date;
+  // 좋아요 수
+  readonly likeCount: number;
+}
+
+// 게시글 이모지 반응 집계 Dto
+export interface ReactionDto extends DataTransferObject {
+  // 이모지
+  readonly emoji: string;
+  // 반응 수
+  readonly count: number;
+  // 현재 사용자가 반응했는지 여부
+  readonly reacted: boolean;
+}
+
+// 블로그 작성자용 통계 Dto
+export interface BlogStatisticsDto extends DataTransferObject {
+  // 전체 게시글 수
+  readonly totalPosts: number;
+  // 공개 게시글 수
+  readonly publicPosts: number;
+  // 총 조회수
+  readonly totalHits: number;
+  // 총 좋아요 수
+  readonly totalLikes: number;
+  // 총 댓글 수
+  readonly totalComments: number;
+  // 조회수 상위 게시글
+  readonly popularPosts: Array<SimplePostDto>;
 }
 
 // 태그 Dto

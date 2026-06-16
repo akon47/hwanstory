@@ -1,5 +1,6 @@
 <template>
   <div class="setting-container">
+    <div class="scroll-area">
     <div class="account-info-container form-wrapper">
       <div class="title">
         내 정보 수정
@@ -35,6 +36,43 @@
         </button>
       </div>
     </div>
+    <div class="statistics-container form-wrapper" v-if="statistics">
+      <div class="title">내 블로그 통계</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">{{ statistics.totalPosts }}</div>
+          <div class="stat-label">전체 게시글</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ statistics.publicPosts }}</div>
+          <div class="stat-label">공개 게시글</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ statistics.totalHits }}</div>
+          <div class="stat-label">총 조회수</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ statistics.totalLikes }}</div>
+          <div class="stat-label">총 좋아요</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ statistics.totalComments }}</div>
+          <div class="stat-label">총 댓글</div>
+        </div>
+      </div>
+      <div v-if="statistics.popularPosts && statistics.popularPosts.length > 0" class="popular-posts">
+        <div class="popular-title">인기 게시글 (조회수 순)</div>
+        <ol>
+          <li v-for="popularPost in statistics.popularPosts" :key="popularPost.id">
+            <router-link :to="`/${popularPost.author.blogId}/posts/${popularPost.postUrl}`">
+              {{ popularPost.title }}
+            </router-link>
+            <span class="popular-hits">{{ popularPost.hits }} 회</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+    </div>
     <div class="footer">
       <button class="form-button red-button"
               @click="deleteAccount">
@@ -52,6 +90,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { AccountDto } from '@/api/models/account.dtos';
+import { BlogStatisticsDto } from '@/api/models/blog.dtos';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import {
   deleteCurrentAccount,
@@ -60,6 +99,7 @@ import {
   sendResetPasswordUrlToEmail,
   setCurrentProfileImage,
 } from '@/api/accounts';
+import { getMyStatistics } from '@/api/blog';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import store from '@/store';
 
@@ -69,6 +109,7 @@ export default defineComponent({
   data() {
     return {
       account: {} as AccountDto,
+      statistics: null as BlogStatisticsDto | null,
       isLoading: false,
       name: '',
       biography: '',
@@ -204,9 +245,19 @@ export default defineComponent({
         this.isLoading = false;
       });
     },
+    async loadStatistics() {
+      await getMyStatistics()
+      .then((statistics) => {
+        this.statistics = statistics;
+      })
+      .catch(() => {
+        // 통계 조회 실패는 설정 화면 노출에 영향을 주지 않으므로 조용히 무시한다.
+      });
+    },
   },
   created() {
     this.loadAccount();
+    this.loadStatistics();
   },
 });
 </script>
@@ -224,7 +275,13 @@ export default defineComponent({
   box-sizing: border-box;
 }
 
-.account-info-container {
+.scroll-area {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.account-info-container,
+.statistics-container {
   display: grid;
   grid-template-columns: 750px;
   grid-template-rows: auto;
@@ -236,10 +293,66 @@ export default defineComponent({
 }
 
 @media (max-width: 800px) {
-  .account-info-container {
+  .account-info-container,
+  .statistics-container {
     grid-template-columns: minmax(0, auto);
     justify-content: stretch;
   }
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-gap: 10px;
+  padding: var(--base-gap) 0;
+}
+
+.stat-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--base-border-radius);
+  padding: 1em;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.8em;
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 0.85em;
+  font-weight: 300;
+  margin-top: 0.25em;
+}
+
+.popular-posts {
+  padding-top: var(--base-gap);
+}
+
+.popular-title {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+.popular-posts ol {
+  list-style: decimal;
+  margin-left: 1.5em;
+  line-height: 1.9;
+}
+
+.popular-posts a {
+  color: var(--base-color);
+}
+
+.popular-posts a:hover {
+  color: var(--link-accent-color);
+}
+
+.popular-hits {
+  font-size: 0.8em;
+  font-weight: 300;
+  margin-left: 0.5em;
+  color: var(--link-accent-color);
 }
 
 .title {

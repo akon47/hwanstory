@@ -5,6 +5,7 @@
         <summary/>
         <div class="dropdown-content">
           <a @click="goToMyBlog">내 블로그</a>
+          <a @click="goToBookmarks">내 북마크</a>
           <a @click="goToSetting">내 정보 수정</a>
           <a v-if="isAdmin" @click="goToAdmin">관리자</a>
           <a @click="signOut">로그아웃</a>
@@ -50,6 +51,9 @@ export default defineComponent({
     },
     goToMyBlog() {
       this.$router.push(`/${store.state.accountStore.blogId}`);
+    },
+    goToBookmarks() {
+      this.$router.push('/bookmarks');
     },
     goToSetting() {
       this.$router.push('/setting');

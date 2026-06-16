@@ -56,6 +56,21 @@ const router = createRouter({
         },
       },
       {
+        path: '/bookmarks',
+        name: 'Bookmarks',
+        component: () => import('../views/BookmarksView.vue'),
+        beforeEnter: (to, from, next) => {
+          if (store.getters['accountStore/isLoggedIn']) {
+            next();
+          } else {
+            next('/signin');
+          }
+        },
+        meta: {
+          title: '내 북마크',
+        },
+      },
+      {
         path: '/signup',
         name: 'Signup',
         component: () => import('../views/SignupView.vue'),
