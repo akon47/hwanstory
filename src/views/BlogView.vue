@@ -17,6 +17,21 @@
         <div class="content">
           {{ blogOwner.biography }}
         </div>
+        <div class="follow-row">
+          <div class="follow-counts">
+            <router-link :to="{path: `/${blogId}/followers`}">
+              팔로워 <strong>{{ followerCount }}</strong>
+            </router-link>
+            <span class="dot">&#183;</span>
+            <router-link :to="{path: `/${blogId}/followings`}">
+              팔로잉 <strong>{{ followingCount }}</strong>
+            </router-link>
+          </div>
+          <button v-if="canFollow" class="follow-button" :class="{ following: isFollowingOwner }"
+                  :disabled="followLoading" @click="toggleFollow">
+            {{ isFollowingOwner ? '팔로잉' : '팔로우' }}
+          </button>
+        </div>
       </div>
     </div>
     <div class="blog-tabs-container">
@@ -66,10 +81,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { getBlogDetails } from '@/api/blog';
+import { follow, isFollowing, unfollow } from '@/api/follow';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import { AccountDto } from '@/api/models/account.dtos';
 import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
 import { TagCountDto } from "@/api/models/blog.dtos";
+import store from '@/store';
 
 export default defineComponent({
   name: 'BlogView',
@@ -84,9 +101,25 @@ export default defineComponent({
     return {
       blogOwner: {} as AccountDto,
       postCount: 0,
+      followerCount: 0,
+      followingCount: 0,
       tagCounts: Array<TagCountDto>(),
       isLoaded: false,
+      isFollowingOwner: false,
+      followLoading: false,
     };
+  },
+  computed: {
+    isLoggedIn(): boolean {
+      return store.getters['accountStore/isLoggedIn'] ?? false;
+    },
+    isMyBlog(): boolean {
+      return this.blogId === store.state.accountStore.blogId;
+    },
+    // 로그인 했고 내 블로그가 아닐 때만 팔로우 버튼을 노출한다.
+    canFollow(): boolean {
+      return this.isLoggedIn && !this.isMyBlog && this.isLoaded;
+    },
   },
   watch: {
     blogId() {
@@ -99,8 +132,11 @@ export default defineComponent({
       .then((blogDetails) => {
         this.blogOwner = blogDetails.owner;
         this.postCount = blogDetails.postCount;
+        this.followerCount = blogDetails.followerCount;
+        this.followingCount = blogDetails.followingCount;
         this.tagCounts = blogDetails.tagCounts;
         this.isLoaded = true;
+        this.loadFollowingState();
       })
       .catch((error: HttpApiError) => {
         if (error.isNotFound()) {
@@ -109,6 +145,44 @@ export default defineComponent({
           alert(error.getErrorMessage());
           this.$router.push(`/`);
         }
+      });
+    },
+    async loadFollowingState() {
+      // 로그인 상태이고 내 블로그가 아닐 때만 팔로우 여부를 확인한다.
+      if (!this.isLoggedIn || this.isMyBlog) {
+        this.isFollowingOwner = false;
+        return;
+      }
+      await isFollowing(this.blogId)
+      .then(() => {
+        this.isFollowingOwner = true;
+      })
+      .catch(() => {
+        // 404 = 팔로우하고 있지 않음
+        this.isFollowingOwner = false;
+      });
+    },
+    async toggleFollow() {
+      if (this.followLoading) {
+        return;
+      }
+      this.followLoading = true;
+      const action = this.isFollowingOwner ? unfollow(this.blogId) : follow(this.blogId);
+      await action
+      .then(() => {
+        if (this.isFollowingOwner) {
+          this.isFollowingOwner = false;
+          this.followerCount = Math.max(0, this.followerCount - 1);
+        } else {
+          this.isFollowingOwner = true;
+          this.followerCount += 1;
+        }
+      })
+      .catch((error: HttpApiError) => {
+        alert(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.followLoading = false;
       });
     },
   },
@@ -181,6 +255,54 @@ export default defineComponent({
 .bio .content {
   font-size: 1em;
   margin-top: 1em;;
+}
+
+.follow-row {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin-top: 1em;
+  flex-wrap: wrap;
+}
+
+.follow-counts {
+  font-size: 0.9em;
+}
+
+.follow-counts a {
+  color: var(--base-color);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .follow-counts a:hover {
+    text-decoration: underline;
+  }
+}
+
+.follow-counts .dot {
+  margin: 0 0.5em;
+  color: grey;
+}
+
+.follow-button {
+  padding: 6px 18px;
+  border-radius: var(--base-border-radius);
+  border: 1px solid var(--button-color);
+  background: var(--button-color);
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.follow-button.following {
+  background: transparent;
+  color: var(--base-color);
+  border: 1px solid var(--border-color);
+}
+
+.follow-button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .tabs {

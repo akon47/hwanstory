@@ -74,6 +74,22 @@ export const accountStore: Module<AccountState, RootState> = {
     isLoggedIn(state) {
       return state.accessToken && state.refreshToken && state.accessTokenExpiresIn > 0 && state.refreshTokenExpiresIn > 0;
     },
+    // 관리자 권한 보유 여부 (액세스 토큰 JWT의 auth 클레임을 디코드하여 판단)
+    isAdmin(state) {
+      const token = state.accessToken;
+      if (!token) {
+        return false;
+      }
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(decodeURIComponent(escape(window.atob(base64))));
+        const authorities: string = payload.auth ?? '';
+        return authorities.split(',').includes('ROLE_ADMIN');
+      } catch (e) {
+        return false;
+      }
+    },
     getProfileImageUrl(state) {
       return state.profileImageUrl;
     },

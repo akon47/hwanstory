@@ -11,6 +11,9 @@
         <router-link :to="{path: `/viewing`}">
           보고 있는 글
         </router-link>
+        <router-link v-if="isLoggedIn" :to="{path: `/feed`}">
+          팔로잉
+        </router-link>
       </div>
     </div>
     <simple-post-wrap-panel :simple-posts="simplePosts"></simple-post-wrap-panel>
@@ -58,6 +61,9 @@ export default defineComponent({
   computed: {
     cachedMainPosts() {
       return store.getters['cacheStore/getCachedMainPosts'];
+    },
+    isLoggedIn(): boolean {
+      return store.getters['accountStore/isLoggedIn'] ?? false;
     },
     // "보고 있는 글" 탭 여부
     isViewingMode(): boolean {
@@ -221,10 +227,8 @@ export default defineComponent({
 
   grid-column: 1/-1;
 
-  display: grid;
-
-  grid-template-columns: repeat(3, auto);
-  grid-template-rows: auto;
+  display: flex;
+  flex-wrap: wrap;
 
   gap: var(--base-gap);
 

@@ -16,6 +16,15 @@ const routeToMainWhenIsLoggedIn: NavigationGuardWithThis<undefined> = (to, from,
   }
 };
 
+// beforeEnter에 사용하여 관리자가 아니면 메인 화면으로 보내는 함수
+const routeToMainWhenIsNotAdmin: NavigationGuardWithThis<undefined> = (to, from, next) => {
+  if (store.getters['accountStore/isAdmin']) {
+    next();
+  } else {
+    next('/');
+  }
+};
+
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -102,7 +111,39 @@ const router = createRouter({
               blogId: route.params.blogId,
             }),
           },
+          {
+            path: 'followers',
+            component: () => import('../views/FollowListView.vue'),
+            props: (route) => ({
+              blogId: route.params.blogId,
+              mode: 'followers',
+            }),
+          },
+          {
+            path: 'followings',
+            component: () => import('../views/FollowListView.vue'),
+            props: (route) => ({
+              blogId: route.params.blogId,
+              mode: 'followings',
+            }),
+          },
         ],
+      },
+      {
+        path: '/feed',
+        component: () => import('../views/FollowingFeedView.vue'),
+        meta: {
+          title: '팔로잉',
+        },
+      },
+      {
+        path: '/admin',
+        name: 'Admin',
+        component: () => import('../views/AdminView.vue'),
+        beforeEnter: routeToMainWhenIsNotAdmin,
+        meta: {
+          title: '관리자',
+        },
       },
       {
         path: '/:blogId/posts/:postUrl',

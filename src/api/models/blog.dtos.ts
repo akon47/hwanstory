@@ -7,6 +7,10 @@ export interface BlogDetailsDto extends DataTransferObject {
   readonly owner: AccountDto;
   // 총 게시굴 수
   readonly postCount: number;
+  // 팔로워 수
+  readonly followerCount: number;
+  // 팔로잉 수
+  readonly followingCount: number;
   // 태그 개수 목록
   readonly tagCounts: Array<TagCountDto>;
 }

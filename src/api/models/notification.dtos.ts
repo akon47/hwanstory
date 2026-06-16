@@ -2,8 +2,8 @@ import DataTransferObject from '@/api/models/common.dtos';
 import { SimpleAccountDto } from "@/api/models/account.dtos";
 import { CommentDto } from "@/api/models/blog.dtos";
 
-// 게시글 공개 유형
-export type NotificationType = 'COMMENT'
+// 알림 유형
+export type NotificationType = 'COMMENT' | 'FOLLOW'
 
 // 알림 Dto
 export interface NotificationDto extends DataTransferObject {
@@ -23,4 +23,10 @@ export interface NotificationDto extends DataTransferObject {
 export interface CommentNotificationDto extends NotificationDto {
   // 관련 댓글
   readonly comment: CommentDto;
+}
+
+// 팔로우 알림 Dto
+export interface FollowNotificationDto extends NotificationDto {
+  // 새로 팔로우한 사용자
+  readonly follower: SimpleAccountDto;
 }

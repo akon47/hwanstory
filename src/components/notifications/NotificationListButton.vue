@@ -15,6 +15,8 @@
                :class="{ last: index == notifications.length - 1 }">
             <!--suppress JSValidateTypes -->
             <comment-notification-item v-if="notification.notificationType == 'COMMENT'" :notification="notification"/>
+            <!--suppress JSValidateTypes -->
+            <follow-notification-item v-else-if="notification.notificationType == 'FOLLOW'" :notification="notification"/>
 
             <button @click="deleteNotification(notification.id)">삭제</button>
           </div>
@@ -33,11 +35,12 @@ import { NotificationDto } from "@/api/models/notification.dtos";
 import { deleteNotification, getNotifications } from "@/api/notifications";
 import { HttpApiError } from "@/api/common/httpApiClient";
 import CommentNotificationItem from "@/components/notifications/CommentNotificationItem.vue";
+import FollowNotificationItem from "@/components/notifications/FollowNotificationItem.vue";
 import blogWebSocketClient from "@/utils/websocket";
 
 export default defineComponent({
   name: 'NotificationListButton',
-  components: { CommentNotificationItem },
+  components: { CommentNotificationItem, FollowNotificationItem },
   data() {
     return {
       notifications: Array<NotificationDto>(),

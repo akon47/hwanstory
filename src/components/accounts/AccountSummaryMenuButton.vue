@@ -6,6 +6,7 @@
         <div class="dropdown-content">
           <a @click="goToMyBlog">내 블로그</a>
           <a @click="goToSetting">내 정보 수정</a>
+          <a v-if="isAdmin" @click="goToAdmin">관리자</a>
           <a @click="signOut">로그아웃</a>
         </div>
       </details>
@@ -33,6 +34,9 @@ export default defineComponent({
         };
       }
     },
+    isAdmin(): boolean {
+      return store.getters['accountStore/isAdmin'] ?? false;
+    },
   },
   methods: {
     async signOut() {
@@ -49,6 +53,9 @@ export default defineComponent({
     },
     goToSetting() {
       this.$router.push('/setting');
+    },
+    goToAdmin() {
+      this.$router.push('/admin');
     },
   },
 });
