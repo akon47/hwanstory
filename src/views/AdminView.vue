@@ -2,6 +2,11 @@
   <div class="admin-container">
     <h1>관리자</h1>
 
+    <nav class="admin-tabs">
+      <router-link to="/admin" class="tab">회원 관리</router-link>
+      <router-link to="/admin/live" class="tab">실시간 접속</router-link>
+    </nav>
+
     <div class="stat-cards">
       <div class="stat-card">
         <div class="stat-label">회원 수</div>
@@ -197,6 +202,26 @@ export default defineComponent({
 
 h1 {
   margin-bottom: var(--base-gap);
+}
+
+.admin-tabs {
+  display: flex;
+  gap: var(--half-base-gab);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--base-gap);
+}
+
+.admin-tabs .tab {
+  padding: 8px 14px;
+  color: var(--base-color);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.admin-tabs .tab.router-link-exact-active {
+  border-bottom-color: var(--button-color);
+  font-weight: bold;
 }
 
 .stat-cards {

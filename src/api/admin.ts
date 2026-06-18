@@ -1,6 +1,6 @@
 import { adminV1 } from './index';
 import { SliceDto } from '@/api/models/common.dtos';
-import { AdminAccountDto, AdminStatisticsDto } from '@/api/models/admin.dtos';
+import { AdminAccountDto, AdminActiveViewersDto, AdminStatisticsDto } from '@/api/models/admin.dtos';
 
 // 회원 목록 조회
 function getAccounts(size: number, search: string | null = null, cursorId: string | null = null) {
@@ -26,4 +26,9 @@ function getStatistics() {
   return adminV1.getRequest<AdminStatisticsDto>(`/statistics`);
 }
 
-export { getAccounts, disableAccount, restoreAccount, getStatistics };
+// 실시간 접속자 조회
+function getActiveViewers() {
+  return adminV1.getRequest<AdminActiveViewersDto>(`/active-viewers`);
+}
+
+export { getAccounts, disableAccount, restoreAccount, getStatistics, getActiveViewers };

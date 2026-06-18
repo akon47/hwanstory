@@ -161,6 +161,15 @@ const router = createRouter({
         },
       },
       {
+        path: '/admin/live',
+        name: 'AdminLive',
+        component: () => import('../views/AdminLiveView.vue'),
+        beforeEnter: routeToMainWhenIsNotAdmin,
+        meta: {
+          title: '실시간 접속',
+        },
+      },
+      {
         path: '/:blogId/posts/:postUrl',
         component: () => import('../views/PostView.vue'),
         props: true,

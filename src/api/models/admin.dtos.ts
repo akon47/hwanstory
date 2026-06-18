@@ -29,3 +29,33 @@ export interface AdminStatisticsDto extends DataTransferObject {
   // 전체 댓글 수
   readonly commentCount: number;
 }
+
+// 관리자 실시간 접속자(시청자 1명) Dto
+export interface AdminActiveViewerDto extends DataTransferObject {
+  // 클라이언트 IP
+  readonly ip: string;
+  // 클라이언트 User-Agent
+  readonly userAgent: string;
+  // 웹소켓 접속 시각
+  readonly connectedAt: Date | null;
+  // 로그인 사용자 이름 (비회원이면 null)
+  readonly memberName: string | null;
+  // 로그인 사용자 이메일 (비회원이면 null)
+  readonly memberEmail: string | null;
+  // 보고 있는 게시글 Id
+  readonly postId: string | null;
+  // 보고 있는 게시글 제목 (비공개 등으로 조회 불가 시 null)
+  readonly postTitle: string | null;
+  // 게시글 URL (링크 생성용)
+  readonly postUrl: string | null;
+  // 게시글 작성자 블로그 Id (링크 생성용)
+  readonly blogId: string | null;
+}
+
+// 관리자 실시간 접속자 목록 Dto
+export interface AdminActiveViewersDto extends DataTransferObject {
+  // 현재 연결된 전체 웹소켓 세션 수
+  readonly totalSessions: number;
+  // 현재 게시글을 보고 있는 시청자 목록
+  readonly viewers: Array<AdminActiveViewerDto>;
+}
