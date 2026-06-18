@@ -10,6 +10,11 @@ import SockJS from 'sockjs-client';
 const INITIAL_RECONNECT_DELAY = 1000;
 const MAX_RECONNECT_DELAY = 30000;
 
+// 생존 신호(PING) 전송 주기(ms). 서버는 일정 시간 PING이 없는 세션을 죽은 것으로 보고 수거하므로,
+// 네트워크 전환(예: Wi-Fi -> LTE)으로 끊긴 옛 세션이 서버에 유령으로 남지 않게 한다.
+// 서버 타임아웃(75초)보다 충분히 짧게 두어 핑 1~2회를 놓쳐도 세션이 유지되도록 한다.
+const PING_INTERVAL = 25000;
+
 class BlogWebSocketClient {
   // 전체 접속 세션 수
   public sessionCount: number;
@@ -26,6 +31,9 @@ class BlogWebSocketClient {
   private reconnectDelay: number;
   private reconnectTimer: ReturnType<typeof setTimeout> | null;
 
+  // 생존 신호(PING)를 주기적으로 보내는 타이머
+  private pingTimer: ReturnType<typeof setInterval> | null;
+
   constructor() {
     this.sessionCount = 0;
     this.postViewerCounts = {};
@@ -33,6 +41,7 @@ class BlogWebSocketClient {
     this.watchedPostIds = new Set<string>();
     this.reconnectDelay = INITIAL_RECONNECT_DELAY;
     this.reconnectTimer = null;
+    this.pingTimer = null;
 
     this.connect();
   }
@@ -54,9 +63,12 @@ class BlogWebSocketClient {
       if (this.watchedPostIds.size > 0) {
         this.sendMessage('WATCH_POSTS', Array.from(this.watchedPostIds));
       }
+      // 연결이 살아 있는 동안 주기적으로 생존 신호를 보낸다.
+      this.startPing();
     };
     socket.onclose = () => {
       // 연결이 끊기면 시청자 수는 더 이상 신뢰할 수 없으므로 초기화하고, 재연결을 예약한다.
+      this.stopPing();
       this.postViewerCounts = {};
       this.onpostviewercountschanged?.();
       this.scheduleReconnect();
@@ -103,6 +115,20 @@ class BlogWebSocketClient {
     // 다음 시도를 위해 지연을 2배로 늘리되 최대값으로 제한한다.
     this.reconnectDelay = Math.min(this.reconnectDelay * 2, MAX_RECONNECT_DELAY);
     this.reconnectTimer = setTimeout(() => this.connect(), delay);
+  }
+
+  // 주기적으로 생존 신호(PING)를 보내기 시작한다. (중복 시작 방지를 위해 기존 타이머는 먼저 정리)
+  private startPing() {
+    this.stopPing();
+    this.pingTimer = setInterval(() => this.sendMessage('PING', null), PING_INTERVAL);
+  }
+
+  // 생존 신호 전송을 중단한다.
+  private stopPing() {
+    if (this.pingTimer !== null) {
+      clearInterval(this.pingTimer);
+      this.pingTimer = null;
+    }
   }
 
   // 현재 보고 있는 게시글을 서버에 알린다. (상세 페이지 진입 시 postId, 이탈 시 null)
