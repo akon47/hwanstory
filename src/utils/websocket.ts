@@ -1,4 +1,5 @@
 import {
+  CursorBatchDto,
   MessageDto,
   PostViewerCountDto,
 } from '@/api/models/blog.dtos';
@@ -69,6 +70,7 @@ class BlogWebSocketClient {
     socket.onclose = () => {
       // 연결이 끊기면 시청자 수는 더 이상 신뢰할 수 없으므로 초기화하고, 재연결을 예약한다.
       this.stopPing();
+      this.sessionId = null;
       this.postViewerCounts = {};
       this.onpostviewercountschanged?.();
       this.scheduleReconnect();
@@ -101,6 +103,15 @@ class BlogWebSocketClient {
         case 'NOTIFICATION': {
           const notification = message.payload as NotificationDto;
           this.onnotification?.(notification);
+          break;
+        }
+        case 'CURSOR_SELF': {
+          this.sessionId = message.payload as string;
+          this.oncursorself?.(this.sessionId);
+          break;
+        }
+        case 'CURSOR_BATCH': {
+          this.oncursorbatch?.(message.payload as CursorBatchDto);
           break;
         }
       }
@@ -155,6 +166,16 @@ class BlogWebSocketClient {
     this.watchedPostIds.delete(postId);
   }
 
+  // 지금 보는 글 위의 내 마우스 위치를 보낸다. (본문 영역 기준 0~1. 서버가 같은 글을 읽는 사람들에게 묶어 전달한다)
+  public sendCursor(x: number, y: number, name: string, color: string) {
+    this.sendMessage('CURSOR_MOVE', { x, y, name, color });
+  }
+
+  // 내 커서 옆에 띄울 짧은 말을 보낸다. 빈 문자열이면 지운다.
+  public sendCursorChat(message: string) {
+    this.sendMessage('CURSOR_CHAT', { message });
+  }
+
   // 현재 로그인 토큰으로 이 세션을 사용자와 연결한다.
   // 로그인 직후(이미 연결된 소켓)와 (재)연결 시 onopen 양쪽에서 호출되어 인증을 보장한다.
   public authenticate() {
@@ -175,6 +196,10 @@ class BlogWebSocketClient {
   public onsessioncountchanged: { (count: number): void } | undefined;
   public onpostviewercountschanged: { (): void } | undefined;
   public onnotification: { (notification: NotificationDto): void } | undefined;
+  // 서버가 알려준 이 세션의 Id (커서 묶음에서 내 커서를 걸러내는 데 쓴다)
+  public sessionId: string | null = null;
+  public oncursorself: { (sessionId: string): void } | undefined;
+  public oncursorbatch: { (batch: CursorBatchDto): void } | undefined;
 }
 
 const blogWebSocketClient = new BlogWebSocketClient();

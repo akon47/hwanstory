@@ -241,6 +241,10 @@ export type MessageType =
   | 'POST_VIEWER_COUNT_CHANGED'
   | 'POST_VIEWER_COUNTS'
   | 'NOTIFICATION'
+  | 'CURSOR_MOVE'
+  | 'CURSOR_CHAT'
+  | 'CURSOR_SELF'
+  | 'CURSOR_BATCH'
   | null
 
 // 웹소켓 메시지 Dto
@@ -253,4 +257,23 @@ export interface MessageDto extends DataTransferObject {
 export interface PostViewerCountDto {
   readonly postId: string;
   readonly count: number;
+}
+// 같은 글을 읽는 사람의 커서 상태 (서버 -> 클라이언트)
+export interface CursorStateDto {
+  readonly id: string;
+  readonly x: number;
+  readonly y: number;
+  readonly name: string;
+  readonly color: string;
+  readonly message: string | null;
+  readonly messageAt: number;
+  readonly updatedAt: number;
+}
+
+// 한 글의 커서 묶음 (서버 -> 클라이언트)
+export interface CursorBatchDto {
+  readonly postId: string;
+  readonly cursors: Array<CursorStateDto>;
+  readonly left: Array<string>;
+  readonly disabled: boolean;
 }

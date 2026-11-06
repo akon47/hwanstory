@@ -1,9 +1,9 @@
 <template>
-  <app-header/>
+  <app-header v-if="!isEmbed"/>
   <main class="content" :class="{ 'full-height': isFullHeightRoute }">
     <app-content/>
   </main>
-  <app-footer v-if="!isFullHeightRoute"/>
+  <app-footer v-if="!isFullHeightRoute && !isEmbed"/>
   <app-dialog-host/>
 </template>
 
@@ -31,6 +31,10 @@ export default defineComponent({
     // 글쓰기처럼 화면 전체를 쓰는 경로는 바닥글을 숨기고 남은 높이를 모두 준다.
     isFullHeightRoute(): boolean {
       return this.$route.path === '/write';
+    },
+    // 다른 사이트에 iframe 으로 넣는 카드 화면(?embed=1)은 헤더·바닥글 없이 내용만 보여준다.
+    isEmbed(): boolean {
+      return this.$route.query.embed === '1' || this.$route.query.embed === 'true';
     },
   },
   watch: {

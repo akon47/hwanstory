@@ -5,7 +5,8 @@
     </div>
 
     <div class="container post-layout" :class="{ 'has-toc': toc.length > 0 }">
-      <article class="post-main">
+      <article class="post-main" ref="post-main">
+        <live-cursors v-if="post.id" :post-id="post.id" :container="postMainElement"/>
         <header class="post-header">
           <div v-if="tags.length > 0" class="post-tags">
             <router-link v-for="tag in tags" :key="tag" class="chip"
@@ -36,6 +37,7 @@
           </div>
           <div v-if="currentViewerCount > 1" class="now-viewing">
             <span class="live-dot" aria-hidden="true"/>지금 {{ currentViewerCount }}명이 함께 읽고 있어요
+            <span class="now-viewing-hint">· 서로의 마우스가 보여요. <kbd>/</kbd> 를 누르면 한마디 남길 수 있어요</span>
           </div>
           <div v-if="openTypeNote" class="open-type-note">
             <app-icon name="lock" :size="16"/>{{ openTypeNote }}
@@ -206,6 +208,7 @@ import SimpleCommentItem from '@/components/comments/SimpleCommentItem.vue';
 import CommentComposer, { CommentDoneCallback, CommentSubmission } from '@/components/comments/CommentComposer.vue';
 import PostViewer from '@/components/posts/PostViewer.vue';
 import AppIcon from '@/components/common/AppIcon.vue';
+import LiveCursors from '@/components/posts/LiveCursors.vue';
 import blogWebSocketClient from '@/utils/websocket';
 import { confirmDialog, toast } from '@/utils/dialog';
 import { formatCount, formatDate, formatDateTime } from '@/utils/format';
@@ -222,7 +225,7 @@ const OPEN_TYPE_NOTES: Record<string, string> = {
 
 export default defineComponent({
   name: 'PostView',
-  components: { AppIcon, PostViewer, SimpleCommentItem, CommentComposer, AccountProfileImageButton },
+  components: { AppIcon, LiveCursors, PostViewer, SimpleCommentItem, CommentComposer, AccountProfileImageButton },
   props: {
     blogId: {
       type: String,
@@ -250,6 +253,7 @@ export default defineComponent({
       relatedPosts: [] as Array<SimplePostDto>,
       isFollowingAuthor: false,
       followLoading: false,
+      postMainElement: null as HTMLElement | null,
     };
   },
   computed: {
@@ -683,6 +687,7 @@ export default defineComponent({
   mounted() {
     window.addEventListener('scroll', this.updateReadingProgress, { passive: true });
     this.updateReadingProgress();
+    this.postMainElement = (this.$refs['post-main'] as HTMLElement | undefined) ?? null;
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.updateReadingProgress);
@@ -727,6 +732,7 @@ export default defineComponent({
 }
 
 .post-main {
+  position: relative;
   display: grid;
   gap: var(--s-8);
   min-width: 0;
@@ -799,6 +805,22 @@ export default defineComponent({
   color: var(--accent-text);
   font-size: var(--text-sm);
   font-weight: 600;
+}
+
+.now-viewing-hint {
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.now-viewing-hint kbd {
+  display: inline-block;
+  padding: 0 5px;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--surface);
 }
 
 .live-dot {

@@ -25,3 +25,12 @@ export interface SliceDto<T extends DataTransferObject> extends DataTransferObje
   // 다음 페이지 조회를 위한 커서 Id
   readonly cursorId: string | null;
 }
+
+// 페이지 번호 기반 조회 응답을 위한 Dto (관리자 화면)
+export interface PageDto<T extends DataTransferObject> extends DataTransferObject {
+  readonly data: Array<T>;
+  readonly page: number;
+  readonly size: number;
+  readonly totalElements: number;
+  readonly totalPages: number;
+}

@@ -1,4 +1,6 @@
 import DataTransferObject from '@/api/models/common.dtos';
+import { SimpleAccountDto } from '@/api/models/account.dtos';
+import { SimplePostDto } from '@/api/models/blog.dtos';
 
 // 관리자용 계정 정보 Dto
 export interface AdminAccountDto extends DataTransferObject {
@@ -58,4 +60,85 @@ export interface AdminActiveViewersDto extends DataTransferObject {
   readonly totalSessions: number;
   // 현재 게시글을 보고 있는 시청자 목록
   readonly viewers: Array<AdminActiveViewerDto>;
+}
+
+// 관리자 대시보드 일별 집계
+export interface AdminDailyCountDto extends DataTransferObject {
+  readonly date: string;
+  readonly members: number;
+  readonly posts: number;
+  readonly comments: number;
+}
+
+// 관리자용 댓글 Dto
+export interface AdminCommentDto extends DataTransferObject {
+  readonly id: string;
+  readonly content: string;
+  readonly author: SimpleAccountDto;
+  readonly parentId: string | null;
+  readonly likeCount: number;
+  readonly postBlogId: string | null;
+  readonly postUrl: string | null;
+  readonly postTitle: string | null;
+  readonly createdAt: Date;
+}
+
+// 관리자 대시보드 Dto
+export interface AdminDashboardDto extends DataTransferObject {
+  readonly memberCount: number;
+  readonly postCount: number;
+  readonly publicPostCount: number;
+  readonly commentCount: number;
+  readonly totalHits: number;
+  readonly sessionCount: number;
+  readonly viewingCount: number;
+  readonly todayMembers: number;
+  readonly todayPosts: number;
+  readonly todayComments: number;
+  readonly daily: Array<AdminDailyCountDto>;
+  readonly recentPosts: Array<SimplePostDto>;
+  readonly recentComments: Array<AdminCommentDto>;
+  readonly recentMembers: Array<AdminAccountDto>;
+}
+
+// 관리자용 액세스 토큰 Dto
+export interface AdminTokenDto extends DataTransferObject {
+  readonly id: string;
+  readonly tokenId: string;
+  readonly name: string;
+  readonly scopes: Array<string>;
+  readonly origin: 'WEB' | 'DEVICE';
+  readonly owner: SimpleAccountDto | null;
+  readonly ownerEmail: string | null;
+  readonly createdAt: string;
+  readonly expiresAt: string | null;
+  readonly lastUsedAt: string | null;
+  readonly lastUsedIp: string | null;
+  readonly revokedAt: string | null;
+  readonly expired: boolean;
+  readonly usable: boolean;
+}
+
+// 관리자용 시스템 상태 Dto
+export interface AdminSystemDto extends DataTransferObject {
+  readonly appVersion: string | null;
+  readonly buildTime: string | null;
+  readonly profile: string;
+  readonly javaVersion: string;
+  readonly startedAt: string;
+  readonly uptimeMillis: number;
+  readonly processors: number;
+  readonly heapUsedBytes: number;
+  readonly heapMaxBytes: number;
+  readonly databaseOk: boolean;
+  readonly redisOk: boolean;
+  readonly websocketSessions: number;
+  readonly attachmentCount: number;
+  readonly attachmentBytes: number;
+  readonly attachmentPath: string;
+  readonly attachmentFreeBytes: number;
+  readonly attachmentTotalBytes: number;
+  readonly scheduledPostCount: number;
+  readonly pendingDeviceCount: number;
+  readonly activeTokenCount: number;
 }

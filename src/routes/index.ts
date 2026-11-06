@@ -155,6 +155,21 @@ const router = createRouter({
             }),
           },
           {
+            path: 'series',
+            component: () => import('../views/BlogSeriesView.vue'),
+            props: (route) => ({
+              blogId: route.params.blogId,
+            }),
+          },
+          {
+            path: 'series/:seriesUrl',
+            component: () => import('../views/BlogSeriesDetailView.vue'),
+            props: (route) => ({
+              blogId: route.params.blogId,
+              seriesUrl: route.params.seriesUrl,
+            }),
+          },
+          {
             path: 'followers',
             component: () => import('../views/FollowListView.vue'),
             props: (route) => ({
@@ -181,21 +196,17 @@ const router = createRouter({
       },
       {
         path: '/admin',
-        name: 'Admin',
-        component: () => import('../views/AdminView.vue'),
+        component: () => import('../views/admin/AdminLayout.vue'),
         beforeEnter: routeToMainWhenIsNotAdmin,
-        meta: {
-          title: '관리자',
-        },
-      },
-      {
-        path: '/admin/live',
-        name: 'AdminLive',
-        component: () => import('../views/AdminLiveView.vue'),
-        beforeEnter: routeToMainWhenIsNotAdmin,
-        meta: {
-          title: '실시간 접속',
-        },
+        children: [
+          { path: '', name: 'Admin', component: () => import('../views/admin/AdminDashboardView.vue'), meta: { title: '관리자 · 대시보드' } },
+          { path: 'members', component: () => import('../views/admin/AdminMembersView.vue'), meta: { title: '관리자 · 회원' } },
+          { path: 'posts', component: () => import('../views/admin/AdminPostsView.vue'), meta: { title: '관리자 · 글' } },
+          { path: 'comments', component: () => import('../views/admin/AdminCommentsView.vue'), meta: { title: '관리자 · 댓글' } },
+          { path: 'tokens', component: () => import('../views/admin/AdminTokensView.vue'), meta: { title: '관리자 · 액세스 토큰' } },
+          { path: 'live', name: 'AdminLive', component: () => import('../views/admin/AdminLiveView.vue'), meta: { title: '관리자 · 실시간 접속' } },
+          { path: 'system', component: () => import('../views/admin/AdminSystemView.vue'), meta: { title: '관리자 · 시스템' } },
+        ],
       },
       {
         path: '/tokens',
@@ -222,6 +233,14 @@ const router = createRouter({
         meta: {
           title: 'AI 에이전트 가이드',
         },
+      },
+      {
+        path: '/:blogId/cards',
+        component: () => import('../views/BlogCardsView.vue'),
+        props: (route) => ({
+          blogId: route.params.blogId,
+          tag: route.query.tag as string,
+        }),
       },
       {
         path: '/:blogId/posts/:postUrl',

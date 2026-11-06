@@ -26,6 +26,10 @@ const PAGES = [
   ['notfound', '/no-such-page'],
   ['search', '/search?q=Vue'],
   ['privacy', '/privacy-policy'],
+  ['cards', '/@kim-hwan/cards'],
+  ['cards-embed', '/@kim-hwan/cards?embed=1'],
+  ['series', '/@kim-hwan/series'],
+  ['series-detail', '/@kim-hwan/series/vue3-blog'],
   // 로그인 필요
   ['feed', '/feed'],
   ['write', '/write'],
@@ -35,8 +39,14 @@ const PAGES = [
   ['bookmarks', '/bookmarks'],
   ['device', '/device'],
   ['admin', '/admin'],
+  ['admin-members', '/admin/members'],
+  ['admin-posts', '/admin/posts'],
+  ['admin-comments', '/admin/comments'],
+  ['admin-tokens', '/admin/tokens'],
+  ['admin-live', '/admin/live'],
+  ['admin-system', '/admin/system'],
 ];
-const LOGIN_ONLY = new Set(['feed', 'write', 'write-edit', 'setting', 'tokens', 'bookmarks', 'device', 'admin']);
+const LOGIN_ONLY = new Set(['feed', 'write', 'write-edit', 'setting', 'tokens', 'bookmarks', 'device', 'admin', 'admin-members', 'admin-posts', 'admin-comments', 'admin-tokens', 'admin-live', 'admin-system']);
 let wanted = only && only !== 'all' ? PAGES.filter(([k]) => only.split(',').includes(k)) : PAGES;
 if (!login) wanted = wanted.filter(([k]) => !LOGIN_ONLY.has(k));
 if (login) wanted = wanted.filter(([k]) => !['signin', 'signup'].includes(k));

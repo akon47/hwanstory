@@ -26,6 +26,19 @@
           </div>
         </div>
         <div class="profile-actions">
+          <div class="share" ref="share">
+            <button class="btn btn-icon" type="button" title="공유" aria-label="공유" :aria-expanded="isShareOpen" @click="isShareOpen = !isShareOpen">
+              <app-icon name="share"/>
+            </button>
+            <div v-if="isShareOpen" class="menu share-menu" role="menu">
+              <button class="menu-item" type="button" @click="copyLink(blogLink, '블로그 링크')"><app-icon name="link" :size="16"/>블로그 링크 복사</button>
+              <button class="menu-item" type="button" @click="copyLink(cardsLink, '카드형 글 목록 링크')"><app-icon name="image" :size="16"/>카드형 글 목록 링크 복사</button>
+              <button class="menu-item" type="button" @click="copyLink(embedCode, '임베드 코드')"><app-icon name="terminal" :size="16"/>내 사이트에 넣는 코드 복사</button>
+              <div class="menu-sep"/>
+              <router-link class="menu-item" :to="`/${blogId}/cards`" @click="isShareOpen = false"><app-icon name="external-link" :size="16"/>카드형으로 보기</router-link>
+              <a class="menu-item" :href="rssLink" target="_blank" rel="noopener"><app-icon name="rss" :size="16"/>이 블로그 RSS</a>
+            </div>
+          </div>
           <button v-if="canFollow" class="btn" :class="{ 'btn-secondary': isFollowingOwner }" type="button"
                   :disabled="followLoading" @click="toggleFollow">
             <app-icon v-if="isFollowingOwner" name="check" :size="16"/>
@@ -42,6 +55,7 @@
           <router-link :to="`/${blogId}/posts`" :class="{ 'router-link-exact-active': isPostsTab }">
             글 <span class="count num">{{ postCount }}</span>
           </router-link>
+          <router-link :to="`/${blogId}/series`" :class="{ 'router-link-exact-active': isSeriesTab }">시리즈</router-link>
           <router-link :to="`/${blogId}/likes`">좋아요 한 글</router-link>
         </nav>
       </div>
@@ -83,6 +97,8 @@ import AppIcon from '@/components/common/AppIcon.vue';
 import { TagCountDto } from '@/api/models/blog.dtos';
 import store from '@/store';
 import { toast } from '@/utils/dialog';
+import { siteBaseUrl } from '@/utils/seo';
+import { serverUrl } from '@/api/common/httpApiClient';
 
 export default defineComponent({
   name: 'BlogView',
@@ -103,9 +119,26 @@ export default defineComponent({
       isLoaded: false,
       isFollowingOwner: false,
       followLoading: false,
+      isShareOpen: false,
     };
   },
   computed: {
+    isSeriesTab(): boolean {
+      return this.$route.path.startsWith(`/${this.blogId}/series`);
+    },
+    blogLink(): string {
+      return `${siteBaseUrl}/${this.blogId}`;
+    },
+    cardsLink(): string {
+      return `${siteBaseUrl}/${this.blogId}/cards`;
+    },
+    // 다른 사이트에 붙여 넣는 iframe 코드 (헤더·바닥글 없는 임베드 모드)
+    embedCode(): string {
+      return `<iframe src="${this.cardsLink}?embed=1" width="100%" height="720" style="border:0;border-radius:12px" loading="lazy" title="${this.blogOwner.name}의 글"></iframe>`;
+    },
+    rssLink(): string {
+      return `${serverUrl}rss/${this.blogId}`;
+    },
     isLoggedIn(): boolean {
       return store.getters['accountStore/isLoggedIn'] ?? false;
     },
@@ -140,6 +173,21 @@ export default defineComponent({
     },
   },
   methods: {
+    async copyLink(text: string, what: string) {
+      this.isShareOpen = false;
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.success(`${what}를 복사했습니다.`);
+      } catch (e) {
+        toast.error('복사하지 못했습니다. 주소창의 주소를 직접 복사하세요.');
+      }
+    },
+    onDocumentClick(event: MouseEvent) {
+      const share = this.$refs['share'] as HTMLElement | undefined;
+      if (this.isShareOpen && share && !share.contains(event.target as Node)) {
+        this.isShareOpen = false;
+      }
+    },
     async loadBlog() {
       await getBlogDetails(this.blogId)
       .then((blogDetails) => {
@@ -203,6 +251,12 @@ export default defineComponent({
   },
   created() {
     this.loadBlog();
+  },
+  mounted() {
+    document.addEventListener('click', this.onDocumentClick);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.onDocumentClick);
   },
 });
 </script>
@@ -306,6 +360,19 @@ a.fact:hover {
 .profile-actions {
   display: flex;
   gap: var(--s-2);
+  align-items: center;
+}
+
+.share {
+  position: relative;
+}
+
+.share-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 250px;
+  z-index: 50;
 }
 
 .blog-tabs {
@@ -433,8 +500,8 @@ a.fact:hover {
     grid-column: 1 / -1;
   }
 
-  .profile-actions .btn {
-    width: 100%;
+  .profile-actions .btn:not(.btn-icon) {
+    flex: 1;
   }
 }
 </style>
