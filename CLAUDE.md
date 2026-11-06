@@ -3,8 +3,9 @@
 Hwan'Story 블로그 서비스의 프론트엔드. (백엔드는 별도 저장소 `hwans-api-server`)
 
 ## 기술 스택
-- Vue 3 + TypeScript, vue-cli 5, Vuex, Vue Router
-- Toast UI Editor(글 작성/뷰어), axios, dayjs, sockjs-client(WebSocket)
+- Vue 3.5 + TypeScript 4.9, vue-cli 5(webpack), Vuex 4.1, Vue Router 4.6 (2026-11-06 에 마이너 버전 전부 올림. Vite·Pinia 전환은 아직 안 함)
+- Toast UI Editor(글 작성/뷰어), axios 1.x(요청 인터셉터는 `InternalAxiosRequestConfig`·`headers.set()` 사용), dayjs, marked 4(5+ 는 ESM 전용이라 보류), sockjs-client(WebSocket)
+- Docker 빌드 이미지는 `node:24-alpine` 으로 고정
 
 ## 커밋 규칙
 - 커밋 작성자는 반드시 `Kim, Hwan <akon47@naver.com>` 로 한다.
