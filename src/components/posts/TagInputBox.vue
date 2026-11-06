@@ -40,7 +40,8 @@ export default defineComponent({
     onKeydown(event: KeyboardEvent) {
       if (event.key === 'Enter' || event.key === ',') {
         event.preventDefault();
-        this.addTag(this.inputTag);
+        // 한글 조합 중인 마지막 글자는 v-model 에 아직 없으므로 입력창의 실제 값을 쓴다.
+        this.addTag((event.target as HTMLInputElement).value);
       } else if (event.key === 'Backspace') {
         this.removeLastTag();
       }

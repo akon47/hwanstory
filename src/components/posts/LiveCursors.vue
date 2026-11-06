@@ -172,12 +172,17 @@ export default defineComponent({
         blogWebSocketClient.sendCursorChat('');
       }
     },
+    // 입력창의 실제 값. 한글 조합(IME) 중인 글자는 v-model 에 아직 반영되지 않으므로 DOM 값을 읽는다.
+    currentDraft(): string {
+      const input = this.$refs['chat-input'] as HTMLInputElement | undefined;
+      return (input ? input.value : this.draft) ?? '';
+    },
     onDraftInput() {
       // 치는 동안에도 상대에게 바로 보인다 (Figma 처럼). 서버가 150ms 로 묶는다.
-      blogWebSocketClient.sendCursorChat(this.draft);
+      blogWebSocketClient.sendCursorChat(this.currentDraft());
     },
     sendDraft() {
-      const message = this.draft.trim();
+      const message = this.currentDraft().trim();
       this.isChatOpen = false;
       this.draft = '';
       if (!message) {

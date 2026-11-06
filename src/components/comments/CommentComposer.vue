@@ -105,6 +105,11 @@ export default defineComponent({
       textarea.style.height = `${Math.min(textarea.scrollHeight, 400)}px`;
     },
     submit() {
+      // Ctrl+Enter 가 한글 조합 중에 눌리면 마지막 글자가 v-model 에 아직 없으므로 textarea 의 실제 값을 쓴다.
+      const textarea = this.$refs['textarea'] as HTMLTextAreaElement | undefined;
+      if (textarea && textarea.value !== this.content) {
+        this.content = textarea.value;
+      }
       if (!this.isValid || this.isSubmitting) {
         return;
       }
