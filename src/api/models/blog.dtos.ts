@@ -243,6 +243,7 @@ export type MessageType =
   | 'NOTIFICATION'
   | 'CURSOR_MOVE'
   | 'CURSOR_CHAT'
+  | 'CURSOR_LEAVE'
   | 'CURSOR_SELF'
   | 'CURSOR_BATCH'
   | null

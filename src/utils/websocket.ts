@@ -176,6 +176,11 @@ class BlogWebSocketClient {
     this.sendMessage('CURSOR_CHAT', { message });
   }
 
+  // 마우스가 창을 벗어났거나 탭이 숨겨졌다. 다른 사람 화면에서 내 커서를 바로 지운다.
+  public sendCursorLeave() {
+    this.sendMessage('CURSOR_LEAVE', null);
+  }
+
   // 현재 로그인 토큰으로 이 세션을 사용자와 연결한다.
   // 로그인 직후(이미 연결된 소켓)와 (재)연결 시 onopen 양쪽에서 호출되어 인증을 보장한다.
   public authenticate() {

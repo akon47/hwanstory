@@ -1,7 +1,7 @@
 <template>
   <div v-if="isEnabled" class="live-cursors" aria-hidden="true">
     <!-- 다른 사람들의 커서 -->
-    <div v-for="cursor in others" :key="cursor.id" class="cursor" :style="cursorStyle(cursor)">
+    <div v-for="cursor in others" :key="cursor.id" class="cursor" :class="{ idle: isIdle(cursor) }" :style="cursorStyle(cursor)">
       <svg class="cursor-arrow" width="18" height="18" viewBox="0 0 24 24">
         <path d="M5 3l14 8.5-6.2 1.4L9.6 19 5 3z" :fill="cursor.color" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
       </svg>
@@ -27,11 +27,19 @@ import { CursorBatchDto, CursorStateDto } from '@/api/models/blog.dtos';
 import { CursorIdentity, getCursorIdentity } from '@/utils/cursorIdentity';
 
 // 같은 글을 읽는 사람들의 마우스 커서를 글 본문 위에 겹쳐 보여준다. (Figma 의 멀티플레이어 커서처럼)
-// 위치는 본문 컨테이너 기준 비율(0~1)로 주고받아 창 크기가 달라도 비슷한 자리에 놓인다.
+// 위치는 본문 컨테이너 기준 비율로 주고받아 창 크기가 달라도 비슷한 자리에 놓인다. 본문 밖(좌우 여백·위아래)도 따라온다.
+// 마우스가 창을 벗어나거나 탭이 숨겨지면 상대 화면에서 내 커서를 바로 지운다.
 // 마우스가 있는 기기에서만 켜지고, 서버가 사람이 너무 많다고 알리면(disabled) 조용히 꺼진다.
 const MOVE_INTERVAL = 50;
 const MESSAGE_TTL = 8000;
-const IDLE_HIDE = 90000;
+// 이만큼 안 움직인 커서는 흐리게, 그 뒤로는 숨긴다
+const IDLE_FADE = 15000;
+const IDLE_HIDE = 60000;
+// 본문 기준 비율의 허용 범위 (서버와 같다)
+const X_MIN = -1.5;
+const X_MAX = 2.5;
+const Y_MIN = -0.5;
+const Y_MAX = 1.5;
 
 export default defineComponent({
   name: 'LiveCursors',
@@ -53,7 +61,8 @@ export default defineComponent({
       identity: { name: '', color: '#3b5bdb' } as CursorIdentity,
       selfId: null as string | null,
       lastSentAt: 0,
-      lastSent: { x: -1, y: -1 },
+      lastSent: { x: -99, y: -99 },
+      isAway: false,
       myX: 0.5,
       myY: 0,
       isChatOpen: false,
@@ -77,16 +86,6 @@ export default defineComponent({
     postId() {
       this.cursors = {};
     },
-    container(element: HTMLElement | null, previous: HTMLElement | null) {
-      if (previous) {
-        previous.removeEventListener('mousemove', this.onMouseMove);
-        previous.removeEventListener('mouseleave', this.onMouseLeave);
-      }
-      if (element) {
-        element.addEventListener('mousemove', this.onMouseMove, { passive: true });
-        element.addEventListener('mouseleave', this.onMouseLeave);
-      }
-    },
   },
   methods: {
     cursorStyle(cursor: CursorStateDto) {
@@ -95,7 +94,10 @@ export default defineComponent({
     isFresh(cursor: CursorStateDto): boolean {
       return Date.now() + this.tick * 0 - cursor.messageAt < MESSAGE_TTL;
     },
-    relativePosition(event: MouseEvent): { x: number; y: number } | null {
+    isIdle(cursor: CursorStateDto): boolean {
+      return Date.now() + this.tick * 0 - cursor.updatedAt > IDLE_FADE;
+    },
+    relativePosition(clientX: number, clientY: number): { x: number; y: number } | null {
       if (!this.container) {
         return null;
       }
@@ -103,15 +105,16 @@ export default defineComponent({
       if (rect.width <= 0 || rect.height <= 0) {
         return null;
       }
-      const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-      const y = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
+      const x = Math.min(X_MAX, Math.max(X_MIN, (clientX - rect.left) / rect.width));
+      const y = Math.min(Y_MAX, Math.max(Y_MIN, (clientY - rect.top) / rect.height));
       return { x, y };
     },
     onMouseMove(event: MouseEvent) {
-      const position = this.relativePosition(event);
+      const position = this.relativePosition(event.clientX, event.clientY);
       if (!position) {
         return;
       }
+      this.isAway = false;
       this.myX = position.x;
       this.myY = position.y;
       const now = Date.now();
@@ -125,8 +128,24 @@ export default defineComponent({
       this.lastSent = position;
       blogWebSocketClient.sendCursor(position.x, position.y, this.identity.name, this.identity.color);
     },
-    onMouseLeave() {
-      // 본문 밖으로 나가면 더 보내지 않는다. 서버는 잠시 뒤 마지막 위치를 그대로 두다가 오래되면 지운다.
+    // 마우스가 브라우저 창 밖으로 나가면 (relatedTarget 이 없다) 내 커서를 지운다.
+    onMouseOut(event: MouseEvent) {
+      if (event.relatedTarget === null) {
+        this.leave();
+      }
+    },
+    onVisibilityChange() {
+      if (document.visibilityState === 'hidden') {
+        this.leave();
+      }
+    },
+    leave() {
+      if (this.isAway) {
+        return;
+      }
+      this.isAway = true;
+      this.lastSent = { x: -99, y: -99 };
+      blogWebSocketClient.sendCursorLeave();
     },
     onBatch(batch: CursorBatchDto) {
       if (batch.postId !== this.postId) {
@@ -211,10 +230,11 @@ export default defineComponent({
     blogWebSocketClient.oncursorbatch = this.onBatch;
     blogWebSocketClient.oncursorself = this.onSelf;
     window.addEventListener('keydown', this.onKeydown);
-    if (this.container) {
-      this.container.addEventListener('mousemove', this.onMouseMove, { passive: true });
-      this.container.addEventListener('mouseleave', this.onMouseLeave);
-    }
+    // 본문 안팎 어디서든 따라오도록 창 전체에서 마우스를 읽는다. 좌표는 본문 컨테이너 기준 비율로 바꾼다.
+    window.addEventListener('mousemove', this.onMouseMove, { passive: true });
+    document.addEventListener('mouseout', this.onMouseOut);
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+    window.addEventListener('blur', this.leave);
     // 말풍선 만료·오래된 커서 숨김을 위해 1초마다 다시 그린다.
     this.tickTimer = setInterval(() => {
       this.tick += 1;
@@ -228,10 +248,10 @@ export default defineComponent({
       blogWebSocketClient.oncursorself = undefined;
     }
     window.removeEventListener('keydown', this.onKeydown);
-    if (this.container) {
-      this.container.removeEventListener('mousemove', this.onMouseMove);
-      this.container.removeEventListener('mouseleave', this.onMouseLeave);
-    }
+    window.removeEventListener('mousemove', this.onMouseMove);
+    document.removeEventListener('mouseout', this.onMouseOut);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    window.removeEventListener('blur', this.leave);
     if (this.tickTimer) {
       clearInterval(this.tickTimer);
     }
@@ -254,12 +274,16 @@ export default defineComponent({
 .cursor {
   position: absolute;
   transform: translate(-2px, -2px);
-  transition: left 0.12s linear, top 0.12s linear;
+  transition: left 0.12s linear, top 0.12s linear, opacity 0.6s ease;
   will-change: left, top;
   display: grid;
   grid-template-columns: auto;
   justify-items: start;
   gap: 2px;
+}
+
+.cursor.idle {
+  opacity: 0.45;
 }
 
 .cursor.me {
