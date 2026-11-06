@@ -1,92 +1,118 @@
 <template>
   <div class="container container-reading page policy">
-    <h1 class="policy-title">개인정보처리방침</h1>
-    <div class="policy-body">
-    <p class="ls2 lh6 bs5 ts4"><em class="emphasis">&lt; Hwan'Story &gt;('https://hwanstory.kr'이하 'Hwan'Story')</em>은(는) 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리방침을 수립·공개합니다.</p>
-    <p class="ls2">○ 이 개인정보처리방침은 <em class="emphasis">2022</em>년 <em class="emphasis">9</em>월 <em class="emphasis">9</em>부터 적용됩니다.</p>
-    <br/>
-    <p class='lh6 bs4'><strong>제1조(개인정보의 처리 목적)<br/><br/><em class="emphasis">&lt; Hwan'Story &gt;('https://hwanstory.kr'이하  'Hwan'Story')</em>은(는) 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며 이용 목적이 변경되는 경우에는 「개인정보 보호법」 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.</strong></p>
-    <ul class="list_indent2 mgt10">
-      <p class="ls2">1. 홈페이지 회원가입 및 관리</p>
-      <p class="ls2">회원 가입의사 확인, 회원제 서비스 제공에 따른 본인 식별·인증 목적으로 개인정보를 처리합니다.</p>
-      <br/>
-    </ul>
-    <br/><br/>
-    <p class='lh6 bs4'><strong>제2조(개인정보의 처리 및 보유 기간)</strong><br/><br/>① <em class="emphasis">&lt; Hwan'Story &gt;</em>은(는) 법령에 따른 개인정보 보유·이용기간 또는 정보주체로부터 개인정보를 수집 시에 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다.<br/><br/>② 각각의 개인정보 처리 및 보유 기간은 다음과 같습니다.</p>
-    <ul class='list_indent2 mgt10'>
-      <li class='tt'>
-        1.
-        &lt;홈페이지 회원가입 및 관리&gt;
-      </li>
-      <li class='tt'>
-        &lt;홈페이지 회원가입 및 관리&gt;
-          와 관련한 개인정보는 수집.이용에 관한 동의일로부터&lt;3년&gt;까지 위 이용목적을 위하여 보유.이용됩니다.
-      </li>
-      <li>보유근거 : 홈페이지 회원정보 수집 등에 관한 기록</li>
-      <li>관련법령 : 1)신용정보의 수집/처리 및 이용 등에 관한 기록 : 3년<br/>2) 소비자의 불만 또는 분쟁처리에 관한 기록 : 3년<br/></li>
-      <li>예외사유 : 없음</li>
-    </ul>
-    <br/><br/>
-    <p class='lh6 bs4'><strong>제3조(처리하는 개인정보의 항목) </strong><br/><br/> ① <em class="emphasis">&lt; Hwan'Story &gt;</em>은(는) 다음의 개인정보 항목을 처리하고 있습니다.</p>
-    <ul class='list_indent2 mgt10'>
-      <li class='tt'>1&lt; 홈페이지 회원가입 및 관리 &gt;</li>
-      <li>필수항목 : 이메일, 로그인ID, 이름, 서비스 이용 기록, 접속 로그, 쿠키, 접속 IP 정보</li>
-      <li>선택항목 : </li>
-    </ul>
-    <br/><br/>
-    <p class='lh6 bs4'><strong>제4조(개인정보의 파기절차 및 파기방법)</strong></p>
-    <p class='ls2'><br/>① &lt; Hwan'Story &gt; 은(는) 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체없이 해당 개인정보를 파기합니다.<br/><br/>② 정보주체로부터 동의받은 개인정보 보유기간이 경과하거나 처리목적이 달성되었음에도 불구하고 다른 법령에 따라 개인정보를 계속 보존하여야 하는 경우에는, 해당 개인정보를 별도의 데이터베이스(DB)로 옮기거나 보관장소를 달리하여 보존합니다.<br/>1. 법령 근거 :<br/>2. 보존하는 개인정보 항목 : 계좌정보, 거래날짜<br/><br/>③ 개인정보 파기의 절차 및 방법은 다음과 같습니다.<br/>1. 파기절차<br/> &lt; Hwan'Story &gt; 은(는) 파기 사유가 발생한 개인정보를 선정하고, &lt; Hwan'Story &gt; 의 개인정보 보호책임자의 승인을 받아 개인정보를 파기합니다.<br/></p>
-    <p class='sub_p mgt10'>2. 파기방법</p>
-    <p class='sub_p'>전자적 파일 형태의 정보는 기록을 재생할 수 없는 기술적 방법을 사용합니다</p>
-    <br/><br/>
-    <p class="lh6 bs4"><strong>제5조(정보주체와 법정대리인의 권리·의무 및 그 행사방법에 관한 사항)</strong></p>
-    <p class="ls2"><br/><br/>① 정보주체는 Hwan'Story에 대해 언제든지 개인정보 열람·정정·삭제·처리정지 요구 등의 권리를 행사할 수 있습니다.</p>
-    <p class='sub_p'>② 제1항에 따른 권리 행사는Hwan'Story에 대해 「개인정보 보호법」 시행령 제41조제1항에 따라 서면, 전자우편, 모사전송(FAX) 등을 통하여 하실 수 있으며 Hwan'Story은(는) 이에 대해 지체 없이 조치하겠습니다.</p>
-    <p class='sub_p'>③ 제1항에 따른 권리 행사는 정보주체의 법정대리인이나 위임을 받은 자 등 대리인을 통하여 하실 수 있습니다.이 경우 “개인정보 처리 방법에 관한 고시(제2020-7호)” 별지 제11호 서식에 따른 위임장을 제출하셔야 합니다.</p>
-    <p class='sub_p'>④ 개인정보 열람 및 처리정지 요구는  「개인정보 보호법」  제35조 제4항, 제37조 제2항에 의하여 정보주체의 권리가 제한 될 수 있습니다.</p>
-    <p class='sub_p'>⑤ 개인정보의 정정 및 삭제 요구는 다른 법령에서 그 개인정보가 수집 대상으로 명시되어 있는 경우에는 그 삭제를 요구할 수 없습니다.</p>
-    <p class='sub_p'>⑥ Hwan'Story은(는) 정보주체 권리에 따른 열람의 요구, 정정·삭제의 요구, 처리정지의 요구 시 열람 등 요구를 한 자가 본인이거나 정당한 대리인인지를 확인합니다.</p>
-    <br/><br/>
-    <p class='lh6 bs4'><strong>제6조(개인정보의 안전성 확보조치에 관한 사항)<em class="emphasis"><br/><br/>&lt; Hwan'Story &gt;</em>은(는) 개인정보의 안전성 확보를 위해 다음과 같은 조치를 취하고 있습니다.</strong></p>
-    <p class='sub_p mgt10'>1. 해킹 등에 대비한 기술적 대책<br/> &lt;<em class="emphasis">Hwan'Story</em>&gt;('<em class="emphasis">Hwan'Story</em>')은 해킹이나 컴퓨터 바이러스 등에 의한 개인정보 유출 및 훼손을 막기 위하여 보안프로그램을 설치하고 주기적인 갱신·점검을 하며 외부로부터 접근이 통제된 구역에 시스템을 설치하고 기술적/물리적으로 감시 및 차단하고 있습니다.<br/><br/></p>
-    <br/><br/>
-    <p class="lh6 bs4"><strong>제7조(개인정보를 자동으로 수집하는 장치의 설치·운영 및 그 거부에 관한 사항)</strong></p>
-    <p class="ls2"><br/><br/>① Hwan'Story 은(는) 이용자에게 개별적인 맞춤서비스를 제공하기 위해 이용정보를 저장하고 수시로 불러오는 ‘쿠키(cookie)’를 사용합니다.<br/>② 쿠키는 웹사이트를 운영하는데 이용되는 서버(http)가 이용자의 컴퓨터 브라우저에게 보내는 소량의 정보이며 이용자들의 PC 컴퓨터내의 하드디스크에 저장되기도 합니다.<br/>가. 쿠키의 사용 목적 : 이용자가 방문한 각 서비스와 웹 사이트들에 대한 방문 및 이용형태, 인기 검색어, 보안접속 여부, 등을 파악하여 이용자에게 최적화된 정보 제공을 위해 사용됩니다.<br/>나. 쿠키의 설치•운영 및 거부 : 웹브라우저 상단의 도구>인터넷 옵션>개인정보 메뉴의 옵션 설정을 통해 쿠키 저장을 거부 할 수 있습니다.<br/>다. 쿠키 저장을 거부할 경우 맞춤형 서비스 이용에 어려움이 발생할 수 있습니다.<br/><br/></p>
-    <p class="lh6 bs4"><strong>제8조(행태정보의 수집·이용·제공 및 거부 등에 관한 사항)</strong></p>
-    <p class="ls2"><br/><br/>행태정보의 수집·이용·제공 및 거부등에 관한 사항</p>
-    <p class='sub_p'>
-      &lt;개인정보처리자명&gt;
-        은(는) 온라인 맞춤형 광고 등을 위한 행태정보를 수집·이용·제공하지 않습니다.
-    </p>
-    <p class='sub_p mgt30'><strong>제9조 (개인정보 보호책임자에 관한 사항) </strong></p>
-    <p class='sub_p mgt10'> ①  <span class='colorLightBlue'>Hwan'Story</span> 은(는) 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.</p>
-    <ul class='list_indent2 mgt10'>
-      <li class='tt'>▶ 개인정보 보호책임자 </li>
-      <li>성명 :김환</li>
-      <li>직책 :CEO</li>
-      <li>직급 :대표이사</li>
-      <li>연락처 :01031434625, akon47@naver.com, </li>
-    </ul>
-    <p class='sub_p'>※ 개인정보 보호 담당부서로 연결됩니다.</p>
-    <ul class='list_indent2 mgt10'>
-      <li class='tt'>▶ 개인정보 보호 담당부서</li>
-      <li>부서명 :기술개발부</li>
-      <li>담당자 :김환</li>
-      <li>연락처 :01031434625, akon47@naver.com, </li>
-    </ul>
-    <br/><br/>
-    <p class='lh6 bs4'><strong>제11조(정보주체의 권익침해에 대한 구제방법)<em class="emphasis"></em></strong></p>
-    <br/><br/>정보주체는 개인정보침해로 인한 구제를 받기 위하여 개인정보분쟁조정위원회, 한국인터넷진흥원 개인정보침해신고센터 등에 분쟁해결이나 상담 등을 신청할 수 있습니다. 이 밖에 기타 개인정보침해의 신고, 상담에 대하여는 아래의 기관에 문의하시기 바랍니다.<br/><br/>
-    1. 개인정보분쟁조정위원회 : (국번없이) 1833-6972 (www.kopico.go.kr)<br/>
-    2. 개인정보침해신고센터 : (국번없이) 118 (privacy.kisa.or.kr)<br/>
-    3. 대검찰청 : (국번없이) 1301 (www.spo.go.kr)<br/>
-    4. 경찰청 : (국번없이) 182 (ecrm.cyber.go.kr)<br/><br/>
-    「개인정보보호법」제35조(개인정보의 열람), 제36조(개인정보의 정정·삭제), 제37조(개인정보의 처리정지 등)의 규정에 의한 요구에 대 하여 공공기관의 장이 행한 처분 또는 부작위로 인하여 권리 또는 이익의 침해를 받은 자는 행정심판법이 정하는 바에 따라 행정심판을 청구할 수 있습니다.<br/><br/>
-    ※ 행정심판에 대해 자세한 사항은 중앙행정심판위원회(www.simpan.go.kr) 홈페이지를 참고하시기 바랍니다.<br/><br/>
-    <p class='lh6 bs4'><strong>제12조(개인정보 처리방침 변경)<em class="emphasis"></em></strong></p>
-    <br/>
-    <p class='sub_p'>① 이 개인정보처리방침은 2022년 9월 9부터 적용됩니다.</p>
-      </div>
+    <header class="policy-head">
+      <h1>개인정보처리방침</h1>
+      <p class="muted">
+        Hwan'Story(hwanstory.kr, 이하 "이 서비스")는 개인이 취미로 만들어 운영하는 블로그 서비스입니다.
+        「개인정보 보호법」 제30조에 따라 어떤 정보를 왜 모으고 어떻게 지키는지 아래와 같이 알려 드립니다.
+      </p>
+      <p class="subtle small">2022년 9월 9일 시행 · 2026년 11월 6일 개정</p>
+    </header>
+
+    <section>
+      <h2>1. 모으는 정보와 쓰는 이유</h2>
+      <p>회원가입과 서비스 이용에 꼭 필요한 정보만 모읍니다.</p>
+      <table class="policy-table">
+        <thead>
+        <tr>
+          <th>언제</th>
+          <th>어떤 정보</th>
+          <th>왜</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>회원가입</td>
+          <td>이메일, 이름(필명), 비밀번호(암호화 저장), 블로그 주소</td>
+          <td>본인 확인, 로그인, 내 블로그 운영</td>
+        </tr>
+        <tr>
+          <td>소셜 로그인</td>
+          <td>해당 서비스가 제공하는 이메일·이름·프로필 사진</td>
+          <td>비밀번호 없이 가입·로그인</td>
+        </tr>
+        <tr>
+          <td>프로필 수정(선택)</td>
+          <td>소개, 회사, 위치, 홈페이지, 프로필 사진</td>
+          <td>블로그 상단에 표시</td>
+        </tr>
+        <tr>
+          <td>비회원 댓글</td>
+          <td>이름, 비밀번호(암호화 저장)</td>
+          <td>댓글 작성자 표시, 본인만 수정·삭제</td>
+        </tr>
+        <tr>
+          <td>서비스 이용 중 자동 수집</td>
+          <td>접속 IP, 브라우저 종류(User-Agent), 접속 시각, 쿠키</td>
+          <td>오류 추적, 부정 이용 방지, 실시간 접속자 수 표시</td>
+        </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>2. 얼마나 보관하나</h2>
+      <ul>
+        <li>회원 정보는 <b>탈퇴할 때까지</b> 보관하고, 탈퇴하면 글·댓글과 함께 지체 없이 삭제합니다.</li>
+        <li>접속 기록(IP, 브라우저, 시각)은 오류 추적을 위해 최대 <b>3개월</b> 보관한 뒤 자동으로 지웁니다.</li>
+        <li>법령이 보관을 요구하는 경우에는 그 기간만큼만 따로 보관합니다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. 다른 곳에 주는지</h2>
+      <p>개인정보를 팔거나 광고 목적으로 다른 사람에게 주지 않습니다. 다만 서비스를 돌리기 위해 아래 외부 서비스를 거칩니다.</p>
+      <ul>
+        <li><b>소셜 로그인</b> 제공자(Google, GitHub, Facebook, 네이버, 카카오, Discord, Microsoft): 로그인할 때 해당 서비스와 이메일·이름을 주고받습니다.</li>
+        <li><b>Cloudflare</b>: 접속을 중계하고 공격을 막는 과정에서 IP 등 접속 정보가 지나갑니다.</li>
+        <li><b>Google Analytics</b>: 방문 통계를 위해 쿠키 기반의 익명 이용 정보를 수집합니다. 브라우저의 쿠키 설정으로 거부할 수 있습니다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. 어떻게 지키나</h2>
+      <ul>
+        <li>비밀번호는 복원할 수 없는 방식(단방향 해시)으로 저장합니다.</li>
+        <li>모든 통신은 HTTPS 로 암호화하고, 로그인 토큰은 만료 시간이 있습니다.</li>
+        <li>서버는 운영자만 접근할 수 있고, 접속 기록을 남깁니다.</li>
+        <li>AI 에이전트용 액세스 토큰은 회원이 직접 발급·폐기하며, 토큰 원문은 저장하지 않습니다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. 내 권리</h2>
+      <p>
+        언제든 내 정보를 보고, 고치고, 지우고, 처리를 멈추라고 요구할 수 있습니다. 프로필과 글·댓글은
+        <router-link to="/setting">설정</router-link>에서 직접 고치거나 지울 수 있고, 회원 탈퇴도 설정에서 바로 할 수 있습니다.
+        직접 하기 어려운 요청은 아래 이메일로 보내 주시면 지체 없이 처리합니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. 쿠키</h2>
+      <p>
+        로그인 유지와 테마(밝게/어둡게) 기억에 브라우저 저장소와 쿠키를 씁니다. 브라우저 설정에서 쿠키를 거부할 수 있지만, 그러면 로그인이 풀릴 수 있습니다.
+        맞춤형 광고를 위한 행태정보는 수집하지 않습니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>7. 문의</h2>
+      <p>이 서비스는 개인이 운영하므로 별도의 부서 없이 운영자가 직접 개인정보 보호 책임을 맡습니다.</p>
+      <ul>
+        <li>운영자: 김환</li>
+        <li>이메일: <a href="mailto:akon47@naver.com">akon47@naver.com</a></li>
+      </ul>
+      <p>
+        운영자와 해결되지 않으면 개인정보분쟁조정위원회(1833-6972, www.kopico.go.kr), 개인정보침해신고센터(118, privacy.kisa.or.kr)에
+        도움을 청할 수 있습니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>8. 바뀌면</h2>
+      <p>이 방침이 바뀌면 이 페이지에 바뀐 날짜와 내용을 적어 알립니다.</p>
+    </section>
   </div>
 </template>
 
@@ -101,32 +127,96 @@ export default defineComponent({
 <style scoped>
 .policy {
   display: grid;
-  gap: var(--s-6);
-}
-
-.policy-title {
-  font-size: var(--text-3xl);
-}
-
-.policy-body {
-  font-size: var(--text-sm);
-  line-height: 1.8;
-  color: var(--text-2);
+  gap: var(--s-8);
+  line-height: 1.75;
   word-break: keep-all;
 }
 
-.policy-body strong {
+.policy-head {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.policy-head h1 {
+  font-size: var(--text-3xl);
+}
+
+section {
+  display: grid;
+  gap: var(--s-3);
+}
+
+section h2 {
+  font-size: var(--text-xl);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--border);
+}
+
+section p,
+section li {
+  color: var(--text-2);
+}
+
+section b {
   color: var(--text);
   font-weight: 700;
 }
 
-.policy-body ul {
+section ul {
+  display: grid;
+  gap: 6px;
   padding-left: 1.2em;
   list-style: disc;
 }
 
-.policy-body .emphasis {
-  font-style: normal;
+.policy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.policy-table th,
+.policy-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+.policy-table th {
   color: var(--text);
+  font-weight: 700;
+  background: var(--surface-2);
+}
+
+@media (max-width: 600px) {
+  .policy-table,
+  .policy-table thead,
+  .policy-table tbody,
+  .policy-table tr,
+  .policy-table th,
+  .policy-table td {
+    display: block;
+  }
+
+  .policy-table thead {
+    display: none;
+  }
+
+  .policy-table tr {
+    padding: var(--s-2) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .policy-table td {
+    border: none;
+    padding: 4px 0;
+  }
+
+  .policy-table td:first-child {
+    color: var(--text);
+    font-weight: 700;
+  }
 }
 </style>

@@ -4,7 +4,6 @@
       <div class="brand">
         <img class="logo-symbol" src="@/assets/logo-symbol.svg" alt=""/>
         <span>Hwan'Story</span>
-        <span class="subtle">· 직접 만든 블로그 서비스</span>
       </div>
       <nav class="links" aria-label="바닥글">
         <router-link to="/agents">AI 에이전트 가이드</router-link>
@@ -79,9 +78,4 @@ export default defineComponent({
   text-decoration: none;
 }
 
-@media (max-width: 600px) {
-  .brand .subtle {
-    display: none;
-  }
-}
 </style>

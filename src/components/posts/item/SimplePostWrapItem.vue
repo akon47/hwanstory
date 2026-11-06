@@ -115,7 +115,7 @@ export default defineComponent({
 
 .thumb-title {
   color: rgba(255, 255, 255, 0.92);
-  font-size: var(--text-lg);
+  font-size: var(--text-md);
   font-weight: 700;
   line-height: 1.35;
   text-align: center;
@@ -137,12 +137,12 @@ export default defineComponent({
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: var(--s-2);
-  padding: var(--s-4) var(--s-5) var(--s-3);
+  padding: var(--s-3) var(--s-4) var(--s-2);
   min-width: 0;
 }
 
 .title {
-  font-size: var(--text-lg);
+  font-size: var(--text-md);
   line-height: 1.4;
   letter-spacing: -0.01em;
   overflow: hidden;
@@ -169,7 +169,7 @@ export default defineComponent({
 .summary {
   color: var(--text-2);
   font-size: var(--text-sm);
-  line-height: 1.6;
+  line-height: 1.55;
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -182,7 +182,7 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: var(--s-3) var(--s-5) var(--s-4);
+  padding: 10px var(--s-4) 12px;
   border-top: 1px solid var(--border);
   color: var(--text-3);
   font-size: var(--text-xs);

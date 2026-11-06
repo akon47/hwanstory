@@ -732,6 +732,13 @@ export default defineComponent({
   min-width: 0;
 }
 
+/* 긴 코드·표·URL 이 있어도 본문이 옆 칸(목차)으로 넘치지 않게 한다 */
+.post-main > *,
+.post-side {
+  min-width: 0;
+  max-width: 100%;
+}
+
 /* ---------- 머리 ---------- */
 .post-header {
   display: grid;
@@ -951,6 +958,9 @@ export default defineComponent({
 /* ---------- 본문 ---------- */
 .post-content {
   min-height: 200px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ---------- 반응·동작 ---------- */

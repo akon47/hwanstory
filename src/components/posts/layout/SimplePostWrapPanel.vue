@@ -21,8 +21,8 @@ export default defineComponent({
 <style scoped>
 .post-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--s-6);
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--s-5);
 }
 
 .post-grid:empty {

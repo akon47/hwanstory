@@ -66,7 +66,7 @@
   --radius-lg: 14px;
   --radius-pill: 999px;
   --header-height: 64px;
-  --content-max: 1200px;
+  --content-max: 1280px;
   --reading-max: 720px;
   --narrow-max: 880px;
   --gutter: max(16px, env(safe-area-inset-left, 0px));

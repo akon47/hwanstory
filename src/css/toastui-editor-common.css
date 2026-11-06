@@ -4,8 +4,10 @@
     line-height: 1.85;
     color: var(--text) !important;
     font-family: var(--base-font-family) !important;
+    max-width: 100%;
+    min-width: 0;
     word-break: keep-all;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .toastui-editor-contents p {
@@ -115,6 +117,7 @@
 }
 
 .toastui-editor-contents pre {
+    max-width: 100%;
     margin: 0 0 1.3em;
     padding: 16px 18px !important;
     white-space: pre !important;
