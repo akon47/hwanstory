@@ -1,5 +1,5 @@
 import store from '../../store';
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import DataTransferObject, { ErrorResponseDto } from '@/api/models/common.dtos';
 
 export const serverUrl = process.env.VUE_APP_API_BASE_URI;
@@ -57,7 +57,7 @@ class AxiosHttpApiErrorImpl implements HttpApiError {
   public message: string;
   public name: string;
 
-  private readonly config: AxiosRequestConfig;
+  private readonly config: AxiosRequestConfig | undefined;
 
   public constructor(error: AxiosError<ErrorResponseDto>) {
     this.statusCode = error.response?.status;
@@ -90,7 +90,7 @@ class AxiosHttpApiErrorImpl implements HttpApiError {
   public isConflict = () => this.statusCode == 409;
 
   public getCustomAxiosRequestConfig(): CustomAxiosRequestConfig {
-    const requestConfig = this.config as CustomAxiosRequestConfig;
+    const requestConfig = (this.config ?? {}) as CustomAxiosRequestConfig;
     requestConfig.retryCount ??= 0;
 
     return requestConfig;
@@ -160,10 +160,10 @@ class AxiosHttpApiClientImpl implements HttpApiClient {
   private setInterceptors(instance: AxiosInstance, withAuth: boolean) {
     // Add a request interceptor
     instance.interceptors.request.use(
-      (config: AxiosRequestConfig) => {
-        // 인증 사용 시 인증 헤더를 항상 추가하여 전송한다.
+      (config: InternalAxiosRequestConfig) => {
+        // 인증 사용 시 인증 헤더를 항상 추가하여 전송한다. (axios 1.x: headers 는 항상 존재하는 AxiosHeaders)
         if (withAuth) {
-          config.headers!.Authorization = `Bearer ${store.state.accountStore.accessToken}`;
+          config.headers.set('Authorization', `Bearer ${store.state.accountStore.accessToken}`);
         }
 
         return config;
