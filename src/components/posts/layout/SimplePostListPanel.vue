@@ -1,5 +1,5 @@
 <template>
-  <div class="list-panel-container">
+  <div class="post-list">
     <simple-post-list-item v-for="post in simplePosts" :key="post.id" :simple-post="post"/>
   </div>
 </template>
@@ -19,10 +19,8 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-.list-panel-container {
+.post-list {
   display: flex;
   flex-direction: column;
 }
-
 </style>

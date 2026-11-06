@@ -1,104 +1,156 @@
 <template>
-  <div class="setting-container">
-    <div class="scroll-area">
-    <div class="account-info-container form-wrapper">
-      <div class="title">
-        내 정보 수정
+  <div class="container container-narrow page settings">
+    <div class="page-head">
+      <div>
+        <h1>설정</h1>
+        <p class="lead">프로필과 계정을 관리합니다.</p>
       </div>
-      <div class="profile-container">
-        <div class="profile-image">
-          <account-profile-image-button :simple-account="account"/>
-          <button class="modify-profile-image-button" @click="selectProfileImageFile">🖼️</button>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>프로필</h2>
+        <span class="subtle small">{{ account.blogId }}</span>
+      </div>
+      <div class="card-body profile-grid">
+        <div class="avatar-column">
+          <account-profile-image class="avatar-large" :simple-account="account"/>
+          <button class="btn btn-secondary btn-sm" type="button" @click="selectProfileImageFile">
+            <app-icon name="image" :size="14"/>사진 바꾸기
+          </button>
         </div>
-        <div class="bio">
-          <label for="name">이름</label>
-          <input id="name" class="name" :class="{'invalid': !isNameValid}" type="text" v-model="name"
-                 placeholder="이름" maxlength="32"/>
-          <label for="biography">간단한 자기소개</label>
-          <textarea id="biography" class="biography" :class="{'invalid': !isBiographyValid}" type="text"
-                    v-model="biography"
-                    placeholder="간단한 자기소개" maxlength="255"/>
-          <label for="company">회사</label>
-          <input id="company" :class="{'invalid': !isCompanyValid}" type="text" v-model="company"
-                 placeholder="회사" maxlength="64"/>
-          <label for="location">위치</label>
-          <input id="location" :class="{'invalid': !isLocationValid}" type="text" v-model="location"
-                 placeholder="위치" maxlength="64"/>
-          <label for="homepage">홈페이지</label>
-          <input id="homepage" :class="{'invalid': !isHomepageValid}" type="text" v-model="homepage"
-                 placeholder="홈페이지" maxlength="255"/>
+        <div class="fields">
+          <div class="field">
+            <label for="name">이름</label>
+            <input id="name" class="input" :class="{ invalid: !isNameValid }" type="text" v-model="name"
+                   placeholder="글에 표시될 이름" maxlength="32"/>
+          </div>
+          <div class="field">
+            <label for="biography">소개</label>
+            <textarea id="biography" class="textarea" :class="{ invalid: !isBiographyValid }" v-model="biography"
+                      placeholder="블로그 상단에 보이는 짧은 소개" maxlength="255" rows="3"/>
+            <span class="hint">{{ (biography ?? '').length }} / 255</span>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="company">회사</label>
+              <input id="company" class="input" :class="{ invalid: !isCompanyValid }" type="text" v-model="company"
+                     placeholder="회사" maxlength="64"/>
+            </div>
+            <div class="field">
+              <label for="location">위치</label>
+              <input id="location" class="input" :class="{ invalid: !isLocationValid }" type="text" v-model="location"
+                     placeholder="예: 서울" maxlength="64"/>
+            </div>
+          </div>
+          <div class="field">
+            <label for="homepage">홈페이지</label>
+            <input id="homepage" class="input" :class="{ invalid: !isHomepageValid }" type="url" v-model="homepage"
+                   placeholder="https://" maxlength="255" inputmode="url"/>
+          </div>
         </div>
       </div>
-      <div class="etc-container">
-        <button class="form-button"
-                :disabled="isLoading"
-                @click="sendResetPasswordUrlToEmail">비밀번호 재설정
+      <div class="card-foot">
+        <span v-if="isDirty" class="subtle small unsaved">저장하지 않은 변경이 있어요</span>
+        <button class="btn" type="button" :disabled="!isDirty || !isFormValid || isLoading" @click="modifyAccount">
+          저장
         </button>
       </div>
-    </div>
-    <div class="statistics-container form-wrapper" v-if="statistics">
-      <div class="title">내 블로그 통계</div>
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-value">{{ statistics.totalPosts }}</div>
-          <div class="stat-label">전체 게시글</div>
+    </section>
+
+    <section v-if="statistics" class="card">
+      <div class="card-head">
+        <h2>내 블로그 통계</h2>
+        <router-link class="small" :to="`/${account.blogId}/posts`">내 글 보기</router-link>
+      </div>
+      <div class="card-body">
+        <div class="stat-grid">
+          <div class="stat">
+            <div class="stat-value num">{{ formatCount(statistics.totalPosts) }}</div>
+            <div class="stat-label">전체 글</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value num">{{ formatCount(statistics.publicPosts) }}</div>
+            <div class="stat-label">공개 글</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value num">{{ formatCount(statistics.totalHits) }}</div>
+            <div class="stat-label">조회</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value num">{{ formatCount(statistics.totalLikes) }}</div>
+            <div class="stat-label">좋아요</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value num">{{ formatCount(statistics.totalComments) }}</div>
+            <div class="stat-label">댓글</div>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ statistics.publicPosts }}</div>
-          <div class="stat-label">공개 게시글</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ statistics.totalHits }}</div>
-          <div class="stat-label">총 조회수</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ statistics.totalLikes }}</div>
-          <div class="stat-label">총 좋아요</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ statistics.totalComments }}</div>
-          <div class="stat-label">총 댓글</div>
+        <div v-if="statistics.popularPosts && statistics.popularPosts.length > 0" class="popular">
+          <div class="popular-title">많이 읽은 글</div>
+          <ol class="popular-list">
+            <li v-for="(popularPost, index) in statistics.popularPosts" :key="popularPost.id">
+              <span class="rank num">{{ index + 1 }}</span>
+              <router-link class="popular-link" :to="`/${popularPost.author.blogId}/posts/${popularPost.postUrl}`">
+                {{ popularPost.title }}
+              </router-link>
+              <span class="popular-hits subtle small num">조회 {{ formatCount(popularPost.hits) }}</span>
+            </li>
+          </ol>
         </div>
       </div>
-      <div v-if="statistics.popularPosts && statistics.popularPosts.length > 0" class="popular-posts">
-        <div class="popular-title">인기 게시글 (조회수 순)</div>
-        <ol>
-          <li v-for="popularPost in statistics.popularPosts" :key="popularPost.id">
-            <router-link :to="`/${popularPost.author.blogId}/posts/${popularPost.postUrl}`">
-              {{ popularPost.title }}
-            </router-link>
-            <span class="popular-hits">{{ popularPost.hits }} 회</span>
-          </li>
-        </ol>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>AI 에이전트에게 맡기기</h2>
       </div>
-    </div>
-    <div class="agent-container form-wrapper">
-      <div class="title">AI 에이전트에게 맡기기</div>
-      <p class="agent-description">
-        Claude Code 같은 코딩 에이전트에게 글쓰기나 기존 글 검토를 맡길 수 있습니다. 에이전트는 <b>기기 로그인</b>으로
-        내 권한 안에서 쓸 수 있는 액세스 토큰을 받아 가고(비밀을 채팅에 붙일 필요 없음), 토큰은 언제든 폐기할 수 있습니다.
-      </p>
-      <div class="etc-container">
-        <router-link to="/agents">
-          <button class="form-button">가이드 보기</button>
-        </router-link>
-        <router-link to="/tokens">
-          <button class="form-button">액세스 토큰 관리</button>
-        </router-link>
+      <div class="card-body agent">
+        <div class="agent-icon"><app-icon name="bot" :size="22"/></div>
+        <div>
+          <p>
+            Claude Code 같은 코딩 에이전트에게 글쓰기나 기존 글 검토를 맡길 수 있습니다. 에이전트는 <b>기기 로그인</b>으로
+            내 권한 안에서만 쓸 수 있는 액세스 토큰을 받아 가고, 토큰은 언제든 폐기할 수 있습니다.
+          </p>
+          <div class="agent-actions">
+            <router-link class="btn btn-secondary btn-sm" to="/agents">가이드 보기</router-link>
+            <router-link class="btn btn-sm" to="/tokens">액세스 토큰 관리</router-link>
+          </div>
+        </div>
       </div>
-    </div>
-    </div>
-    <div class="footer">
-      <button class="form-button red-button"
-              @click="deleteAccount">
-        탈퇴하기
-      </button>
-      <button class="form-button"
-              :disabled="!isDirty || isLoading"
-              @click="modifyAccount">
-        수정하기
-      </button>
-    </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>계정</h2>
+      </div>
+      <div class="card-body account-rows">
+        <div class="account-row">
+          <div>
+            <div class="row-title">이메일</div>
+            <div class="muted small">{{ account.email }}</div>
+          </div>
+        </div>
+        <div class="account-row">
+          <div>
+            <div class="row-title">비밀번호</div>
+            <div class="muted small">가입 이메일로 재설정 링크를 보내 드립니다.</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" type="button" :disabled="isLoading" @click="sendResetPasswordUrlToEmail">
+            재설정 메일 보내기
+          </button>
+        </div>
+        <div class="account-row danger-row">
+          <div>
+            <div class="row-title">회원 탈퇴</div>
+            <div class="muted small">모든 글과 댓글이 완전히 삭제되며 되돌릴 수 없습니다.</div>
+          </div>
+          <button class="btn btn-danger-ghost btn-sm" type="button" :disabled="isLoading" @click="deleteAccount">
+            탈퇴하기
+          </button>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -115,12 +167,15 @@ import {
   setCurrentProfileImage,
 } from '@/api/accounts';
 import { getMyStatistics } from '@/api/blog';
-import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
+import AccountProfileImage from '@/components/accounts/AccountProfileImage.vue';
+import AppIcon from '@/components/common/AppIcon.vue';
 import store from '@/store';
+import { confirmDialog, toast } from '@/utils/dialog';
+import { formatCount } from '@/utils/format';
 
 export default defineComponent({
   name: 'SettingView',
-  components: { AccountProfileImageButton },
+  components: { AppIcon, AccountProfileImage },
   data() {
     return {
       account: {} as AccountDto,
@@ -138,7 +193,6 @@ export default defineComponent({
       if (!this.account) {
         return false;
       }
-
       return this.account.name !== this.name
           || (this.account.biography ?? '') !== (this.biography ?? '')
           || (this.account.company ?? '') !== (this.company ?? '')
@@ -149,27 +203,30 @@ export default defineComponent({
       return this.name.length > 0 && this.name.length <= 32;
     },
     isBiographyValid(): boolean {
-      return !this.biography || (this.biography.length >= 0 && this.biography.length <= 255);
+      return !this.biography || this.biography.length <= 255;
     },
     isCompanyValid(): boolean {
-      return !this.company || (this.company.length >= 0 && this.company.length <= 64);
+      return !this.company || this.company.length <= 64;
     },
     isLocationValid(): boolean {
-      return !this.location || (this.location.length >= 0 && this.location.length <= 64);
+      return !this.location || this.location.length <= 64;
     },
     isHomepageValid(): boolean {
-      return !this.homepage || (this.homepage.length >= 0 && this.homepage.length <= 255);
+      return !this.homepage || this.homepage.length <= 255;
+    },
+    isFormValid(): boolean {
+      return this.isNameValid && this.isBiographyValid && this.isCompanyValid && this.isLocationValid && this.isHomepageValid;
     },
   },
   methods: {
+    formatCount,
     updateAccount(account: AccountDto) {
       this.account = account;
-
       this.name = account.name;
-      this.biography = account.biography;
-      this.company = account.company;
-      this.location = account.location;
-      this.homepage = account.homepage;
+      this.biography = account.biography ?? '';
+      this.company = account.company ?? '';
+      this.location = account.location ?? '';
+      this.homepage = account.homepage ?? '';
     },
     async loadAccount() {
       await getCurrentAccount()
@@ -177,8 +234,8 @@ export default defineComponent({
         this.updateAccount(account);
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
-        this.$router.push(`/`);
+        toast.error(error.getErrorMessage());
+        this.$router.push('/');
       });
     },
     async modifyAccount() {
@@ -192,30 +249,37 @@ export default defineComponent({
       })
       .then((account) => {
         this.updateAccount(account);
-        alert('수정되었습니다.');
+        store.dispatch('accountStore/updateCurrentAccountInfo');
+        toast.success('프로필을 저장했습니다.');
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
       })
       .finally(() => {
         this.isLoading = false;
       });
     },
     async deleteAccount() {
-      if (!confirm('탈퇴 시 모든 게시글과 댓글이 완전히 삭제되며 복구할 수 없습니다.\n탈퇴 하시겠습니까?')) {
+      const ok = await confirmDialog({
+        title: '정말 탈퇴할까요?',
+        message: '모든 글과 댓글이 완전히 삭제되며 복구할 수 없습니다.',
+        confirmLabel: '탈퇴',
+        danger: true,
+      });
+      if (!ok) {
         return;
       }
 
       this.isLoading = true;
       await deleteCurrentAccount()
       .then(async () => {
-        alert('탈퇴되었습니다.');
+        toast.info('탈퇴를 마쳤습니다. 그동안 고마웠어요.');
         await store.dispatch('accountStore/signOut', true);
         await store.dispatch('cacheStore/clearMainPosts');
-        this.$router.push(`/`);
+        this.$router.push('/');
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
       })
       .finally(() => {
         this.isLoading = false;
@@ -232,7 +296,7 @@ export default defineComponent({
         }
         const file = target.files[0];
         if (!file.type.startsWith('image')) {
-          alert('이미지 파일을 선택해주세요.');
+          toast.error('이미지 파일을 선택해 주세요.');
           return;
         }
 
@@ -240,10 +304,10 @@ export default defineComponent({
         .then((account) => {
           this.account = account;
           store.dispatch('accountStore/updateCurrentAccountInfo');
-          alert('프로필 이미지를 변경하였습니다.');
+          toast.success('프로필 사진을 바꿨습니다.');
         })
         .catch((error: HttpApiError) => {
-          alert(error.getErrorMessage());
+          toast.error(error.getErrorMessage());
         });
       };
       input.click();
@@ -252,9 +316,9 @@ export default defineComponent({
       this.isLoading = true;
       await sendResetPasswordUrlToEmail(this.account.email)
       .then(() => {
-        alert(`계정 비밀번호 재설정에 대한 방법을 ${this.account.email} 이메일로 보냈습니다.`);
+        toast.success(`${this.account.email} 로 비밀번호 재설정 방법을 보냈습니다.`);
       }).catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
       })
       .finally(() => {
         this.isLoading = false;
@@ -278,202 +342,181 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-.setting-container {
+.settings {
   display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: minmax(0, 1fr) 50px;
-
-  width: 100%;
-  height: 100%;
-
-  box-sizing: border-box;
-}
-
-.scroll-area {
-  overflow-y: auto;
-  min-height: 0;
-}
-
-.account-info-container,
-.statistics-container,
-.agent-container {
-  display: grid;
-  grid-template-columns: 750px;
-  grid-template-rows: auto;
-
+  gap: var(--s-6);
   align-content: start;
-  justify-content: center;
-  padding: var(--base-gap);
-  box-sizing: border-box;
 }
 
-@media (max-width: 800px) {
-  .account-info-container,
-  .statistics-container,
-  .agent-container {
-    grid-template-columns: minmax(0, auto);
-    justify-content: stretch;
-  }
+.profile-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-8);
 }
 
-.agent-description {
-  padding-top: var(--base-gap);
-  line-height: 1.6;
-  font-weight: 300;
+.avatar-column {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-3);
+  align-content: start;
 }
 
-.agent-container .etc-container {
-  grid-template-columns: auto auto;
-  grid-column-gap: var(--half-base-gab);
+.avatar-large {
+  width: 120px;
+  height: 120px;
+}
+
+.fields {
+  display: grid;
+  gap: var(--s-4);
+  min-width: 0;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+}
+
+.unsaved {
+  margin-right: auto;
+  align-self: center;
+}
+
+.card-foot {
+  align-items: center;
 }
 
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  grid-gap: 10px;
-  padding: var(--base-gap) 0;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--s-3);
 }
 
-.stat-card {
-  border: 1px solid var(--border-color);
-  border-radius: var(--base-border-radius);
-  padding: 1em;
+.stat {
+  padding: var(--s-4);
+  border-radius: var(--radius);
+  background: var(--surface-2);
   text-align: center;
 }
 
 .stat-value {
-  font-size: 1.8em;
-  font-weight: bold;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .stat-label {
-  font-size: 0.85em;
-  font-weight: 300;
-  margin-top: 0.25em;
+  font-size: var(--text-xs);
+  color: var(--text-2);
+  margin-top: 2px;
 }
 
-.popular-posts {
-  padding-top: var(--base-gap);
+.popular {
+  margin-top: var(--s-6);
 }
 
 .popular-title {
-  font-weight: bold;
-  margin-bottom: 0.5em;
+  font-weight: 700;
+  margin-bottom: var(--s-2);
 }
 
-.popular-posts ol {
-  list-style: decimal;
-  margin-left: 1.5em;
-  line-height: 1.9;
-}
-
-.popular-posts a {
-  color: var(--base-color);
-}
-
-.popular-posts a:hover {
-  color: var(--link-accent-color);
-}
-
-.popular-hits {
-  font-size: 0.8em;
-  font-weight: 300;
-  margin-left: 0.5em;
-  color: var(--link-accent-color);
-}
-
-.title {
-  text-align: center;
-  font-size: 2em;
-  font-weight: bold;
-  margin-top: var(--base-gap);
-  padding-bottom: var(--base-gap);
-  border-bottom: 1px solid var(--border-color);
-  box-sizing: border-box;
-}
-
-.profile-container {
+.popular-list {
   display: grid;
-
-  grid-template-columns: minmax(150px, 1fr) 3fr;
-  grid-template-rows: auto;
-
-  padding: 2em 0;
-
-  box-sizing: border-box;
-  border-bottom: 1px solid var(--border-color);
 }
 
-.profile-image {
-  align-self: start;
-  position: relative;
-}
-
-.modify-profile-image-button {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 25%;
-  height: auto;
-  aspect-ratio: 1;
-  border-radius: 100%;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-size: 1.25em;
-}
-
-.bio {
+.popular-list li {
   display: grid;
-
-  grid-template-columns: 1fr;
-  grid-auto-rows: auto;
-
-  margin-left: 2em;
-
-  grid-row-gap: 0.5em;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.bio label {
-  margin-bottom: -0.25em;
+.popular-list li:last-child {
+  border-bottom: none;
 }
 
-.bio .name {
-  font-size: 2.5em;
+.rank {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  display: grid;
+  place-items: center;
+  font-size: var(--text-xs);
+  font-weight: 700;
 }
 
-.bio .biography {
-  font-size: 1em;
-  min-height: 100px;
-  height: 100%;
+.popular-link {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.footer {
+.agent {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-4);
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+.agent-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  display: grid;
+  place-items: center;
+}
+
+.agent-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
 
+.account-rows {
+  display: grid;
+  padding-block: var(--s-2);
+}
+
+.account-row {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-
-  background: var(--footer-background-color);
-  padding: 0 var(--base-gap)
+  gap: var(--s-4);
+  padding: var(--s-4) 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.setting-container .form-button {
-  min-width: 100px;
+.account-row:last-child {
+  border-bottom: none;
 }
 
-.etc-container {
-  display: grid;
-
-  justify-content: end;
-
-  padding: var(--base-gap) 0;
+.row-title {
+  font-weight: 600;
 }
 
-.etc-container button {
-  min-height: 0;
-  font-size: 13px;
-}
+@media (max-width: 640px) {
+  .profile-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-5);
+  }
 
+  .field-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .account-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
 </style>

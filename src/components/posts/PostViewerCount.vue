@@ -1,10 +1,7 @@
 <template>
-  <span v-if="viewerCount > 0" class="viewer-count" title="지금 이 글을 보고 있는 사람 수">
-    <svg class="eye-icon" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true">
-      <path fill="currentColor"
-            d="M12 5c-7 0-10.5 7-10.5 7S5 19 12 19s10.5-7 10.5-7S19 5 12 5zm0 11.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>
-    </svg>
-    {{ viewerCount }}
+  <span v-if="viewerCount > 0" class="viewer-count" title="지금 이 글을 읽고 있는 사람 수">
+    <span class="live-dot" aria-hidden="true"/>
+    <app-icon name="eye" :size="14"/>{{ viewerCount }}
   </span>
 </template>
 
@@ -12,11 +9,13 @@
 import { defineComponent } from 'vue';
 import store from '@/store';
 import blogWebSocketClient from '@/utils/websocket';
+import AppIcon from '@/components/common/AppIcon.vue';
 
 // 특정 게시글의 실시간 시청자 수를 눈 아이콘 + 숫자로 표시하는 배지.
 // 마운트 시 해당 게시글의 시청자 수 구독을 시작하고, 언마운트 시 해제한다.
 export default defineComponent({
   name: 'PostViewerCount',
+  components: { AppIcon },
   props: {
     postId: {
       type: String,
@@ -55,12 +54,22 @@ export default defineComponent({
 .viewer-count {
   display: inline-flex;
   align-items: center;
-  gap: 0.2em;
-  color: var(--link-accent-color);
+  gap: 4px;
+  color: var(--accent-text);
   white-space: nowrap;
+  font-weight: 600;
 }
 
-.eye-icon {
-  vertical-align: middle;
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
 </style>

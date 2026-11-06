@@ -18,7 +18,7 @@ const routeToSigninWhenIsNotLoggedIn: NavigationGuardWithThis<undefined> = (to, 
 
 // 검색엔진 색인에서 제외할 화면 (개인 화면·인증 화면·실시간 화면)
 const NOINDEX_PATHS = [
-  '/setting', '/bookmarks', '/signup', '/signin', '/write', '/feed', '/viewing', '/admin',
+  '/setting', '/bookmarks', '/search', '/signup', '/signin', '/write', '/feed', '/viewing', '/admin',
   '/social-authentication-redirect', '/reset-password', '/not-found', '/tokens', '/device',
 ];
 
@@ -62,6 +62,18 @@ const router = createRouter({
         props: (route) => ({
           sortBy: 'viewing',
         }),
+      },
+      {
+        path: '/search',
+        name: 'Search',
+        component: () => import('../views/MainView.vue'),
+        props: (route) => ({
+          isSearchMode: true,
+          search: (route.query.q as string) || '',
+        }),
+        meta: {
+          title: '검색',
+        },
       },
       {
         path: '/setting',

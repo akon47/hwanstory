@@ -1,124 +1,232 @@
+/* 글 본문(뷰어·에디터 미리보기) 읽기 타이포그래피 */
 .toastui-editor-contents {
-    font-size: 1em;
+    font-size: 17px;
+    line-height: 1.85;
+    color: var(--text) !important;
     font-family: var(--base-font-family) !important;
-}
-
-.toastui-editor-contents p {
-    line-height: 1.7;
     word-break: keep-all;
     overflow-wrap: break-word;
 }
 
-.toastui-editor-contents h1, h2 {
-    border-bottom: 1px solid var(--border-color) !important;
-    padding-bottom: 0.3em;
+.toastui-editor-contents p {
+    margin: 0 0 1.1em;
+    line-height: 1.85;
+    color: var(--text);
 }
 
-.toastui-editor-contents h1, h2, h3, h4, h5, h6 {
-    margin-top: 24px !important;
-    margin-bottom: 16px !important;
+.toastui-editor-contents h1,
+.toastui-editor-contents h2,
+.toastui-editor-contents h3,
+.toastui-editor-contents h4,
+.toastui-editor-contents h5,
+.toastui-editor-contents h6 {
+    margin-top: 2em !important;
+    margin-bottom: 0.7em !important;
     line-height: 1.35 !important;
+    letter-spacing: -0.01em;
+    font-weight: 700 !important;
+    color: var(--text) !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
 }
 
-.toastui-editor-contents h1 {
-    font-size: 2em !important;
-}
+.toastui-editor-contents h1 { font-size: 1.9em !important; }
+.toastui-editor-contents h2 { font-size: 1.55em !important; }
+.toastui-editor-contents h3 { font-size: 1.3em !important; }
+.toastui-editor-contents h4 { font-size: 1.15em !important; }
+.toastui-editor-contents h5 { font-size: 1.05em !important; }
+.toastui-editor-contents h6 { font-size: 1em !important; color: var(--text-2) !important; }
 
 .toastui-editor-contents h2 {
-    font-size: 1.75em !important;
+    padding-bottom: 0.35em !important;
+    border-bottom: 1px solid var(--border) !important;
 }
 
-.toastui-editor-contents h3 {
-    font-size: 1.5em !important;
+.toastui-editor-contents a {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--accent-text) 40%, transparent);
+    text-underline-offset: 0.15em;
 }
 
-.toastui-editor-contents h4 {
-    font-size: 1.25em !important;
+.toastui-editor-contents a:hover {
+    text-decoration-color: var(--accent-text);
 }
 
-.toastui-editor-contents h5 {
-    font-size: 1.125em !important;
+.toastui-editor-contents ul,
+.toastui-editor-contents ol {
+    margin: 0 0 1.1em;
+    padding-left: 1.6em;
+    color: var(--text);
 }
 
-.toastui-editor-contents h6 {
-    font-size: 1em !important;
-}
-
-.toastui-editor-dark .toastui-editor-contents ul > li::before {
-    background-color: #fff;
+.toastui-editor-contents li {
+    margin: 0.25em 0;
+    color: var(--text) !important;
 }
 
 .toastui-editor-contents ul > li::before {
-    background-color: #222;
-    margin-top: 0.5625em;
-    width: 7px;
-    height: 7px;
+    background-color: var(--text-3);
+    margin-top: 0.68em;
+    width: 6px;
+    height: 6px;
+}
+
+.toastui-editor-dark .toastui-editor-contents ul > li::before {
+    background-color: var(--text-3);
+}
+
+.toastui-editor-contents ol > li::before {
+    color: var(--text-2) !important;
 }
 
 .toastui-editor-contents .task-list-item::before {
-    top: 0.35em;
+    top: 0.4em;
+}
+
+.toastui-editor-contents :not(pre) code {
+    padding: 0.15em 0.4em !important;
+    font-size: 0.86em !important;
+    border-radius: 5px !important;
+    color: var(--accent-text) !important;
+    background-color: var(--code-bg) !important;
+    border: 1px solid var(--border) !important;
+    font-family: var(--font-mono) !important;
 }
 
 .toastui-editor-dark .toastui-editor-contents :not(pre) code {
-    color: darkorange !important;
+    color: var(--accent-text) !important;
+}
+
+.toastui-editor-md-code {
+    font-size: 86% !important;
+    border-radius: 5px !important;
+    color: var(--accent-text) !important;
+    background-color: var(--code-bg) !important;
+}
+
+.toastui-editor-dark .toastui-editor-md-code {
+    color: var(--accent-text) !important;
+}
+
+.toastui-editor-md-code + .toastui-editor-md-marked-text {
+    padding: 0.15em 0.4em !important;
+    border: 1px solid var(--border) !important;
+}
+
+.toastui-editor-contents pre {
+    margin: 0 0 1.3em;
+    padding: 16px 18px !important;
+    white-space: pre !important;
+    overflow-x: auto !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    background: var(--code-bg) !important;
+    font-size: 0.86em;
+    line-height: 1.6;
 }
 
 .toastui-editor-contents pre > code {
     white-space: pre !important;
-}
-
-.toastui-editor-contents :not(pre) code {
-    padding: 0.2em 0.4em !important;
-    font-size: 0.8em !important;
-    border-radius: 4px !important;
-    color: deeppink !important;
-    border: 1px solid var(--border-color) !important;
-    background-color: var(--background-color) !important;
-}
-
-.toastui-editor-dark .toastui-editor-md-code {
-    color: darkorange !important;
-}
-
-.toastui-editor-md-code {
-    font-size: 85% !important;
-    border-radius: 4px !important;
-    color: deeppink !important;
-    background-color: var(--background-color) !important;
-}
-
-.toastui-editor-md-code + .toastui-editor-md-marked-text {
-    padding: 0.2em 0.4em !important;
-    border: 1px solid var(--border-color) !important;
-}
-
-.toastui-editor-contents pre {
-    white-space: pre-wrap !important;
-    overflow-x: auto !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 4px !important;
+    font-family: var(--font-mono) !important;
+    background: transparent !important;
 }
 
 .toastui-editor-contents code > .token.operator {
     background: transparent;
 }
 
-.toastui-editor-contents video {
-    width: 100%;
-    max-width: max-content;
-}
-
 .toastui-editor-contents blockquote {
-    padding: 10px 16px;
-    border-left: 4px solid #428bca !important;
-    box-shadow: 0 0 5px var(--base-shadow-color);
+    margin: 0 0 1.3em;
+    padding: 10px 20px;
+    border-left: 3px solid var(--accent) !important;
+    background: var(--surface-2);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    box-shadow: none;
+    color: var(--text-2);
 }
 
-.toastui-editor-contents blockquote p, ol, li:before {
-    color: var(--base-color) !important;
+.toastui-editor-contents blockquote p {
+    color: var(--text-2) !important;
+    margin-bottom: 0.4em;
 }
 
 .toastui-editor-contents img {
-    background: #ffffff;
-    border-radius: 4px;
+    display: block;
+    max-width: 100%;
+    margin: 1.4em auto;
+    border-radius: var(--radius);
+    background: transparent;
+}
+
+.toastui-editor-contents video {
+    display: block;
+    width: 100%;
+    max-width: max-content;
+    margin: 1.4em auto;
+    border-radius: var(--radius);
+}
+
+.toastui-editor-contents hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2.5em auto;
+    width: 40%;
+}
+
+.toastui-editor-contents table {
+    margin: 0 0 1.3em;
+    width: auto;
+    max-width: 100%;
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.92em;
+}
+
+.toastui-editor-contents th,
+.toastui-editor-contents td {
+    border: 1px solid var(--border) !important;
+    padding: 8px 12px !important;
+    color: var(--text) !important;
+}
+
+.toastui-editor-contents th {
+    background: var(--surface-2) !important;
+    font-weight: 600;
+}
+
+.toastui-editor-contents strong {
+    font-weight: 700;
+}
+
+/* 에디터 크롬을 테마에 맞춘다 */
+.toastui-editor-defaultUI {
+    border-color: var(--border) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden;
+}
+
+.toastui-editor-defaultUI-toolbar {
+    background: var(--surface-2) !important;
+    border-bottom-color: var(--border) !important;
+}
+
+.toastui-editor-dark .toastui-editor-defaultUI-toolbar {
+    background: var(--surface-2) !important;
+}
+
+.toastui-editor-mode-switch {
+    background: var(--surface-2) !important;
+    border-top-color: var(--border) !important;
+}
+
+.toastui-editor-md-preview,
+.toastui-editor-ww-container,
+.toastui-editor-md-container {
+    background: var(--surface) !important;
+}
+
+.toastui-editor-md-splitter {
+    background: var(--border) !important;
 }

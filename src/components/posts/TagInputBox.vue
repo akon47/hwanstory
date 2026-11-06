@@ -1,49 +1,72 @@
 <template>
-  <div class="tag-input-box-container">
-    <div v-for="tag in modelValue" :key="tag">
-      <div class="tag-item" @click="removeTag(tag)">
-        {{ tag }}
-      </div>
-    </div>
+  <div class="tag-input" @click="focusInput">
+    <button v-for="tag in modelValue" :key="String(tag)" class="chip tag-chip" type="button" :title="`'${tag}' 태그 빼기`"
+            @click.stop="removeTag(String(tag))">
+      {{ tag }}<app-icon name="x" :size="12"/>
+    </button>
     <input
+        ref="input"
         type="text"
-        placeholder="태그 입력"
+        :placeholder="modelValue && modelValue.length > 0 ? '태그 추가' : '태그를 입력하고 Enter (예: Vue, 회고)'"
         v-model="inputTag"
-        @keydown.prevent.enter="addTag(inputTag)"
-        @keydown.delete="removeLastTag"/>
+        maxlength="30"
+        autocomplete="off"
+        @keydown="onKeydown"
+        @blur="addTag(inputTag)"/>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import AppIcon from '@/components/common/AppIcon.vue';
 
+// 태그 입력. Enter 또는 쉼표(,) 로 추가하고, 칩을 누르거나 Backspace 로 뺀다.
 export default defineComponent({
   name: 'TagInputBox',
+  components: { AppIcon },
   props: {
     modelValue: {
       type: Array,
       required: false,
     },
   },
+  emits: ['update:modelValue'],
   data() {
     return {
       inputTag: '',
     };
   },
   methods: {
-    addTag(tag: string) {
-      if (!tag || this.modelValue?.includes(tag))
+    onKeydown(event: KeyboardEvent) {
+      if (event.key === 'Enter' || event.key === ',') {
+        event.preventDefault();
+        this.addTag(this.inputTag);
+      } else if (event.key === 'Backspace') {
+        this.removeLastTag();
+      }
+    },
+    focusInput() {
+      (this.$refs['input'] as HTMLInputElement | undefined)?.focus();
+    },
+    addTag(raw: string) {
+      const tag = raw.replace(/,/g, '').trim();
+      if (!tag) {
+        this.inputTag = '';
         return;
-
-      this.$emit('update:modelValue', this.modelValue?.concat(tag));
+      }
+      if (this.modelValue?.includes(tag)) {
+        this.inputTag = '';
+        return;
+      }
+      this.$emit('update:modelValue', (this.modelValue ?? []).concat(tag));
       this.inputTag = '';
     },
     removeTag(tag: string) {
-      this.$emit('update:modelValue', this.modelValue?.filter(x => x !== tag));
+      this.$emit('update:modelValue', this.modelValue?.filter((x) => x !== tag));
     },
     removeLastTag() {
-      if(!this.inputTag) {
-        this.$emit('update:modelValue', this.modelValue?.slice(0, this.modelValue?.length - 1));
+      if (!this.inputTag && this.modelValue && this.modelValue.length > 0) {
+        this.$emit('update:modelValue', this.modelValue.slice(0, this.modelValue.length - 1));
       }
     },
   },
@@ -51,41 +74,35 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-.tag-input-box-container {
+.tag-input {
   display: flex;
-
   align-items: center;
-  justify-items: flex-start;
-
   flex-wrap: wrap;
+  gap: 6px;
+  cursor: text;
 }
 
-.tag-input-box-container input {
-  background: none;
-  outline: none;
-  border: none;
-  box-sizing: border-box;
-
-  width: 80px;
-  flex-grow: 1;
-}
-
-.tag-item {
+.tag-chip {
   cursor: pointer;
-
-  color: white;
-  background-color: var(--button-color);
-  margin: 2px;
-  border-radius: 5px;
-  padding: 1px 5px;
-  box-sizing: border-box;
-  font-size: 14px;
-
-  -ms-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
+.tag-chip:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.tag-input input {
+  flex: 1 0 160px;
+  min-width: 0;
+  height: 30px;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: var(--text-base);
+}
+
+.tag-input input::placeholder {
+  color: var(--text-3);
+}
 </style>

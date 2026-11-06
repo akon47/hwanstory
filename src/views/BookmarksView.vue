@@ -1,15 +1,20 @@
 <template>
-  <div class="main-container">
-    <div class="page-title">내 북마크</div>
-    <div class="empty-message" v-if="!isLoading && isEmpty">
-      북마크 한 게시글이 존재하지 않습니다.
+  <div class="container container-narrow page">
+    <div class="page-head">
+      <div>
+        <h1>북마크</h1>
+        <p class="lead">나중에 다시 읽으려고 저장한 글입니다.</p>
+      </div>
     </div>
-    <simple-post-list-panel :simple-posts="simplePosts"></simple-post-list-panel>
-    <observer-trigger
-        v-if="!isNoMorePage && !isLoading"
-        class="observer-trigger-enable"
-        v-on:trigger="loadMorePosts"/>
-    <div class="loading" v-if="isLoading">
+    <div v-if="!isLoading && isEmpty" class="empty-state">
+      <div class="empty-icon"><app-icon name="bookmark" :size="26"/></div>
+      <div class="empty-title">저장한 글이 없습니다</div>
+      <div>글 아래의 <b>북마크</b>를 누르면 여기에 모입니다.</div>
+      <router-link class="btn btn-secondary" to="/">글 둘러보기</router-link>
+    </div>
+    <simple-post-list-panel :simple-posts="simplePosts"/>
+    <observer-trigger v-if="!isNoMorePage && !isLoading" @trigger="loadMorePosts"/>
+    <div v-if="isLoading" class="loading">
       <loading-spinner/>
     </div>
   </div>
@@ -19,14 +24,16 @@
 import { defineComponent } from 'vue';
 import SimplePostListPanel from '@/components/posts/layout/SimplePostListPanel.vue';
 import ObserverTrigger from '@/components/common/ObserverTrigger.vue';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import AppIcon from '@/components/common/AppIcon.vue';
 import { SimplePostDto } from '@/api/models/blog.dtos';
 import { getMyBookmarks } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import { toast } from '@/utils/dialog';
 
 export default defineComponent({
   name: 'BookmarksView',
-  components: { LoadingSpinner, ObserverTrigger, SimplePostListPanel },
+  components: { AppIcon, LoadingSpinner, ObserverTrigger, SimplePostListPanel },
   data() {
     return {
       simplePosts: Array<SimplePostDto>(),
@@ -54,7 +61,7 @@ export default defineComponent({
           this.isEmpty = posts.last && this.simplePosts.length === 0;
         })
         .catch((error: HttpApiError) => {
-          alert(error.getErrorMessage());
+          toast.error(error.getErrorMessage());
         });
       } finally {
         this.isLoading = false;
@@ -73,32 +80,9 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-.page-title {
-  text-align: center;
-  font-size: 1.75em;
-  font-weight: bold;
-  padding: 1em 0 0.5em;
-}
-
-.observer-trigger-enable {
-  height: 680px;
-  position: relative;
-  margin-top: -600px;
-}
-
 .loading {
   display: flex;
   justify-content: center;
-  box-sizing: border-box;
-  height: 80px;
+  height: 64px;
 }
-
-.empty-message {
-  text-align: center;
-  font-size: 1.25em;
-  font-weight: bold;
-  padding-top: 2em;
-}
-
 </style>

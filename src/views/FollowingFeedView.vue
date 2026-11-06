@@ -1,22 +1,15 @@
 <template>
-  <div class="main-container">
-    <div class="tabs-container">
-      <div class="tabs">
-        <router-link :to="{path: `/`}">최근 글</router-link>
-        <router-link :to="{path: `/top`}">인기 글</router-link>
-        <router-link :to="{path: `/viewing`}">보고 있는 글</router-link>
-        <router-link :to="{path: `/feed`}">팔로잉</router-link>
-      </div>
+  <div class="container page feed-page">
+    <feed-tabs/>
+    <simple-post-wrap-panel :simple-posts="simplePosts"/>
+    <div v-if="isEmpty && !isLoading" class="empty-state">
+      <div class="empty-icon"><app-icon name="users" :size="26"/></div>
+      <div class="empty-title">팔로우하는 사람의 새 글이 없습니다</div>
+      <div>마음에 드는 글쓴이의 블로그에서 <b>팔로우</b>를 누르면 여기에서 새 글을 모아 볼 수 있어요.</div>
+      <router-link class="btn btn-secondary" to="/">최근 글 보기</router-link>
     </div>
-    <simple-post-wrap-panel :simple-posts="simplePosts"></simple-post-wrap-panel>
-    <div v-if="isEmpty && !isLoading" class="empty-message">
-      팔로우하는 사용자의 게시글이 없습니다.
-    </div>
-    <observer-trigger
-        v-if="!isNoMorePage && !isLoading"
-        class="observer-trigger-enable"
-        v-on:trigger="loadMore"/>
-    <div class="loading" v-if="isLoading">
+    <observer-trigger v-if="!isNoMorePage && !isLoading" @trigger="loadMore"/>
+    <div v-if="isLoading" class="loading">
       <loading-spinner/>
     </div>
   </div>
@@ -28,12 +21,15 @@ import { SimplePostDto } from '@/api/models/blog.dtos';
 import { getFollowingFeed } from '@/api/follow';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import SimplePostWrapPanel from '@/components/posts/layout/SimplePostWrapPanel.vue';
+import FeedTabs from '@/components/posts/layout/FeedTabs.vue';
 import ObserverTrigger from '@/components/common/ObserverTrigger.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import AppIcon from '@/components/common/AppIcon.vue';
+import { toast } from '@/utils/dialog';
 
 export default defineComponent({
   name: 'FollowingFeedView',
-  components: { LoadingSpinner, ObserverTrigger, SimplePostWrapPanel },
+  components: { AppIcon, LoadingSpinner, ObserverTrigger, SimplePostWrapPanel, FeedTabs },
   data() {
     return {
       simplePosts: Array<SimplePostDto>(),
@@ -61,7 +57,7 @@ export default defineComponent({
           this.isEmpty = posts.last && this.simplePosts.length === 0;
         })
         .catch((error: HttpApiError) => {
-          alert(error.getErrorMessage());
+          toast.error(error.getErrorMessage());
         });
       } finally {
         this.isLoading = false;
@@ -80,93 +76,17 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-.main-container {
-  min-height: 100vh;
-}
-
-.observer-trigger-enable {
-  height: 720px;
-  position: relative;
-  margin-top: -600px;
+.feed-page {
+  display: grid;
+  gap: var(--s-6);
+  align-content: start;
+  min-height: 60vh;
+  padding-block: var(--s-5) var(--s-16);
 }
 
 .loading {
   display: flex;
   justify-content: center;
-  margin-bottom: calc(var(--base-gap) * 2);
-  box-sizing: border-box;
-  height: 80px;
+  height: 64px;
 }
-
-.empty-message {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-  opacity: 0.6;
-}
-
-.tabs-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 320px);
-  grid-template-rows: auto;
-  gap: calc(var(--base-gap) * 2);
-  margin-left: calc(var(--base-gap) * 2);
-  margin-right: calc(var(--base-gap) * 2);
-  justify-content: center;
-}
-
-@media (max-width: 1080px) {
-  .tabs-container {
-    grid-template-columns: repeat(2, 1fr);
-    justify-content: center;
-    gap: var(--base-gap);
-    margin-left: var(--base-gap);
-    margin-right: var(--base-gap);
-  }
-}
-
-@media (max-width: 650px) {
-  .tabs-container {
-    grid-template-columns: repeat(1, 1fr);
-    justify-content: stretch;
-  }
-}
-
-.tabs {
-  border-bottom: 1px solid var(--border-color);
-  grid-column: 1/-1;
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  grid-template-rows: auto;
-  gap: var(--base-gap);
-  justify-content: left;
-}
-
-.tabs a {
-  color: var(--base-color);
-  opacity: 0.5;
-  box-sizing: border-box;
-  text-align: center;
-  align-self: stretch;
-  padding: 12px 8px 5px 8px;
-  border-bottom: 2px solid transparent;
-  transition: 0.2s;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .tabs a:hover {
-    text-decoration: none;
-    opacity: 1;
-    border-bottom: 2px solid var(--base-color);
-  }
-}
-
-.tabs a.router-link-exact-active {
-  color: var(--base-color);
-  opacity: 1;
-  border-bottom: 2px solid var(--button-color);
-}
-
 </style>

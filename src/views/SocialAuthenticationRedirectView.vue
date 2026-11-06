@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { toast } from '@/utils/dialog';
 import store from '@/store';
 import { TokenDto } from '@/api/models/authentication.dtos';
 import { HttpApiError } from '@/api/common/httpApiClient';
@@ -61,7 +62,7 @@ export default defineComponent({
         refreshTokenExpiresIn: 1,
       } as TokenDto)
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
       })
       .finally(() => {
         this.$router.push('/');

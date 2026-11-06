@@ -1,5 +1,5 @@
 <template>
-  <div class="wrap-panel-container">
+  <div class="post-grid">
     <simple-post-wrap-item v-for="post in simplePosts" :key="post.id" :simple-post="post"/>
   </div>
 </template>
@@ -19,34 +19,20 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-.wrap-panel-container {
+.post-grid {
   display: grid;
-
-  grid-template-columns: repeat(auto-fill, 320px);
-  grid-auto-rows: auto;
-
-  justify-content: center;
-
-  gap: calc(var(--base-gap) * 2);
-  margin: calc(var(--base-gap) * 2);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--s-6);
 }
 
-@media (max-width: 1080px) {
-  .wrap-panel-container {
-    grid-template-columns: repeat(2, 1fr);
-    justify-content: center;
+.post-grid:empty {
+  display: none;
+}
 
-    gap: var(--base-gap);
-    margin: var(--base-gap);
+@media (max-width: 640px) {
+  .post-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-5);
   }
 }
-
-@media (max-width: 650px) {
-  .wrap-panel-container {
-    grid-template-columns: repeat(1, 1fr);
-    justify-content: stretch;
-  }
-}
-
 </style>

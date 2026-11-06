@@ -1,269 +1,188 @@
 <template>
-  <div class="simple-post-item-container">
-    <router-link :to="`/${this.simplePost?.author?.blogId}/posts/${this.simplePost?.postUrl}`">
-      <div class="inner-container">
-        <div class="thumbnail" :style="thumbnailStyle">
-          <div v-if="!simplePost.thumbnailImageUrl" class="thumbnail-title">
-            {{ simplePost.title }}
-          </div>
-        </div>
-        <div class="contents">
-          <div class="title">
-            {{ simplePost.title }}
-          </div>
-          <div class="summary">
-            {{ simplePost.summary }}
-          </div>
-        </div>
+  <article class="post-row">
+    <div class="body">
+      <div v-if="openTypeLabel || hasTags" class="top-row">
+        <span v-if="openTypeLabel" class="badge badge-warning">{{ openTypeLabel }}</span>
+        <router-link v-for="tag in simplePost?.tags" :key="tag.name" class="chip chip-neutral"
+                     :to="{ path: `/${simplePost?.author?.blogId}/posts`, query: { tag: tag.name } }">
+          {{ tag.name }}
+        </router-link>
       </div>
+      <h3 class="title">
+        <router-link :to="postPath">{{ simplePost?.title }}</router-link>
+      </h3>
+      <p class="summary">{{ simplePost?.summary }}</p>
+      <div class="meta-row">
+        <time :datetime="isoDate" :title="fullDate">{{ relativeDate }}</time>
+        <span class="dot"/>
+        <span>조회 {{ hits }}</span>
+        <span class="dot"/>
+        <span class="stat"><app-icon name="heart" :size="14"/>{{ simplePost?.likeCount }}</span>
+        <span class="stat"><app-icon name="comment" :size="14"/>{{ simplePost?.commentCount }}</span>
+        <post-viewer-count :post-id="simplePost?.id"/>
+      </div>
+    </div>
+    <router-link class="thumb" :to="postPath" tabindex="-1" aria-hidden="true">
+      <div class="thumb-image" :style="thumbnail"/>
     </router-link>
-    <div class="tags">
-      <tag-item v-for="tag in simplePost.tags" :key="tag.name" :name="tag.name"/>
-    </div>
-    <div class="footer">
-      <div>
-        {{ createdAt }}
-        <span>&#183;</span>
-        {{ simplePost.hits }} 조회됨
-        <span class="badge" v-if="simplePost.openType == 'PRIVATE'">
-          비공개 게시글
-        </span>
-      </div>
-      <div>
-        <post-viewer-count :post-id="simplePost.id"/>
-        <span v-if="viewerCount > 0">&#183;</span>
-        {{ simplePost.likeCount }} 개의 좋아요
-        <span>&#183;</span>
-        {{ simplePost.commentCount }} 개의 댓글
-      </div>
-    </div>
-  </div>
+  </article>
 </template>
 
 <script lang="ts">
-import { SimplePostDto } from '@/api/models/blog.dtos';
 import { defineComponent, PropType } from 'vue';
-import dayjs from 'dayjs';
-import { attachmentFileBaseUrl } from '@/api/common/httpApiClient';
-import TagItem from "@/components/posts/TagItem.vue";
+import { SimplePostDto } from '@/api/models/blog.dtos';
 import PostViewerCount from '@/components/posts/PostViewerCount.vue';
-import store from '@/store';
+import AppIcon from '@/components/common/AppIcon.vue';
+import { formatCount, formatDateTime, formatRelativeDate } from '@/utils/format';
+import { thumbnailStyle } from '@/utils/thumbnail';
+
+const OPEN_TYPE_LABELS: Record<string, string> = {
+  PRIVATE: '비공개',
+  DRAFT: '임시저장',
+  SCHEDULED: '예약 발행',
+};
 
 export default defineComponent({
   name: 'SimplePostListItem',
-  components: { TagItem, PostViewerCount },
+  components: { AppIcon, PostViewerCount },
   props: {
     simplePost: Object as PropType<SimplePostDto>,
   },
   computed: {
-    viewerCount(): number {
-      return store.getters['commonStore/postViewerCount'](this.simplePost?.id);
+    postPath(): string {
+      return `/${this.simplePost?.author?.blogId}/posts/${this.simplePost?.postUrl}`;
     },
-    createdAt() {
-      return dayjs(this.simplePost?.createdAt).format('YYYY.MM.DD H:mm');
+    relativeDate(): string {
+      return formatRelativeDate(this.simplePost?.createdAt);
     },
-    thumbnailStyle() {
-      if (this.simplePost?.thumbnailImageUrl) {
-        return {
-          backgroundImage: `url(${attachmentFileBaseUrl}${this.simplePost?.thumbnailImageUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        };
-      }
-
-      let date = new Date(this.simplePost?.createdAt ?? 0).getTime() ?? 1;
-      const random = () => {
-        const x = Math.sin(date++) * 10000;
-        return x - Math.floor(x);
-      };
-
-      const direction = Math.round(random() * 360);
-
-      const r1 = Math.round(random() * 255);
-      const g1 = Math.round(random() * 255);
-      const b1 = Math.round(random() * 255);
-      const a1 = 1;
-
-      const r2 = Math.round(random() * 255);
-      const g2 = Math.round(random() * 255);
-      const b2 = Math.round(random() * 255);
-      const a2 = 1;
-
-      return {
-        background: `linear-gradient(${direction}deg, rgba(${r1},${g1},${b1},${a1}), rgba(${r2},${g2},${b2},${a2}))`,
-      };
+    fullDate(): string {
+      return formatDateTime(this.simplePost?.createdAt);
+    },
+    isoDate(): string {
+      return this.simplePost?.createdAt ? new Date(this.simplePost.createdAt).toISOString() : '';
+    },
+    hits(): string {
+      return formatCount(this.simplePost?.hits);
+    },
+    hasTags(): boolean {
+      return (this.simplePost?.tags?.length ?? 0) > 0;
+    },
+    openTypeLabel(): string {
+      return OPEN_TYPE_LABELS[this.simplePost?.openType ?? ''] ?? '';
+    },
+    thumbnail() {
+      return thumbnailStyle(this.simplePost?.thumbnailImageUrl, this.simplePost?.createdAt);
     },
   },
 });
 </script>
 
 <style scoped>
-
-.simple-post-item-container {
+.post-row {
+  position: relative;
   display: grid;
-
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(auto, 1fr) auto auto;
-
-  width: 100%;
-
-  aspect-ratio: 4 / 1;
-
-  padding-bottom: var(--base-gap);
-  margin-bottom: var(--base-gap);
-
-  border-bottom: 1px solid var(--border-color);
-  box-sizing: border-box;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: var(--s-6);
+  padding: var(--s-6) 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.simple-post-item-container a {
-  color: var(--base-color);
-  text-decoration: none;
+.post-row:first-child {
+  padding-top: var(--s-2);
 }
 
-.inner-container {
+.body {
   display: grid;
-
-  grid-template-columns: minmax(0, 1fr) 2fr;
-  grid-template-rows: auto;
-
-  transition: box-shadow .2s;
+  gap: var(--s-2);
+  align-content: start;
+  min-width: 0;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .inner-container:hover {
-    box-shadow: 0 0 11px var(--base-shadow-color);
-    cursor: pointer;
-  }
-}
-
-.thumbnail {
-  width: 100%;
-  height: 100%;
-
-  aspect-ratio: 16 / 9;
-  box-sizing: border-box;
-
-  background-size: cover;
-  background: white no-repeat;
-
-  transition: 0.2s;
-
-  overflow: hidden;
-
-  display: grid;
-  align-items: center;
-}
-
-.thumbnail-title {
-  font-size: 1.75em;
-  font-weight: bold;
-  color: #e5e5e5;
-  text-shadow: 0 0 12px #000000;
-
-  text-align: center;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-
-  margin: 0 1em;
-}
-
-@media (max-width: 650px) {
-  .thumbnail {
-    aspect-ratio: 1;
-  }
-
-  .thumbnail-title {
-    font-size: 1.25em;
-  }
-}
-
-@media (max-width: 550px) {
-  .thumbnail-title {
-    font-size: 1em;
-  }
-}
-
-@media (max-width: 450px) {
-  .thumbnail-title {
-    font-size: 0.8em;
-    font-weight: normal;
-  }
-}
-
-.contents {
-  flex-grow: 1;
-
-  display: grid;
-
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, auto) minmax(0, 1fr);
-
-  box-sizing: border-box;
-  padding: 0.2em 0.8em;
+.top-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  position: relative;
+  z-index: 2;
 }
 
 .title {
-  font-size: 1.5em;
-  font-weight: 500;
+  font-size: var(--text-xl);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
 
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  align-self: start;
+.title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.post-row:hover .title a {
+  color: var(--accent-text);
 }
 
 .summary {
-  font-size: 1em;
-  font-weight: 400;
-
+  color: var(--text-2);
+  line-height: 1.65;
   overflow: hidden;
-  text-overflow: ellipsis;
-
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 2;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.meta-row {
+  margin-top: var(--s-1);
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.thumb {
+  display: block;
   align-self: start;
 }
 
-@media (max-width: 600px) {
+.thumb-image {
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius);
+  background-color: var(--surface-2);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 640px) {
+  .post-row {
+    grid-template-columns: minmax(0, 1fr) 88px;
+    gap: var(--s-4);
+    padding: var(--s-5) 0;
+  }
+
+  .title {
+    font-size: var(--text-md);
+  }
+
   .summary {
-    -webkit-line-clamp: 3;
+    font-size: var(--text-sm);
+  }
+
+  .thumb-image {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-sm);
   }
 }
-
-@media (max-width: 500px) {
-  .summary {
-    -webkit-line-clamp: 2;
-  }
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-
-  align-self: end;
-  justify-self: end;
-
-  margin-top: 10px;
-}
-
-.footer {
-  display: flex;
-  font-size: 0.75em;
-  justify-self: right;
-
-  width: 100%;
-
-  justify-content: space-between;
-  padding: 0.3em 0.3em 0 0.3em;
-}
-
-
 </style>

@@ -1,7 +1,7 @@
 <template>
-  <button class="provider-button" :style="{ backgroundColor: backgroundColor, borderColor: borderColor }">
-    <img :src="providerLogoSrc" />
-  </button>
+  <span class="provider-button" :style="{ backgroundColor: backgroundColor, borderColor: borderColor }">
+    <img :src="providerLogoSrc" alt=""/>
+  </span>
 </template>
 
 <script lang="ts">
@@ -13,8 +13,8 @@ export default defineComponent({
     provider: {
       type: String,
       require: true,
-      default: 'google'
-    }
+      default: 'google',
+    },
   },
   computed: {
     providerLogoSrc() {
@@ -25,56 +25,52 @@ export default defineComponent({
         case 'google':
           return '#ffffff';
         case 'github':
-          return '#272e33';
+          return '#24292f';
         case 'facebook':
-          return '#3C5A99';
+          return '#1877f2';
         case 'naver':
-          return '#1ec800';
+          return '#03c75a';
         case 'kakao':
           return '#fee500';
         case 'discord':
-          return '#5865F2';
+          return '#5865f2';
         case 'microsoft':
           return '#ffffff';
         default:
-          return '#ffffff'
+          return '#ffffff';
       }
     },
     borderColor() {
       switch (this.provider) {
         case 'google':
         case 'microsoft':
-          return 'var(--border-color)';
+          return 'var(--border-strong)';
         default:
-          return 'transparent'
+          return 'transparent';
       }
-    }
-  }
+    },
+  },
 });
 </script>
 
 <style scoped>
-
 .provider-button {
   width: 100%;
   height: 100%;
-
   display: grid;
-  background: white;
+  place-items: center;
   border: 1px solid;
+  border-radius: 50%;
+  transition: transform var(--ease), box-shadow var(--ease);
 }
 
-.provider-button:hover:not([disabled]) {
-  box-shadow: 0 0 10px var(--base-shadow-color);
-  cursor: pointer;
+.provider-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .provider-button img {
-  width: 150%;
-  height: 150%;
-
-  align-self: center;
-  justify-self: center;
+  width: 56%;
+  height: 56%;
 }
-
 </style>

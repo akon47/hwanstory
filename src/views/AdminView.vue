@@ -23,9 +23,9 @@
     </div>
 
     <div class="toolbar">
-      <input v-model="search" class="search-input" type="text" placeholder="이메일 / 이름 / 블로그 Id 검색"
+      <input v-model="search" class="input search-input" type="text" placeholder="이메일 / 이름 / 블로그 Id 검색"
              @keyup.enter="applySearch"/>
-      <button class="search-button" @click="applySearch">검색</button>
+      <button class="btn" @click="applySearch">검색</button>
     </div>
 
     <div class="table-wrapper">
@@ -57,10 +57,10 @@
           </td>
           <td>
             <button v-if="!account.deleted && !isAdminRole(account)"
-                    class="action danger" :disabled="isLoading" @click="disable(account)">정지
+                    class="btn btn-danger-ghost btn-sm" :disabled="isLoading" @click="disable(account)">정지
             </button>
             <button v-else-if="account.deleted"
-                    class="action" :disabled="isLoading" @click="restore(account)">해제
+                    class="btn btn-secondary btn-sm" :disabled="isLoading" @click="restore(account)">해제
             </button>
             <span v-else>-</span>
           </td>
@@ -73,7 +73,7 @@
     </div>
 
     <div class="footer">
-      <button v-if="!isNoMorePage && !isLoading" class="more-button" @click="loadMore">더 보기</button>
+      <button v-if="!isNoMorePage && !isLoading" class="btn btn-secondary" @click="loadMore">더 보기</button>
       <div v-if="isLoading" class="loading">
         <loading-spinner/>
       </div>
@@ -83,6 +83,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { confirmDialog, toast } from '@/utils/dialog';
 import { AdminAccountDto, AdminStatisticsDto } from '@/api/models/admin.dtos';
 import { disableAccount, getAccounts, getStatistics, restoreAccount } from '@/api/admin';
 import { HttpApiError } from '@/api/common/httpApiClient';
@@ -122,7 +123,7 @@ export default defineComponent({
         this.statistics = statistics;
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
       });
     },
     async fetchAccounts(cursorId: string | null = null) {
@@ -141,7 +142,7 @@ export default defineComponent({
           this.isNoMorePage = accounts.last;
         })
         .catch((error: HttpApiError) => {
-          alert(error.getErrorMessage());
+          toast.error(error.getErrorMessage());
         });
       } finally {
         this.isLoading = false;
@@ -157,7 +158,7 @@ export default defineComponent({
       this.fetchAccounts();
     },
     async disable(account: AdminAccountDto) {
-      if (!confirm(`'${account.name}' 회원을 정지하시겠습니까?`)) {
+      if (!await confirmDialog(`'${account.name}' 회원을 정지하시겠습니까?`)) {
         return;
       }
       this.isLoading = true;
@@ -167,7 +168,7 @@ export default defineComponent({
         this.loadStatistics();
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
         this.isLoading = false;
       });
     },
@@ -179,7 +180,7 @@ export default defineComponent({
         this.loadStatistics();
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
         this.isLoading = false;
       });
     },

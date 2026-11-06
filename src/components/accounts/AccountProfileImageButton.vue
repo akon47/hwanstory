@@ -1,7 +1,7 @@
 <template>
-  <div class="account-profile-image-container" @click="moveToBlog">
-    <div class="profile" :style="profileImageUrl"/>
-  </div>
+  <component :is="isLinkable ? 'router-link' : 'span'" class="avatar account-profile-image-button"
+             :class="{ linkable: isLinkable }" :to="isLinkable ? `/${simpleAccount?.blogId}` : undefined"
+             :style="profileImageStyle" :aria-label="simpleAccount?.name" :title="simpleAccount?.name"/>
 </template>
 
 <script lang="ts">
@@ -15,54 +15,29 @@ export default defineComponent({
     simpleAccount: Object as PropType<SimpleAccountDto>,
   },
   computed: {
-    profileImageUrl() {
-      if (this.simpleAccount?.profileImageUrl) {
-        return {
-          backgroundImage: `url(${attachmentFileBaseUrl}${this.simpleAccount?.profileImageUrl})`,
-        };
-      } else {
-        return {
-          backgroundImage: `url(${require('@/assets/profile.svg')})`,
-        };
-      }
+    isLinkable(): boolean {
+      return !!this.simpleAccount?.blogId && !this.simpleAccount?.guest;
     },
-  },
-  methods: {
-    async moveToBlog() {
-      if (!this.simpleAccount?.guest) {
-        this.$router.push(`/${this.simpleAccount?.blogId}`);
-      }
+    profileImageStyle() {
+      const url = this.simpleAccount?.profileImageUrl
+          ? `${attachmentFileBaseUrl}${this.simpleAccount.profileImageUrl}`
+          : require('@/assets/profile.svg');
+      return { backgroundImage: `url(${url})` };
     },
   },
 });
 </script>
 
 <style scoped>
-
-.account-profile-image-container {
+.account-profile-image-button {
+  display: block;
+  width: 100%;
+  height: 100%;
   aspect-ratio: 1 / 1;
-  cursor: pointer;
-
-  border-radius: 100%;
-
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  transition: box-shadow var(--ease);
 }
 
-.profile {
-  background-color: #6eafd4;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: inherit;
+.account-profile-image-button.linkable:hover {
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
-
-@media (hover: hover) and (pointer: fine) {
-  .profile:hover {
-    box-shadow: 0 0 12px var(--base-shadow-color);
-    transition: 0.2s;
-  }
-}
-
 </style>

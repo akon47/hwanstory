@@ -1,73 +1,75 @@
 <template>
-  <div class="notification-item-container">
-    <div class="header">
-      <span class="title">팔로우</span>&nbsp;<span class="content">
-        <a :href="followerUrl">{{ notification.follower.name }}</a>님이 회원님을 팔로우합니다.
-      </span>
-    </div>
-    <div class="footer">
-      {{ longCreateAt }}
-    </div>
-  </div>
+  <router-link class="notification" :to="followerUrl ?? '/'" @click="$emit('navigate')">
+    <span class="icon"><app-icon name="users" :size="16"/></span>
+    <span class="body">
+      <span class="text"><b>{{ notification?.follower?.name }}</b>님이 회원님을 팔로우합니다</span>
+      <span class="time">{{ relativeTime }}</span>
+    </span>
+  </router-link>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { FollowNotificationDto } from "@/api/models/notification.dtos";
+import { FollowNotificationDto } from '@/api/models/notification.dtos';
+import AppIcon from '@/components/common/AppIcon.vue';
+import { formatRelativeDate } from '@/utils/format';
 
 export default defineComponent({
   name: 'FollowNotificationItem',
+  components: { AppIcon },
   props: {
     notification: Object as PropType<FollowNotificationDto>,
   },
+  emits: ['navigate'],
   computed: {
-    longCreateAt() {
-      if (!this.notification?.createdAt) {
-        return null;
-      }
-      const date = new Date(this.notification.createdAt);
-      const hours = `${date.getHours()}`.padStart(2, '0');
-      const minutes = `${date.getMinutes()}`.padStart(2, '0');
-      return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}. ${hours}:${minutes}`;
+    relativeTime(): string {
+      return formatRelativeDate(this.notification?.createdAt);
     },
-    followerUrl() {
+    followerUrl(): string | null {
       const blogId = this.notification?.follower?.blogId;
-      if (!blogId) {
-        return null;
-      }
-      return `/${blogId}`;
+      return blogId ? `/${blogId}` : null;
     },
   },
-  methods: {},
 });
 </script>
 
 <style scoped>
-
-.notification-item-container .header {
-  font-size: 1.2em;
-  display: flex;
+.notification {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-3);
+  color: var(--text);
+  text-decoration: none;
+  font-size: var(--text-sm);
 }
 
-.notification-item-container .footer {
-  font-size: 1em;
+.notification:hover {
+  text-decoration: none;
 }
 
-.notification-item-container .title {
-  white-space: nowrap;
-  font-weight: bold;
+.icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--success-soft);
+  color: var(--success);
 }
 
-.notification-item-container .content {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
-.notification-item-container a {
-  color: var(--base-color);
-  font-weight: bold;
+.text {
+  line-height: 1.45;
+  word-break: keep-all;
 }
 
+.time {
+  color: var(--text-3);
+  font-size: var(--text-xs);
+}
 </style>

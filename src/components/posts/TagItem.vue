@@ -1,7 +1,5 @@
 <template>
-  <div class="tag-item">
-    {{ name }}
-  </div>
+  <span class="chip">{{ name }}</span>
 </template>
 
 <script lang="ts">
@@ -17,22 +15,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-
-.tag-item {
-  color: white;
-  background-color: var(--button-color);
-  margin: 2px;
-  border-radius: 5px;
-  padding: 1px 5px;
-  box-sizing: border-box;
-  font-size: 0.85em;
-
-  -ms-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-</style>

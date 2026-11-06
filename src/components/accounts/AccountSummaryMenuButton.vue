@@ -1,163 +1,167 @@
 <template>
-  <div class="account-summary-container">
-    <div class="dropdown-container" :style="profileImageUrl">
-      <details>
-        <summary/>
-        <div class="dropdown-content">
-          <a @click="goToMyBlog">내 블로그</a>
-          <a @click="goToBookmarks">내 북마크</a>
-          <a @click="goToSetting">내 정보 수정</a>
-          <a @click="goToTokens">액세스 토큰</a>
-          <a v-if="isAdmin" @click="goToAdmin">관리자</a>
-          <a @click="signOut">로그아웃</a>
+  <div class="account-menu" ref="root">
+    <button class="avatar-button" type="button" :aria-expanded="isOpen" aria-haspopup="menu" aria-label="내 메뉴"
+            @click="toggle">
+      <span class="avatar" :style="profileImageStyle"/>
+    </button>
+    <transition name="pop">
+      <div v-if="isOpen" class="menu" role="menu">
+        <div class="menu-head">
+          <div class="name">{{ name || '내 계정' }}</div>
+          <div class="blog-id subtle small">{{ blogId }}</div>
         </div>
-      </details>
-    </div>
+        <div class="menu-sep"/>
+        <router-link class="menu-item" role="menuitem" :to="`/${blogId}`" @click="close">
+          <app-icon name="home" :size="18"/>내 블로그
+        </router-link>
+        <router-link class="menu-item" role="menuitem" to="/bookmarks" @click="close">
+          <app-icon name="bookmark" :size="18"/>북마크
+        </router-link>
+        <router-link class="menu-item" role="menuitem" to="/setting" @click="close">
+          <app-icon name="settings" :size="18"/>설정
+        </router-link>
+        <router-link class="menu-item" role="menuitem" to="/tokens" @click="close">
+          <app-icon name="bot" :size="18"/>AI 에이전트 · 토큰
+        </router-link>
+        <router-link v-if="isAdmin" class="menu-item" role="menuitem" to="/admin" @click="close">
+          <app-icon name="shield" :size="18"/>관리자
+        </router-link>
+        <div class="menu-sep"/>
+        <button class="menu-item" role="menuitem" type="button" @click="signOut">
+          <app-icon name="log-out" :size="18"/>로그아웃
+        </button>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { HttpApiError, attachmentFileBaseUrl } from '@/api/common/httpApiClient';
+import { attachmentFileBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
 import store from '@/store';
+import AppIcon from '@/components/common/AppIcon.vue';
+import { toast } from '@/utils/dialog';
 
 export default defineComponent({
   name: 'AccountSummaryMenuButton',
+  components: { AppIcon },
+  data() {
+    return {
+      isOpen: false,
+    };
+  },
   computed: {
-    profileImageUrl() {
+    profileImageStyle() {
       const profileImageUrl = store.state.accountStore.profileImageUrl;
-      if (profileImageUrl) {
-        return {
-          backgroundImage: `url(${attachmentFileBaseUrl}${profileImageUrl})`,
-        };
-      } else {
-        return {
-          backgroundImage: `url(${require('@/assets/profile.svg')})`,
-        };
-      }
+      const url = profileImageUrl ? `${attachmentFileBaseUrl}${profileImageUrl}` : require('@/assets/profile.svg');
+      return { backgroundImage: `url(${url})` };
     },
     isAdmin(): boolean {
       return store.getters['accountStore/isAdmin'] ?? false;
     },
+    blogId(): string {
+      return store.state.accountStore.blogId;
+    },
+    name(): string {
+      return store.state.accountStore.name;
+    },
   },
   methods: {
+    toggle() {
+      this.isOpen = !this.isOpen;
+    },
+    close() {
+      this.isOpen = false;
+    },
+    onDocumentClick(event: MouseEvent) {
+      const root = this.$refs['root'] as HTMLElement | undefined;
+      if (this.isOpen && root && !root.contains(event.target as Node)) {
+        this.close();
+      }
+    },
+    onKeydown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        this.close();
+      }
+    },
     async signOut() {
+      this.close();
       await store.dispatch('accountStore/signOut')
       .then(() => {
-        alert('로그아웃 되었습니다.');
+        toast.info('로그아웃했습니다.');
+        if (this.$route.path !== '/') {
+          this.$router.push('/');
+        }
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
       });
     },
-    goToMyBlog() {
-      this.$router.push(`/${store.state.accountStore.blogId}`);
-    },
-    goToBookmarks() {
-      this.$router.push('/bookmarks');
-    },
-    goToSetting() {
-      this.$router.push('/setting');
-    },
-    goToTokens() {
-      this.$router.push('/tokens');
-    },
-    goToAdmin() {
-      this.$router.push('/admin');
-    },
+  },
+  mounted() {
+    document.addEventListener('click', this.onDocumentClick);
+    document.addEventListener('keydown', this.onKeydown);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.onDocumentClick);
+    document.removeEventListener('keydown', this.onKeydown);
   },
 });
 </script>
 
 <style scoped>
-
-.account-summary-container {
-  width: 50px;
-  height: 50px;
-  cursor: default;
-
-  border-radius: 100%;
-}
-
-.dropdown-container {
-  display: inline-block;
-
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 150px !important; /* any size */
-  max-height: 150px !important; /* any size */
-  margin: auto;
-
-  border-radius: 100%;
+.account-menu {
   position: relative;
-
-  background-color: #6eafd4;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-
-  z-index: 1;
+  margin-left: var(--s-1);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .dropdown-container:hover {
-    box-shadow: 0 0 12px var(--base-shadow-color);
-  }
+.avatar-button {
+  display: block;
+  padding: 2px;
+  border-radius: 50%;
+  transition: box-shadow var(--ease);
 }
 
-.dropdown-container details {
-  width: 100%;
-  height: 100%;
+.avatar-button:hover,
+.avatar-button[aria-expanded="true"] {
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.dropdown-container summary {
-  list-style: none;
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
+.avatar-button .avatar {
+  display: block;
+  width: 34px;
+  height: 34px;
 }
 
-.dropdown-container summary::-webkit-details-marker {
-  display: none;
-}
-
-.dropdown-container .dropdown-content {
+.menu {
   position: absolute;
-  min-inline-size: max-content;
-  background-color: var(--background-color);
-  right: 0px;
-}
-
-.dropdown-container details[open] summary::before {
-  position: fixed;
-  top: 0;
   right: 0;
-  bottom: 0;
-  left: 0;
-  content: "";
-  cursor: default;
-  height: 100vh;
+  top: calc(100% + 8px);
+  width: 230px;
+  z-index: 200;
 }
 
-.dropdown-container .dropdown-content {
-  display: grid;
-
-  grid-template-columns: 100px;
-  grid-auto-rows: auto;
-
-  grid-row-gap: var(--half-base-gab);
-
-  margin-top: calc(var(--half-base-gab) / 2);
-  border: 1px solid var(--border-color);
-  border-radius: var(--base-border-radius);
-
-  padding: var(--half-base-gab) 0px;
-
-  font-size: 12px;
+.menu-head .name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.dropdown-content a {
-  padding: 0px var(--half-base-gab);
+.menu-head .blog-id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+.pop-enter-active,
+.pop-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.pop-enter-from,
+.pop-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
 </style>

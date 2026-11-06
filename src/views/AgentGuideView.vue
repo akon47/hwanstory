@@ -70,7 +70,7 @@ export default defineComponent({
 
 .lead {
   font-weight: 300;
-  color: #8e9297;
+  color: var(--text-3);
   line-height: 1.6;
   word-break: break-all;
 }

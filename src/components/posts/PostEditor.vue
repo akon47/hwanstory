@@ -12,6 +12,7 @@ import '@toast-ui/editor/dist/i18n/ko-kr';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { uploadFile } from '@/api/attachments';
 import { attachmentFileBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
+import { toast } from '@/utils/dialog';
 
 const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight-all');
 
@@ -48,7 +49,7 @@ export default defineComponent({
   },
   methods: {
     onEditorSizeChanged(rect: DOMRectReadOnly) {
-      if (rect.width < 650) {
+      if (rect.width < 760) {
         this.previewStyle = 'tab';
       } else {
         this.previewStyle = 'vertical';
@@ -80,7 +81,7 @@ export default defineComponent({
       initialValue: this.modelValue,
       extendedAutolinks: true,
       height: '100%',
-      placeholder: '내용을 입력하세요.',
+      placeholder: '내용을 입력하세요. 이미지는 붙여 넣거나 끌어다 놓으면 올라갑니다.',
       plugins: [codeSyntaxHighlight, colorSyntax],
       language: 'ko-KR',
       toolbarItems: [
@@ -104,17 +105,18 @@ export default defineComponent({
         }
         const file = target.files[0];
         if (!file.type.startsWith('video')) {
-          alert('비디오 파일을 선택해주세요.');
+          toast.error('동영상 파일을 선택해 주세요.');
           return;
         }
 
+        toast.info('동영상을 올리는 중입니다…');
         await uploadFile(file)
         .then((file) => {
           const src = `${attachmentFileBaseUrl}${file.url}`;
           editor.insertText(`<video src="${src}" controls><a href="${src}">${file.fileName ?? 'download'}</a></video>`);
         })
         .catch((error: HttpApiError) => {
-          alert(error.getErrorMessage());
+          toast.error(error.getErrorMessage());
         });
       };
       input.click();
@@ -122,7 +124,7 @@ export default defineComponent({
       return true;
     });
     editor.addCommand('wysiwyg', 'video', () => {
-      alert('위지윅 모드에서는 지원되지 않습니다.');
+      toast.info('동영상 삽입은 마크다운 모드에서만 됩니다.');
       return false;
     });
 
@@ -141,7 +143,7 @@ export default defineComponent({
           editor.insertText(`[${file.fileName ?? src}](${src})`);
         })
         .catch((error: HttpApiError) => {
-          alert(error.getErrorMessage());
+          toast.error(error.getErrorMessage());
         });
       };
       input.click();
@@ -149,7 +151,7 @@ export default defineComponent({
       return true;
     });
     editor.addCommand('wysiwyg', 'attachment', () => {
-      alert('위지윅 모드에서는 지원되지 않습니다.');
+      toast.info('파일 첨부는 마크다운 모드에서만 됩니다.');
       return false;
     });
 
@@ -162,7 +164,7 @@ export default defineComponent({
         callback(`${attachmentFileBaseUrl}${file.url}`, file.fileName ?? 'image');
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
       });
     });
     const resizeObserver = new ResizeObserver((entries) => {
@@ -228,6 +230,5 @@ export default defineComponent({
   overflow: hidden;
   background: transparent;
 }
-
 
 </style>

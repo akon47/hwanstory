@@ -1,25 +1,25 @@
 <template>
-  <div class="follow-list-container">
-    <div class="header">
-      {{ mode === 'followers' ? '팔로워' : '팔로잉' }}
-    </div>
-    <div class="empty-message" v-if="!isLoading && isEmpty">
-      {{ mode === 'followers' ? '아직 팔로워가 없습니다.' : '아직 팔로우하는 사용자가 없습니다.' }}
+  <div class="follow-list">
+    <nav class="tabs" aria-label="팔로우 목록">
+      <router-link :to="`/${blogId}/followers`">팔로워</router-link>
+      <router-link :to="`/${blogId}/followings`">팔로잉</router-link>
+    </nav>
+    <div v-if="!isLoading && isEmpty" class="empty-state">
+      <div class="empty-icon"><app-icon name="users" :size="26"/></div>
+      <div class="empty-title">{{ mode === 'followers' ? '아직 팔로워가 없습니다' : '아직 팔로우하는 사람이 없습니다' }}</div>
     </div>
     <div class="account-list">
-      <router-link v-for="account in accounts" :key="account.blogId"
-                   class="account-item" :to="{path: `/${account.blogId}`}">
-        <div class="profile-image">
-          <account-profile-image-button :simple-account="account"/>
-        </div>
-        <div class="name">{{ account.name }}</div>
+      <router-link v-for="account in accounts" :key="account.blogId" class="account-item" :to="`/${account.blogId}`">
+        <account-profile-image class="account-avatar" :simple-account="account"/>
+        <span class="account-text">
+          <span class="account-name">{{ account.name }}</span>
+          <span class="account-id subtle small">{{ account.blogId }}</span>
+        </span>
+        <app-icon class="chevron" name="chevron-right" :size="18"/>
       </router-link>
     </div>
-    <observer-trigger
-        v-if="!isNoMorePage && !isLoading"
-        class="observer-trigger-enable"
-        v-on:trigger="loadMore"/>
-    <div class="loading" v-if="isLoading">
+    <observer-trigger v-if="!isNoMorePage && !isLoading" @trigger="loadMore"/>
+    <div v-if="isLoading" class="loading">
       <loading-spinner/>
     </div>
   </div>
@@ -30,13 +30,15 @@ import { defineComponent, PropType } from 'vue';
 import { SimpleAccountDto } from '@/api/models/account.dtos';
 import { getFollowers, getFollowings } from '@/api/follow';
 import { HttpApiError } from '@/api/common/httpApiClient';
-import AccountProfileImageButton from '@/components/accounts/AccountProfileImageButton.vue';
+import AccountProfileImage from '@/components/accounts/AccountProfileImage.vue';
 import ObserverTrigger from '@/components/common/ObserverTrigger.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import AppIcon from '@/components/common/AppIcon.vue';
+import { toast } from '@/utils/dialog';
 
 export default defineComponent({
   name: 'FollowListView',
-  components: { LoadingSpinner, ObserverTrigger, AccountProfileImageButton },
+  components: { AppIcon, LoadingSpinner, ObserverTrigger, AccountProfileImage },
   props: {
     blogId: {
       type: String,
@@ -85,7 +87,7 @@ export default defineComponent({
           this.isEmpty = accounts.last && this.accounts.length === 0;
         })
         .catch((error: HttpApiError) => {
-          alert(error.getErrorMessage());
+          toast.error(error.getErrorMessage());
         });
       } finally {
         this.isLoading = false;
@@ -104,62 +106,52 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-.header {
-  font-size: 1.25em;
-  font-weight: bold;
-  padding-bottom: var(--half-base-gab);
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: var(--base-gap);
+.follow-list {
+  display: grid;
+  gap: var(--s-4);
 }
 
 .account-list {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--base-gap);
 }
 
 .account-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 1em;
-  color: var(--base-color);
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-2);
+  border-radius: var(--radius);
+  color: var(--text);
 }
 
-.account-item .profile-image {
-  width: 48px;
-  height: 48px;
+.account-item:hover {
+  background: var(--hover-color);
+  text-decoration: none;
 }
 
-.account-item .name {
-  font-size: 1.1em;
+.account-avatar {
+  width: 44px;
+  height: 44px;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .account-item:hover {
-    text-decoration: none;
-    opacity: 0.8;
-  }
+.account-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
-.empty-message {
-  text-align: center;
-  font-size: 1.25em;
-  font-weight: bold;
-  padding-top: 2em;
+.account-name {
+  font-weight: 700;
 }
 
-.observer-trigger-enable {
-  height: 680px;
-  position: relative;
-  margin-top: -600px;
+.chevron {
+  color: var(--text-3);
 }
 
 .loading {
   display: flex;
   justify-content: center;
-  box-sizing: border-box;
-  height: 80px;
+  height: 64px;
 }
-
 </style>

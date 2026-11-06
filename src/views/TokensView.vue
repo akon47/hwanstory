@@ -7,9 +7,9 @@
       </div>
       <div class="page-actions">
         <router-link to="/device">
-          <button class="secondary">기기 로그인 승인</button>
+          <button class="btn btn-secondary">기기 로그인 승인</button>
         </router-link>
-        <button @click="showCreateForm = !showCreateForm">{{ showCreateForm ? '닫기' : '새 토큰' }}</button>
+        <button class="btn" @click="showCreateForm = !showCreateForm">{{ showCreateForm ? '닫기' : '새 토큰' }}</button>
       </div>
     </div>
 
@@ -17,8 +17,8 @@
     <div v-if="issued" class="card issued">
       <div class="card-title">🔑 토큰이 발급되었습니다 — 지금 저장하세요. 다시 볼 수 없습니다.</div>
       <div class="token-row">
-        <input class="mono" type="text" readonly :value="issued.token" @focus="selectAll"/>
-        <button class="secondary" @click="copy(issued.token, '토큰')">복사</button>
+        <input class="input mono" type="text" readonly :value="issued.token" @focus="selectAll"/>
+        <button class="btn btn-secondary" @click="copy(issued.token, '토큰')">복사</button>
       </div>
       <p class="hint">
         에이전트 컴퓨터의 <b>터미널에서</b> 아래 명령을 실행하면 토큰이 파일로만 저장됩니다(채팅에 붙이지 마세요).
@@ -29,7 +29,7 @@
       <div class="snippet-head">PowerShell (Windows)</div>
       <pre class="snippet"><code>{{ saveCommandPowerShell }}</code></pre>
       <div class="row-end">
-        <button class="secondary" @click="issued = null">확인했습니다</button>
+        <button class="btn btn-secondary" @click="issued = null">확인했습니다</button>
       </div>
     </div>
 
@@ -38,7 +38,7 @@
       <div class="card-title">새 액세스 토큰</div>
       <p class="hint">만든 직후 한 번만 보입니다. 필요한 권한만, 짧게 주세요. 에이전트가 스스로 받아 가게 하려면 이 대신 <b>기기 로그인</b>을 쓰는 것이 더 안전합니다.</p>
       <label for="token-name">이름</label>
-      <input id="token-name" type="text" v-model="newName" maxlength="100" placeholder="예: Claude Code - 블로그 글쓰기"/>
+      <input id="token-name" class="input" type="text" v-model="newName" maxlength="100" placeholder="예: Claude Code - 블로그 글쓰기"/>
       <div class="label">권한</div>
       <label class="check" v-for="scope in allScopes" :key="scope">
         <input type="checkbox" :value="scope" v-model="newScopes"/>
@@ -46,11 +46,11 @@
       </label>
       <div class="tiny muted">읽기(내 글·비공개 글·통계 조회)는 권한과 무관하게 가능합니다. 계정 정보 변경·탈퇴·토큰 발급은 토큰으로 할 수 없습니다.</div>
       <label for="token-ttl">만료</label>
-      <select id="token-ttl" v-model.number="newTtlDays">
+      <select class="select" id="token-ttl" v-model.number="newTtlDays">
         <option v-for="choice in ttlChoices" :key="choice.value" :value="choice.value">{{ choice.label }}</option>
       </select>
       <div class="row-end">
-        <button :disabled="!canCreate || isLoading" @click="create">만들기</button>
+        <button class="btn" :disabled="!canCreate || isLoading" @click="create">만들기</button>
       </div>
     </div>
 
@@ -66,9 +66,9 @@
       <pre class="snippet"><code>{{ agentPrompt }}</code></pre>
       <div class="row-end">
         <router-link to="/agents">
-          <button class="secondary">가이드 보기</button>
+          <button class="btn btn-secondary">가이드 보기</button>
         </router-link>
-        <button class="secondary" @click="copy(agentPrompt, '프롬프트')">프롬프트 복사</button>
+        <button class="btn btn-secondary" @click="copy(agentPrompt, '프롬프트')">프롬프트 복사</button>
       </div>
     </div>
 
@@ -109,7 +109,7 @@
               <span v-else>무기한</span>
             </td>
             <td class="actions">
-              <button v-if="token.usable" class="red-button action" :disabled="isLoading" @click="revoke(token)">폐기</button>
+              <button v-if="token.usable" class="btn btn-danger-ghost btn-sm" :disabled="isLoading" @click="revoke(token)">폐기</button>
             </td>
           </tr>
           <tr v-if="!isLoading && tokens.length === 0">
@@ -124,6 +124,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { confirmDialog, toast } from '@/utils/dialog';
 import { HttpApiError, serverUrl } from '@/api/common/httpApiClient';
 import { createAccessToken, getAccessTokens, revokeAccessToken } from '@/api/tokens';
 import {
@@ -217,9 +218,9 @@ export default defineComponent({
     async copy(text: string, what: string) {
       try {
         await navigator.clipboard.writeText(text);
-        alert(`${what}을(를) 복사했습니다.`);
+        toast.success(`${what}을(를) 복사했습니다.`);
       } catch (e) {
-        alert('클립보드에 복사할 수 없습니다. 직접 선택해서 복사하세요.');
+        toast.error('클립보드에 복사할 수 없습니다. 직접 선택해서 복사하세요.');
       }
     },
     async load() {
@@ -229,7 +230,7 @@ export default defineComponent({
         this.tokens = tokens;
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
       })
       .finally(() => {
         this.isLoading = false;
@@ -254,19 +255,19 @@ export default defineComponent({
         this.load();
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
         this.isLoading = false;
       });
     },
     async revoke(token: AccessTokenDto) {
-      if (!confirm(`토큰 '${token.name}' 을(를) 폐기합니다. 이 토큰을 쓰는 에이전트·스크립트는 즉시 멈춥니다. 계속할까요?`)) {
+      if (!await confirmDialog(`토큰 '${token.name}' 을(를) 폐기합니다. 이 토큰을 쓰는 에이전트·스크립트는 즉시 멈춥니다. 계속할까요?`)) {
         return;
       }
       this.isLoading = true;
       await revokeAccessToken(token.id)
       .then(() => this.load())
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
         this.isLoading = false;
       });
     },
@@ -303,7 +304,7 @@ export default defineComponent({
 
 .lead {
   font-weight: 300;
-  color: #8e9297;
+  color: var(--text-3);
   max-width: 640px;
   line-height: 1.5;
 }
@@ -399,7 +400,7 @@ export default defineComponent({
 
 .snippet-head {
   font-size: 0.8em;
-  color: #8e9297;
+  color: var(--text-3);
   margin-bottom: -0.5em;
 }
 
@@ -432,13 +433,13 @@ code {
 
 .hint {
   font-size: 0.85em;
-  color: #8e9297;
+  color: var(--text-3);
   line-height: 1.5;
   margin: 0;
 }
 
 .muted {
-  color: #8e9297;
+  color: var(--text-3);
   font-weight: 300;
 }
 
@@ -487,7 +488,7 @@ button.secondary {
 .token-table th {
   font-size: 0.8em;
   font-weight: 500;
-  color: #8e9297;
+  color: var(--text-3);
   white-space: nowrap;
 }
 
@@ -515,7 +516,7 @@ button.secondary {
 
 .token-table .empty {
   text-align: center;
-  color: #8e9297;
+  color: var(--text-3);
   padding: 2em;
 }
 

@@ -9,7 +9,7 @@
           <p class="muted"><b>{{ approvedClientName }}</b> 가 몇 초 안에 토큰을 받아 갑니다. 이 창은 닫아도 됩니다.</p>
         </div>
         <router-link to="/tokens">
-          <button class="full">액세스 토큰 보기</button>
+          <button class="btn btn-block">액세스 토큰 보기</button>
         </router-link>
       </div>
 
@@ -21,7 +21,7 @@
           <p class="muted"><b>{{ deniedClientName }}</b> 의 요청을 거부했습니다. 에이전트는 토큰을 받지 못합니다.</p>
         </div>
         <router-link to="/">
-          <button class="full">홈으로</button>
+          <button class="btn btn-block">홈으로</button>
         </router-link>
       </div>
 
@@ -70,13 +70,13 @@
           ⚠️ 직접 시킨 작업이 맞을 때만 승인하세요. 누군가 보내 준 코드라면 거부하세요 — 승인하면 그 사람이 내 권한으로 글을 쓰고 고칠 수 있습니다.
         </div>
         <label for="ttl">토큰 만료</label>
-        <select id="ttl" v-model.number="ttlDays">
+        <select class="select" id="ttl" v-model.number="ttlDays">
           <option v-for="choice in ttlChoices" :key="choice.value" :value="choice.value">{{ choice.label }}</option>
         </select>
         <p class="hint">작업이 끝나면 <router-link to="/tokens">액세스 토큰</router-link> 화면에서 언제든 폐기할 수 있습니다.</p>
         <div class="actions">
-          <button class="red-button" :disabled="isLoading" @click="deny">거부</button>
-          <button :disabled="isLoading" @click="approve">승인</button>
+          <button class="btn btn-danger" :disabled="isLoading" @click="deny">거부</button>
+          <button class="btn" :disabled="isLoading" @click="approve">승인</button>
         </div>
       </div>
 
@@ -87,10 +87,10 @@
           <h2>기기 로그인</h2>
           <p class="muted">AI 에이전트나 터미널에 표시된 8자리 코드를 입력하세요.</p>
         </div>
-        <input class="code-input" type="text" v-model="code" placeholder="XXXX-XXXX" maxlength="9"
+        <input class="input code-input" type="text" v-model="code" placeholder="XXXX-XXXX" maxlength="9"
                autocomplete="off" spellcheck="false" @keyup.enter="lookup"/>
         <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
-        <button class="full" :disabled="!isCodeValid || isLoading" @click="lookup">계속</button>
+        <button class="btn btn-block" :disabled="!isCodeValid || isLoading" @click="lookup">계속</button>
         <p class="hint center">코드는 10분 동안 유효합니다. 에이전트가 쓰는 방법은
           <router-link to="/agents">가이드</router-link>에 있습니다.</p>
       </div>
@@ -100,6 +100,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { toast } from '@/utils/dialog';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import { approveDeviceAuthorization, denyDeviceAuthorization, getDeviceAuthorization } from '@/api/tokens';
 import { ACCESS_TOKEN_SCOPE_DESCRIPTIONS, DeviceAuthorizationDto } from '@/api/models/token.dtos';
@@ -188,7 +189,7 @@ export default defineComponent({
         this.request = null;
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
         if (error.isNotFound()) {
           this.request = null;
         }
@@ -208,7 +209,7 @@ export default defineComponent({
         this.request = null;
       })
       .catch((error: HttpApiError) => {
-        alert(error.getErrorMessage());
+        toast.error(error.getErrorMessage());
         if (error.isNotFound()) {
           this.request = null;
         }
@@ -265,7 +266,7 @@ export default defineComponent({
 }
 
 .muted {
-  color: #8e9297;
+  color: var(--text-3);
   font-weight: 300;
 }
 
@@ -300,7 +301,7 @@ export default defineComponent({
 
 .hint {
   font-size: 0.8em;
-  color: #8e9297;
+  color: var(--text-3);
   margin: 0;
 }
 
@@ -321,7 +322,7 @@ export default defineComponent({
 .kv th {
   width: 35%;
   font-weight: 500;
-  color: #8e9297;
+  color: var(--text-3);
 }
 
 .scopes {

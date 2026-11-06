@@ -5,7 +5,8 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "shots": "node scripts/screenshots.js http://localhost:8081 .shots light all"
   },
   "dependencies": {
     "@toast-ui/editor": "^3.2.2",
@@ -35,6 +36,7 @@
     "@vue/eslint-config-typescript": "^9.1.0",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.7.1",
+    "playwright": "^1.49.1",
     "prettier": "2.7.1",
     "typescript": "~4.9.5"
   },

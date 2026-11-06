@@ -62,6 +62,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { toast } from '@/utils/dialog';
 import { AdminActiveViewerDto } from '@/api/models/admin.dtos';
 import { getActiveViewers } from '@/api/admin';
 import { HttpApiError } from '@/api/common/httpApiClient';
@@ -103,7 +104,7 @@ export default defineComponent({
       .catch((error: HttpApiError) => {
         // 주기적 갱신 중 일시적 오류는 화면을 어지럽히지 않도록 최초 로딩에서만 알린다.
         if (showSpinner) {
-          alert(error.getErrorMessage());
+          toast.error(error.getErrorMessage());
         }
       })
       .finally(() => {

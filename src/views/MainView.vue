@@ -1,30 +1,48 @@
 <template>
-  <div class="main-container">
-    <div class="tabs-container">
-      <div class="tabs">
-        <router-link :to="{path: `/`}">
-          최근 글
-        </router-link>
-        <router-link :to="{path: `/top`}">
-          인기 글
-        </router-link>
-        <router-link :to="{path: `/viewing`}">
-          보고 있는 글
-        </router-link>
-        <router-link v-if="isLoggedIn" :to="{path: `/feed`}">
-          팔로잉
-        </router-link>
-      </div>
+  <div class="container page main-page">
+    <template v-if="isSearchMode">
+      <form class="search-head" @submit.prevent="submitSearch">
+        <h1>검색</h1>
+        <div class="search-box">
+          <app-icon class="search-icon" name="search" :size="20"/>
+          <input ref="search-input" class="input search-input" type="search" v-model="keyword" placeholder="제목·내용으로 글 찾기"
+                 aria-label="검색어" autocomplete="off"/>
+          <button class="btn" type="submit" :disabled="!keyword.trim()">검색</button>
+        </div>
+        <p v-if="search" class="muted">
+          <b>‘{{ search }}’</b> 검색 결과 <span v-if="!isLoading && isNoMorePage">{{ simplePosts.length }}개</span>
+        </p>
+      </form>
+    </template>
+    <feed-tabs v-else/>
+
+    <div v-if="isViewingMode && !isLoading" class="viewing-note subtle small">
+      <app-icon name="radio" :size="14"/>지금 누군가 읽고 있는 글입니다. 사람이 많은 순으로 보여요.
     </div>
-    <simple-post-wrap-panel :simple-posts="simplePosts"></simple-post-wrap-panel>
-    <div v-if="isViewingMode && simplePosts.length === 0 && !isLoading" class="empty-viewing">
-      지금 보고 있는 글이 없습니다.
+
+    <simple-post-wrap-panel :simple-posts="simplePosts"/>
+
+    <div v-if="!isLoading && simplePosts.length === 0" class="empty-state">
+      <div class="empty-icon"><app-icon :name="isSearchMode ? 'search' : 'inbox'" :size="26"/></div>
+      <template v-if="isSearchMode && !search">
+        <div class="empty-title">찾고 싶은 글의 단어를 입력하세요</div>
+        <div>제목과 내용에서 찾습니다.</div>
+      </template>
+      <template v-else-if="isSearchMode">
+        <div class="empty-title">‘{{ search }}’에 맞는 글이 없습니다</div>
+        <div>다른 단어로 다시 찾아보세요.</div>
+      </template>
+      <template v-else-if="isViewingMode">
+        <div class="empty-title">지금 읽고 있는 사람이 없습니다</div>
+        <div>누군가 글을 열면 여기에 바로 나타납니다.</div>
+      </template>
+      <template v-else>
+        <div class="empty-title">아직 글이 없습니다</div>
+      </template>
     </div>
-    <observer-trigger
-        v-if="!isViewingMode && !this.isNoMorePage && !isLoading"
-        class="observer-trigger-enable"
-        v-on:trigger="loadMorePosts"/>
-    <div class="loading" v-if="isLoading">
+
+    <observer-trigger v-if="!isViewingMode && !isNoMorePage && !isLoading" @trigger="loadMorePosts"/>
+    <div v-if="isLoading" class="loading">
       <loading-spinner/>
     </div>
   </div>
@@ -36,17 +54,29 @@ import { SimplePostDto } from '@/api/models/blog.dtos';
 import { getAllPosts, getViewingPosts } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import SimplePostWrapPanel from '@/components/posts/layout/SimplePostWrapPanel.vue';
+import FeedTabs from '@/components/posts/layout/FeedTabs.vue';
 import ObserverTrigger from '@/components/common/ObserverTrigger.vue';
-import store from '@/store';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import AppIcon from '@/components/common/AppIcon.vue';
+import store from '@/store';
+import { toast } from '@/utils/dialog';
 
 export default defineComponent({
   name: 'MainView',
-  components: { LoadingSpinner, ObserverTrigger, SimplePostWrapPanel },
+  components: { AppIcon, LoadingSpinner, ObserverTrigger, SimplePostWrapPanel, FeedTabs },
   props: {
     sortBy: {
       type: String,
       required: false,
+    },
+    // 검색어 (검색 화면 /search?q=)
+    search: {
+      type: String,
+      required: false,
+    },
+    isSearchMode: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -55,6 +85,7 @@ export default defineComponent({
       cursorId: '',
       isNoMorePage: true,
       isLoading: false,
+      keyword: this.search ?? '',
       viewingRefreshTimer: null as ReturnType<typeof setTimeout> | null,
     };
   },
@@ -62,12 +93,13 @@ export default defineComponent({
     cachedMainPosts() {
       return store.getters['cacheStore/getCachedMainPosts'];
     },
-    isLoggedIn(): boolean {
-      return store.getters['accountStore/isLoggedIn'] ?? false;
-    },
-    // "보고 있는 글" 탭 여부
+    // "지금 보는 중" 탭 여부
     isViewingMode(): boolean {
       return this.sortBy === 'viewing';
+    },
+    // 메인 첫 화면(최근 글)만 캐시한다.
+    isCacheable(): boolean {
+      return !this.isViewingMode && !this.isSearchMode && !this.sortBy;
     },
     // 게시글별 실시간 시청자 수 맵 (변경될 때마다 새 객체로 교체되어 watch가 동작한다)
     viewerCounts() {
@@ -76,11 +108,15 @@ export default defineComponent({
   },
   watch: {
     cachedMainPosts(value) {
-      if (!this.isViewingMode && value === null) {
+      if (this.isCacheable && value === null) {
         this.refresh();
       }
     },
     sortBy() {
+      this.refresh();
+    },
+    search(value) {
+      this.keyword = value ?? '';
       this.refresh();
     },
     viewerCounts() {
@@ -98,14 +134,25 @@ export default defineComponent({
     async refresh() {
       await this.fetchPosts();
     },
+    submitSearch() {
+      const q = this.keyword.trim();
+      if (q) {
+        this.$router.push({ path: '/search', query: { q } });
+      }
+    },
     async fetchPosts(cursorId: string | null = null) {
       if (this.isViewingMode) {
         await this.fetchViewingPosts();
         return;
       }
+      if (this.isSearchMode && !this.search) {
+        this.simplePosts = [];
+        this.isNoMorePage = true;
+        return;
+      }
       try {
         this.isLoading = true;
-        await getAllPosts(20, cursorId, this.sortBy)
+        await getAllPosts(20, cursorId, this.sortBy ?? null, this.isSearchMode ? this.search ?? null : null)
         .then(async (posts) => {
           if (posts.first) {
             this.simplePosts = posts.data;
@@ -117,14 +164,16 @@ export default defineComponent({
           this.cursorId = (!posts.last && posts.cursorId) ? posts.cursorId : '';
           this.isNoMorePage = posts.last;
 
-          await store.dispatch('cacheStore/setMainPosts', {
-            simplePosts: this.simplePosts,
-            cursorId: this.cursorId,
-            isNoMorePage: this.isNoMorePage,
-          });
+          if (this.isCacheable) {
+            await store.dispatch('cacheStore/setMainPosts', {
+              simplePosts: this.simplePosts,
+              cursorId: this.cursorId,
+              isNoMorePage: this.isNoMorePage,
+            });
+          }
         })
         .catch((error: HttpApiError) => {
-          alert(error.getErrorMessage());
+          toast.error(error.getErrorMessage());
         });
       } finally {
         this.isLoading = false;
@@ -154,8 +203,15 @@ export default defineComponent({
       this.fetchViewingPosts();
       return;
     }
+    if (this.isSearchMode) {
+      this.fetchPosts();
+      if (!this.search) {
+        (this.$refs['search-input'] as HTMLInputElement | undefined)?.focus();
+      }
+      return;
+    }
     const cachedMainPosts = store.getters['cacheStore/getCachedMainPosts'];
-    if (cachedMainPosts == null) {
+    if (!this.isCacheable || cachedMainPosts == null) {
       this.fetchPosts();
     } else {
       this.simplePosts = cachedMainPosts.simplePosts;
@@ -172,102 +228,64 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-.main-container {
-  min-height: 100vh;
-}
-
-.observer-trigger-enable {
-  height: 720px;
-  position: relative;
-  margin-top: -600px;
+.main-page {
+  display: grid;
+  gap: var(--s-6);
+  align-content: start;
+  min-height: 60vh;
+  padding-block: var(--s-5) var(--s-16);
 }
 
 .loading {
   display: flex;
   justify-content: center;
-  margin-bottom: calc(var(--base-gap) * 2);
-  box-sizing: border-box;
-  height: 80px;
+  height: 64px;
 }
 
-.tabs-container {
-  display: grid;
-
-  grid-template-columns: repeat(auto-fill, 320px);
-  grid-template-rows: auto;
-
-  gap: calc(var(--base-gap) * 2);
-  margin-left: calc(var(--base-gap) * 2);
-  margin-right: calc(var(--base-gap) * 2);
-
-  justify-content: center;
-}
-
-@media (max-width: 1080px) {
-  .tabs-container {
-    grid-template-columns: repeat(2, 1fr);
-    justify-content: center;
-
-    gap: var(--base-gap);
-    margin-left: var(--base-gap);
-    margin-right: var(--base-gap);
-  }
-}
-
-@media (max-width: 650px) {
-  .tabs-container {
-    grid-template-columns: repeat(1, 1fr);
-    justify-content: stretch;
-  }
-}
-
-.tabs {
-  border-bottom: 1px solid var(--border-color);
-
-  grid-column: 1/-1;
-
-  display: flex;
-  flex-wrap: wrap;
-
-  gap: var(--base-gap);
-
-  justify-content: left;
-}
-
-.empty-viewing {
-  display: flex;
-  justify-content: center;
+.viewing-note {
+  display: inline-flex;
   align-items: center;
-
-  min-height: 200px;
-  opacity: 0.6;
+  gap: 6px;
+  margin-top: calc(var(--s-4) * -1);
 }
 
-.tabs a {
-  color: var(--base-color);
-  opacity: 0.5;
-  box-sizing: border-box;
-  text-align: center;
-  align-self: stretch;
-  padding: 12px 8px 5px 8px;
-  border-bottom: 2px solid transparent;
-
-  transition: 0.2s;
+.search-head {
+  display: grid;
+  gap: var(--s-3);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .tabs a:hover {
-    text-decoration: none;
-    opacity: 1;
-    border-bottom: 2px solid var(--base-color);
-  }
+.search-head h1 {
+  font-size: var(--text-2xl);
 }
 
-.tabs a.router-link-exact-active {
-  color: var(--base-color);
-  opacity: 1;
-  border-bottom: 2px solid var(--button-color);
+.search-box {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-2);
+  max-width: 640px;
 }
 
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+.search-input {
+  min-height: 46px;
+  padding-left: 44px;
+  font-size: var(--text-md);
+}
+
+.search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.search-box .btn {
+  height: 46px;
+}
 </style>

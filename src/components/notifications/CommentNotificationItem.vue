@@ -1,77 +1,95 @@
 <template>
-  <div class="notification-item-container">
-    <div class="header">
-      <span class="title">댓글</span>&nbsp;<span class="content"><a :href="relatedPostUrl">{{ notification.comment.content }}</a></span>
-    </div>
-    <div class="footer">
-      by {{ notification.comment.author.name }} <span>&#183;</span> {{ longCreateAt }}
-    </div>
-  </div>
+  <router-link class="notification" :to="relatedPostUrl ?? '/'" @click="$emit('navigate')">
+    <span class="icon"><app-icon name="comment" :size="16"/></span>
+    <span class="body">
+      <span class="text">
+        <b>{{ notification?.comment?.author?.name }}</b>님이
+        <b class="post-title">{{ notification?.comment?.post?.title }}</b>에 댓글을 남겼습니다
+      </span>
+      <span class="excerpt">{{ notification?.comment?.content }}</span>
+      <span class="time">{{ relativeTime }}</span>
+    </span>
+  </router-link>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { CommentNotificationDto } from "@/api/models/notification.dtos";
+import { CommentNotificationDto } from '@/api/models/notification.dtos';
+import AppIcon from '@/components/common/AppIcon.vue';
+import { formatRelativeDate } from '@/utils/format';
 
 export default defineComponent({
   name: 'CommentNotificationItem',
+  components: { AppIcon },
   props: {
     notification: Object as PropType<CommentNotificationDto>,
   },
+  emits: ['navigate'],
   computed: {
-    longCreateAt() {
-      if (!this.notification?.createdAt) {
-        return null;
-      }
-      const date = new Date(this.notification.createdAt);
-      const hours = `${date.getHours()}`.padStart(2, '0');
-      const minutes = `${date.getMinutes()}`.padStart(2, '0');
-      return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}. ${hours}:${minutes}`;
+    relativeTime(): string {
+      return formatRelativeDate(this.notification?.createdAt);
     },
-    relatedPostUrl() {
+    relatedPostUrl(): string | null {
       const simplePost = this.notification?.comment?.post;
       const blogId = simplePost?.author?.blogId;
       const postUrl = simplePost?.postUrl;
-      if(!blogId || !postUrl)
+      if (!blogId || !postUrl) {
         return null;
-
-      return `/${blogId}/posts/${postUrl}`
+      }
+      return `/${blogId}/posts/${postUrl}`;
     },
   },
-  methods: {},
 });
 </script>
 
 <style scoped>
-
-.notification-item-container {
-
+.notification {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-3);
+  color: var(--text);
+  text-decoration: none;
+  font-size: var(--text-sm);
 }
 
-.notification-item-container .header {
-  font-size: 1.2em;
-  display: flex;
+.notification:hover {
+  text-decoration: none;
 }
 
-.notification-item-container .footer {
-  font-size: 1em;
-
+.icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 
-.notification-item-container .title {
-  white-space: nowrap;
-  font-weight: bold;
+.body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
-.notification-item-container .content {
-  display: block;
+.text {
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.post-title {
+  color: var(--accent-text);
+}
+
+.excerpt {
+  color: var(--text-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.notification-item-container a {
-  color: var(--base-color);
+.time {
+  color: var(--text-3);
+  font-size: var(--text-xs);
 }
-
 </style>

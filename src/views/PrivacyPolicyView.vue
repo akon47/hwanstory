@@ -1,5 +1,7 @@
 <template>
-  <div class="privacy-policy-container">
+  <div class="container container-reading page policy">
+    <h1 class="policy-title">개인정보처리방침</h1>
+    <div class="policy-body">
     <p class="ls2 lh6 bs5 ts4"><em class="emphasis">&lt; Hwan'Story &gt;('https://hwanstory.kr'이하 'Hwan'Story')</em>은(는) 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리방침을 수립·공개합니다.</p>
     <p class="ls2">○ 이 개인정보처리방침은 <em class="emphasis">2022</em>년 <em class="emphasis">9</em>월 <em class="emphasis">9</em>부터 적용됩니다.</p>
     <br/>
@@ -84,6 +86,7 @@
     <p class='lh6 bs4'><strong>제12조(개인정보 처리방침 변경)<em class="emphasis"></em></strong></p>
     <br/>
     <p class='sub_p'>① 이 개인정보처리방침은 2022년 9월 9부터 적용됩니다.</p>
+      </div>
   </div>
 </template>
 
@@ -96,10 +99,34 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
-.privacy-policy-container {
-  padding: var(--base-gap);
-  box-sizing: border-box;
+.policy {
+  display: grid;
+  gap: var(--s-6);
 }
 
+.policy-title {
+  font-size: var(--text-3xl);
+}
+
+.policy-body {
+  font-size: var(--text-sm);
+  line-height: 1.8;
+  color: var(--text-2);
+  word-break: keep-all;
+}
+
+.policy-body strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.policy-body ul {
+  padding-left: 1.2em;
+  list-style: disc;
+}
+
+.policy-body .emphasis {
+  font-style: normal;
+  color: var(--text);
+}
 </style>

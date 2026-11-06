@@ -11,11 +11,11 @@ import {
   saveBlogIdToLocalStorage,
   saveRefreshTokenExpiresInToLocalStorage,
   saveRefreshTokenToLocalStorage,
-  saveThemeToLocalStorage,
 } from '@/utils/storage';
 import { reissueToken, signIn, signOut } from '@/api/authentication';
 import { AuthenticationInfoDto, TokenDto } from '@/api/models/authentication.dtos';
 import { getCurrentAccount } from '@/api/accounts';
+import { AccountDto } from '@/api/models/account.dtos';
 
 export interface AccountState {
   accessToken: string;
@@ -23,6 +23,7 @@ export interface AccountState {
   refreshToken: string;
   refreshTokenExpiresIn: number;
   blogId: string;
+  name: string;
   profileImageUrl: string | null;
 }
 
@@ -34,6 +35,7 @@ export const accountStore: Module<AccountState, RootState> = {
     refreshToken: getRefreshTokenFromLocalStorage() || '',
     refreshTokenExpiresIn: Number(getRefreshTokenExpiresInFromLocalStorage() || 0),
     blogId: getBlogIdFromLocalStorage() || '',
+    name: '',
     profileImageUrl: null,
   }),
   mutations: {
@@ -65,8 +67,10 @@ export const accountStore: Module<AccountState, RootState> = {
       state.blogId = '';
       saveBlogIdToLocalStorage('');
     },
-    setProfileImageUrl(state, profileImageUrl: string) {
-      state.profileImageUrl = profileImageUrl;
+    // 헤더 메뉴 등에 쓰는 현재 계정 요약 (이름·프로필 사진)
+    setAccountSummary(state, account: AccountDto | null) {
+      state.name = account?.name ?? '';
+      state.profileImageUrl = account?.profileImageUrl ?? '';
     },
   },
   getters: {
@@ -100,7 +104,7 @@ export const accountStore: Module<AccountState, RootState> = {
       commit('setToken', token);
       const account = await getCurrentAccount();
       commit('setBlogId', account.blogId);
-      commit('setProfileImageUrl', account.profileImageUrl ?? '');
+      commit('setAccountSummary', account);
     },
     async signOut({ commit }, clearTokenOnly: boolean = false) {
       try {
@@ -110,6 +114,7 @@ export const accountStore: Module<AccountState, RootState> = {
       } finally {
         commit('clearToken');
         commit('clearBlogId');
+        commit('setAccountSummary', null);
       }
     },
     async reissueToken({ commit, state }) {
@@ -119,13 +124,13 @@ export const accountStore: Module<AccountState, RootState> = {
     async updateCurrentAccountInfo({ commit }) {
       const account = await getCurrentAccount();
       commit('setBlogId', account.blogId);
-      commit('setProfileImageUrl', account.profileImageUrl ?? '');
+      commit('setAccountSummary', account);
     },
     async setToken({ commit }, token: TokenDto) {
       commit('setToken', token);
       const account = await getCurrentAccount();
       commit('setBlogId', account.blogId);
-      commit('setProfileImageUrl', account.profileImageUrl ?? '');
+      commit('setAccountSummary', account);
     },
   },
 };

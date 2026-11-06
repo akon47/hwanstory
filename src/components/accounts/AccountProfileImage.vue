@@ -1,7 +1,5 @@
 <template>
-  <div class="account-profile-image-container">
-    <div class="profile" :style="profileImageUrl"/>
-  </div>
+  <span class="avatar account-profile-image" :style="profileImageStyle" role="img" :aria-label="simpleAccount?.name"/>
 </template>
 
 <script lang="ts">
@@ -15,40 +13,20 @@ export default defineComponent({
     simpleAccount: Object as PropType<SimpleAccountDto>,
   },
   computed: {
-    profileImageUrl() {
-      if (this.simpleAccount?.profileImageUrl) {
-        return {
-          backgroundImage: `url(${attachmentFileBaseUrl}${this.simpleAccount?.profileImageUrl})`,
-        };
-      } else {
-        return {
-          backgroundImage: `url(${require('@/assets/profile.svg')})`,
-        };
-      }
+    profileImageStyle() {
+      const url = this.simpleAccount?.profileImageUrl
+          ? `${attachmentFileBaseUrl}${this.simpleAccount.profileImageUrl}`
+          : require('@/assets/profile.svg');
+      return { backgroundImage: `url(${url})` };
     },
   },
 });
 </script>
 
 <style scoped>
-
-.account-profile-image-container {
+.account-profile-image {
+  width: 100%;
+  height: 100%;
   aspect-ratio: 1 / 1;
-  cursor: pointer;
-
-  border-radius: 100%;
-
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
 }
-
-.profile {
-  background-color: #6eafd4;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: inherit;
-}
-
 </style>
