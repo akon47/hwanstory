@@ -31,6 +31,8 @@ import { CursorIdentity, getCursorIdentity } from '@/utils/cursorIdentity';
 // 마우스가 창을 벗어나거나 탭이 숨겨지면 상대 화면에서 내 커서를 바로 지운다.
 // 마우스가 있는 기기에서만 켜지고, 서버가 사람이 너무 많다고 알리면(disabled) 조용히 꺼진다.
 const MOVE_INTERVAL = 50;
+// 한마디 미리보기 전송 간격. 간격 안에 또 바뀌면 버리지 않고 마지막 값을 뒤따라 보낸다 (한글 조합 중 글자가 빠지지 않게)
+const CHAT_INTERVAL = 120;
 const MESSAGE_TTL = 8000;
 // 이만큼 안 움직인 커서는 흐리게, 그 뒤로는 숨긴다
 const IDLE_FADE = 15000;
@@ -62,6 +64,11 @@ export default defineComponent({
       selfId: null as string | null,
       lastSentAt: 0,
       lastSent: { x: -99, y: -99 },
+      pendingMove: null as { x: number; y: number } | null,
+      moveTimer: null as ReturnType<typeof setTimeout> | null,
+      lastChatSentAt: 0,
+      pendingChat: null as string | null,
+      chatTimer: null as ReturnType<typeof setTimeout> | null,
       isAway: false,
       myX: 0.5,
       myY: 0,
@@ -117,16 +124,56 @@ export default defineComponent({
       this.isAway = false;
       this.myX = position.x;
       this.myY = position.y;
-      const now = Date.now();
-      if (now - this.lastSentAt < MOVE_INTERVAL) {
-        return;
-      }
       if (Math.abs(position.x - this.lastSent.x) < 0.002 && Math.abs(position.y - this.lastSent.y) < 0.002) {
         return;
       }
-      this.lastSentAt = now;
-      this.lastSent = position;
-      blogWebSocketClient.sendCursor(position.x, position.y, this.identity.name, this.identity.color);
+      this.pendingMove = position;
+      const wait = MOVE_INTERVAL - (Date.now() - this.lastSentAt);
+      if (wait <= 0) {
+        this.flushMove();
+      } else if (!this.moveTimer) {
+        // 간격 안의 움직임은 버리지 않고 마지막 위치를 뒤따라 보낸다.
+        this.moveTimer = setTimeout(() => this.flushMove(), wait);
+      }
+    },
+    flushMove() {
+      this.moveTimer = null;
+      if (!this.pendingMove || this.isAway) {
+        return;
+      }
+      this.lastSentAt = Date.now();
+      this.lastSent = this.pendingMove;
+      blogWebSocketClient.sendCursor(this.pendingMove.x, this.pendingMove.y, this.identity.name, this.identity.color);
+      this.pendingMove = null;
+    },
+    // 한마디 미리보기: 간격 안에 또 바뀌면 마지막 값을 뒤따라 보낸다.
+    queueChat(text: string) {
+      this.pendingChat = text;
+      const wait = CHAT_INTERVAL - (Date.now() - this.lastChatSentAt);
+      if (wait <= 0) {
+        this.flushChat();
+      } else if (!this.chatTimer) {
+        this.chatTimer = setTimeout(() => this.flushChat(), wait);
+      }
+    },
+    flushChat() {
+      this.chatTimer = null;
+      if (this.pendingChat === null) {
+        return;
+      }
+      this.lastChatSentAt = Date.now();
+      blogWebSocketClient.sendCursorChat(this.pendingChat);
+      this.pendingChat = null;
+    },
+    // 예약된 미리보기를 취소하고 최종 값을 바로 보낸다.
+    sendChatNow(text: string) {
+      if (this.chatTimer) {
+        clearTimeout(this.chatTimer);
+        this.chatTimer = null;
+      }
+      this.pendingChat = null;
+      this.lastChatSentAt = Date.now();
+      blogWebSocketClient.sendCursorChat(text);
     },
     // 마우스가 브라우저 창 밖으로 나가면 (relatedTarget 이 없다) 내 커서를 지운다.
     onMouseOut(event: MouseEvent) {
@@ -145,6 +192,11 @@ export default defineComponent({
       }
       this.isAway = true;
       this.lastSent = { x: -99, y: -99 };
+      this.pendingMove = null;
+      if (this.moveTimer) {
+        clearTimeout(this.moveTimer);
+        this.moveTimer = null;
+      }
       blogWebSocketClient.sendCursorLeave();
     },
     onBatch(batch: CursorBatchDto) {
@@ -188,7 +240,7 @@ export default defineComponent({
       this.isChatOpen = false;
       this.draft = '';
       if (!this.myMessage) {
-        blogWebSocketClient.sendCursorChat('');
+        this.sendChatNow('');
       }
     },
     // 입력창의 실제 값. 한글 조합(IME) 중인 글자는 v-model 에 아직 반영되지 않으므로 DOM 값을 읽는다.
@@ -197,25 +249,25 @@ export default defineComponent({
       return (input ? input.value : this.draft) ?? '';
     },
     onDraftInput() {
-      // 치는 동안에도 상대에게 바로 보인다 (Figma 처럼). 서버가 150ms 로 묶는다.
-      blogWebSocketClient.sendCursorChat(this.currentDraft());
+      // 치는 동안에도 상대에게 바로 보인다 (Figma 처럼). 조합 중인 글자까지 담긴 DOM 값을 뒤따라 보낸다.
+      this.queueChat(this.currentDraft());
     },
     sendDraft() {
       const message = this.currentDraft().trim();
       this.isChatOpen = false;
       this.draft = '';
       if (!message) {
-        blogWebSocketClient.sendCursorChat('');
+        this.sendChatNow('');
         return;
       }
-      blogWebSocketClient.sendCursorChat(message);
+      this.sendChatNow(message);
       this.myMessage = message;
       if (this.myMessageTimer) {
         clearTimeout(this.myMessageTimer);
       }
       this.myMessageTimer = setTimeout(() => {
         this.myMessage = '';
-        blogWebSocketClient.sendCursorChat('');
+        this.sendChatNow('');
       }, MESSAGE_TTL);
     },
   },
@@ -257,6 +309,12 @@ export default defineComponent({
     }
     if (this.myMessageTimer) {
       clearTimeout(this.myMessageTimer);
+    }
+    if (this.moveTimer) {
+      clearTimeout(this.moveTimer);
+    }
+    if (this.chatTimer) {
+      clearTimeout(this.chatTimer);
     }
   },
 });
