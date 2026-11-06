@@ -1,3 +1,17 @@
 User-agent: *
-Allow:/
+Allow: /
+# 개인 화면·인증 화면은 색인 대상이 아니다
+Disallow: /setting
+Disallow: /write
+Disallow: /admin
+Disallow: /device
+Disallow: /tokens
+Disallow: /signin
+Disallow: /signup
+Disallow: /reset-password
+Disallow: /social-authentication-redirect
+Disallow: /bookmarks
+Disallow: /feed
+Disallow: /viewing
+
 Sitemap: https://hwanstory.kr/sitemap.xml

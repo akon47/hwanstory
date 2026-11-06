@@ -11,3 +11,7 @@ export const followV1: HttpApiClient = createHttpApiClient('v1/follow');
 export const feedV1: HttpApiClient = createHttpApiClient('v1/feed');
 
 export const adminV1: HttpApiClient = createHttpApiClient('v1/admin');
+
+// 개인 액세스 토큰 (AI 에이전트용) 관리 · 기기 로그인 승인
+export const tokensV1: HttpApiClient = createHttpApiClient('v1/tokens');
+export const deviceV1: HttpApiClient = createHttpApiClient('v1/authentication/device');

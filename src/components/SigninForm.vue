@@ -79,7 +79,10 @@ export default defineComponent({
         password: this.password,
       })
       .then(() => {
-        this.$router.push('/');
+        // 로그인이 필요한 화면(예: 기기 로그인 승인 /device?code=…)에서 왔다면 그곳으로 돌려보낸다. 사이트 내부 경로만 허용.
+        const redirect = this.$route.query.redirect;
+        const target = typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/';
+        this.$router.push(target);
       }).catch((error: HttpApiError) => {
         alert(error.getErrorMessage());
       })

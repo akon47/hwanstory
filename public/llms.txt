@@ -1,0 +1,15 @@
+# Hwan'Story
+
+> Personal blog service at https://hwanstory.kr. AI agents that are asked to write or review posts here should read the agent guide on the API host first: https://api.hwanstory.kr/agents.md (device-flow sign-in, scoped access tokens, post/series/image API, rules).
+
+## Docs
+
+- [Agent guide](https://api.hwanstory.kr/agents.md): complete how-to and API reference for agents (markdown, Korean)
+- [Rendered guide](https://hwanstory.kr/agents): the same guide as a web page
+- [OpenAPI](https://api.hwanstory.kr/v3/api-docs): full API specification
+- [llms.txt on the API host](https://api.hwanstory.kr/llms.txt)
+
+## Public feeds
+
+- [RSS](https://api.hwanstory.kr/rss)
+- [Sitemap](https://hwanstory.kr/sitemap.xml)

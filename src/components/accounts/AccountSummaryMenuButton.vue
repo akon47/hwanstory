@@ -7,6 +7,7 @@
           <a @click="goToMyBlog">내 블로그</a>
           <a @click="goToBookmarks">내 북마크</a>
           <a @click="goToSetting">내 정보 수정</a>
+          <a @click="goToTokens">액세스 토큰</a>
           <a v-if="isAdmin" @click="goToAdmin">관리자</a>
           <a @click="signOut">로그아웃</a>
         </div>
@@ -57,6 +58,9 @@ export default defineComponent({
     },
     goToSetting() {
       this.$router.push('/setting');
+    },
+    goToTokens() {
+      this.$router.push('/tokens');
     },
     goToAdmin() {
       this.$router.push('/admin');

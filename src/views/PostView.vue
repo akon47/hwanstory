@@ -155,6 +155,7 @@ import {
   unlikePost
 } from '@/api/blog';
 import { HttpApiError, attachmentFileBaseUrl } from '@/api/common/httpApiClient';
+import { setJsonLd, setRobotsMeta, siteBaseUrl } from '@/utils/seo';
 
 // 게시글에 사용할 수 있는 이모지 반응 목록 (백엔드 허용 목록과 일치해야 한다)
 const ALLOWED_REACTIONS = ['👍', '❤️', '😄', '🎉', '🤔', '👏', '🚀', '👀'];
@@ -436,6 +437,41 @@ export default defineComponent({
         this.setMetaTag('property', 'og:image', image);
         this.setMetaTag('name', 'twitter:image', image);
       }
+      this.setMetaTag('property', 'og:locale', 'ko_KR');
+      if (post.createdAt) {
+        this.setMetaTag('property', 'article:published_time', new Date(post.createdAt).toISOString());
+      }
+      if (post.lastModifiedAt) {
+        this.setMetaTag('property', 'article:modified_time', new Date(post.lastModifiedAt).toISOString());
+      }
+
+      // 검색엔진: 비공개·임시저장·예약 글은 색인하지 않고, 공개 글에는 BlogPosting 구조화 데이터를 넣는다.
+      const isPublic = post.openType === 'PUBLIC';
+      setRobotsMeta(!isPublic);
+      const canonical = `${siteBaseUrl}/${post.author?.blogId}/posts/${post.postUrl}`;
+      setJsonLd(isPublic ? {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: description,
+        image: image ? [image] : undefined,
+        datePublished: post.createdAt ? new Date(post.createdAt).toISOString() : undefined,
+        dateModified: post.lastModifiedAt ? new Date(post.lastModifiedAt).toISOString() : undefined,
+        author: {
+          '@type': 'Person',
+          name: post.author?.name,
+          url: `${siteBaseUrl}/${post.author?.blogId}`,
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Hwan\'Story',
+          logo: { '@type': 'ImageObject', url: `${siteBaseUrl}/logo-symbol.png` },
+        },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+        url: canonical,
+        keywords: (post.tags ?? []).map((tag) => tag.name).join(', ') || undefined,
+        inLanguage: 'ko',
+      } : null);
     },
     setMetaTag(attr: 'name' | 'property', key: string, content: string) {
       let el = document.head.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;

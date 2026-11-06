@@ -72,6 +72,21 @@
         </ol>
       </div>
     </div>
+    <div class="agent-container form-wrapper">
+      <div class="title">AI 에이전트에게 맡기기</div>
+      <p class="agent-description">
+        Claude Code 같은 코딩 에이전트에게 글쓰기나 기존 글 검토를 맡길 수 있습니다. 에이전트는 <b>기기 로그인</b>으로
+        내 권한 안에서 쓸 수 있는 액세스 토큰을 받아 가고(비밀을 채팅에 붙일 필요 없음), 토큰은 언제든 폐기할 수 있습니다.
+      </p>
+      <div class="etc-container">
+        <router-link to="/agents">
+          <button class="form-button">가이드 보기</button>
+        </router-link>
+        <router-link to="/tokens">
+          <button class="form-button">액세스 토큰 관리</button>
+        </router-link>
+      </div>
+    </div>
     </div>
     <div class="footer">
       <button class="form-button red-button"
@@ -281,7 +296,8 @@ export default defineComponent({
 }
 
 .account-info-container,
-.statistics-container {
+.statistics-container,
+.agent-container {
   display: grid;
   grid-template-columns: 750px;
   grid-template-rows: auto;
@@ -294,10 +310,22 @@ export default defineComponent({
 
 @media (max-width: 800px) {
   .account-info-container,
-  .statistics-container {
+  .statistics-container,
+  .agent-container {
     grid-template-columns: minmax(0, auto);
     justify-content: stretch;
   }
+}
+
+.agent-description {
+  padding-top: var(--base-gap);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.agent-container .etc-container {
+  grid-template-columns: auto auto;
+  grid-column-gap: var(--half-base-gab);
 }
 
 .stat-grid {

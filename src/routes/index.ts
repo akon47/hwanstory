@@ -5,6 +5,22 @@ import {
 } from 'vue-router';
 import store from '@/store';
 import { nextTick } from 'vue';
+import { setCanonical, setJsonLd, setRobotsMeta } from '@/utils/seo';
+
+// beforeEnter에 사용하여 로그인이 되어 있지 않으면 로그인 화면으로 보내고, 로그인 뒤 원래 화면으로 돌아오게 하는 함수
+const routeToSigninWhenIsNotLoggedIn: NavigationGuardWithThis<undefined> = (to, from, next) => {
+  if (store.getters['accountStore/isLoggedIn']) {
+    next();
+  } else {
+    next({ path: '/signin', query: { redirect: to.fullPath } });
+  }
+};
+
+// 검색엔진 색인에서 제외할 화면 (개인 화면·인증 화면·실시간 화면)
+const NOINDEX_PATHS = [
+  '/setting', '/bookmarks', '/signup', '/signin', '/write', '/feed', '/viewing', '/admin',
+  '/social-authentication-redirect', '/reset-password', '/not-found', '/tokens', '/device',
+];
 
 // beforeEnter에 사용하여 로그인이 되어 있으면 메인 화면으로 보내는 함수
 const routeToMainWhenIsLoggedIn: NavigationGuardWithThis<undefined> = (to, from, next) => {
@@ -170,6 +186,32 @@ const router = createRouter({
         },
       },
       {
+        path: '/tokens',
+        name: 'Tokens',
+        component: () => import('../views/TokensView.vue'),
+        beforeEnter: routeToSigninWhenIsNotLoggedIn,
+        meta: {
+          title: '액세스 토큰',
+        },
+      },
+      {
+        path: '/device',
+        name: 'Device',
+        component: () => import('../views/DeviceView.vue'),
+        beforeEnter: routeToSigninWhenIsNotLoggedIn,
+        meta: {
+          title: '기기 로그인 승인',
+        },
+      },
+      {
+        path: '/agents',
+        name: 'AgentGuide',
+        component: () => import('../views/AgentGuideView.vue'),
+        meta: {
+          title: 'AI 에이전트 가이드',
+        },
+      },
+      {
         path: '/:blogId/posts/:postUrl',
         component: () => import('../views/PostView.vue'),
         props: true,
@@ -246,6 +288,13 @@ router.afterEach((to, from) => {
   nextTick((): any => {
     document.title = title;
   });
+
+  // 검색엔진: 개인 화면은 색인 제외, 그 밖에는 경로 기준 canonical.
+  // (게시글 화면은 글을 불러온 뒤 JSON-LD 와 비공개 여부를 추가로 설정한다)
+  const noindex = NOINDEX_PATHS.some((path) => to.path === path || to.path.startsWith(`${path}/`));
+  setRobotsMeta(noindex);
+  setCanonical(noindex ? null : to.path);
+  setJsonLd(null);
 });
 
 export default router;
