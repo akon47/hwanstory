@@ -5,11 +5,23 @@ const STORAGE_KEY = 'hwanstory.cursor.identity';
 
 const ADJECTIVES = ['호기심 많은', '느긋한', '재빠른', '수줍은', '용감한', '졸린', '엉뚱한', '다정한', '차분한', '명랑한', '부지런한', '장난기 많은'];
 const ANIMALS = ['수달', '고양이', '펭귄', '여우', '판다', '돌고래', '올빼미', '토끼', '너구리', '고슴도치', '알파카', '물범'];
+// 손님 별명의 동물에 대응하는 그림 (읽는 사람 동그라미에 쓴다)
+const ANIMAL_EMOJI: Record<string, string> = {
+  수달: '🦦', 고양이: '🐱', 펭귄: '🐧', 여우: '🦊', 판다: '🐼', 돌고래: '🐬',
+  올빼미: '🦉', 토끼: '🐰', 너구리: '🦝', 고슴도치: '🦔', 알파카: '🦙', 물범: '🦭',
+};
 const COLORS = ['#e8590c', '#2f9e44', '#1971c2', '#9c36b5', '#e03131', '#0c8599', '#f08c00', '#5f3dc4', '#c2255c', '#2b8a3e', '#1098ad', '#862e9c'];
 
 export interface CursorIdentity {
   name: string;
   color: string;
+}
+
+// 동그라미 안에 넣을 한 글자: 동물 별명이면 그 동물 그림, 아니면 이름의 첫 글자
+export function avatarGlyph(name: string): string {
+  const trimmed = (name ?? '').trim();
+  const lastWord = trimmed.split(/\s+/).pop() ?? '';
+  return ANIMAL_EMOJI[lastWord] ?? (Array.from(trimmed)[0] ?? '?').toUpperCase();
 }
 
 function hashString(value: string): number {

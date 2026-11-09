@@ -173,6 +173,7 @@
               </li>
             </ul>
           </nav>
+          <post-viewers v-if="post.id" :post-id="post.id"/>
         </div>
       </aside>
     </div>
@@ -209,6 +210,8 @@ import CommentComposer, { CommentDoneCallback, CommentSubmission } from '@/compo
 import PostViewer from '@/components/posts/PostViewer.vue';
 import AppIcon from '@/components/common/AppIcon.vue';
 import LiveCursors from '@/components/posts/LiveCursors.vue';
+import PostViewers from '@/components/posts/PostViewers.vue';
+import { getCursorIdentity } from '@/utils/cursorIdentity';
 import blogWebSocketClient from '@/utils/websocket';
 import { confirmDialog, toast } from '@/utils/dialog';
 import { formatCount, formatDate, formatDateTime } from '@/utils/format';
@@ -225,7 +228,7 @@ const OPEN_TYPE_NOTES: Record<string, string> = {
 
 export default defineComponent({
   name: 'PostView',
-  components: { AppIcon, LiveCursors, PostViewer, SimpleCommentItem, CommentComposer, AccountProfileImageButton },
+  components: { AppIcon, LiveCursors, PostViewers, PostViewer, SimpleCommentItem, CommentComposer, AccountProfileImageButton },
   props: {
     blogId: {
       type: String,
@@ -354,8 +357,8 @@ export default defineComponent({
         this.tags = post.tags?.map((tag) => tag.name) ?? [];
         document.title = this.post.title;
 
-        // 현재 이 게시글을 보고 있다고 서버에 알린다. (실시간 시청자 수 집계)
-        blogWebSocketClient.viewPost(post.id);
+        // 현재 이 게시글을 보고 있다고 서버에 알린다. (실시간 시청자 수 집계 + 함께 읽는 사람 목록에 보일 이름·색)
+        blogWebSocketClient.viewPost(post.id, getCursorIdentity());
 
         if (post.seriesUrl) {
           this.series = await getBlogSeriesDetail(this.blogId, post.seriesUrl).catch(() => null);

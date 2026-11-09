@@ -246,6 +246,7 @@ export type MessageType =
   | 'CURSOR_LEAVE'
   | 'CURSOR_SELF'
   | 'CURSOR_BATCH'
+  | 'POST_VIEWERS'
   | null
 
 // 웹소켓 메시지 Dto
@@ -258,6 +259,23 @@ export interface MessageDto extends DataTransferObject {
 export interface PostViewerCountDto {
   readonly postId: string;
   readonly count: number;
+}
+
+// 한 글을 지금 읽고 있는 사람 한 명 (서버 -> 클라이언트)
+export interface PostViewerDto {
+  // 세션 Id
+  readonly id: string;
+  readonly name: string;
+  readonly color: string;
+}
+
+// 한 글을 지금 읽고 있는 사람들 (서버 -> 그 글을 읽는 세션들)
+export interface PostViewersDto {
+  readonly postId: string;
+  // 먼저 들어온 순, 서버가 최대 개수를 제한한다
+  readonly viewers: Array<PostViewerDto>;
+  // 전체 읽는 사람 수 (viewers 에 다 담기지 않았을 수 있다)
+  readonly total: number;
 }
 // 같은 글을 읽는 사람의 커서 상태 (서버 -> 클라이언트)
 export interface CursorStateDto {

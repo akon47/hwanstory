@@ -2,6 +2,7 @@ import {
   CursorBatchDto,
   MessageDto,
   PostViewerCountDto,
+  PostViewersDto,
 } from '@/api/models/blog.dtos';
 import { NotificationDto } from '@/api/models/notification.dtos';
 import { getAccessTokenFromLocalStorage } from '@/utils/storage';
@@ -25,6 +26,10 @@ class BlogWebSocketClient {
   private socket!: WebSocket;
   // 현재 보고 있는(상세 페이지) 게시글 Id
   private viewingPostId: string | null;
+  // 읽는 사람 목록에 보일 내 이름·색 (재연결 시 다시 보내기 위해 보관)
+  private viewingIdentity: { name: string; color: string } | null;
+  // 지금 보는 글을 함께 읽고 있는 사람들 (서버가 누가 들어오거나 나갈 때마다 알려 준다)
+  public postViewers: PostViewersDto | null;
   // 시청자 수를 구독 중인 게시글 Id 집합 (재연결 시 재요청을 위해 보관)
   private readonly watchedPostIds: Set<string>;
 
@@ -39,6 +44,8 @@ class BlogWebSocketClient {
     this.sessionCount = 0;
     this.postViewerCounts = {};
     this.viewingPostId = null;
+    this.viewingIdentity = null;
+    this.postViewers = null;
     this.watchedPostIds = new Set<string>();
     this.reconnectDelay = INITIAL_RECONNECT_DELAY;
     this.reconnectTimer = null;
@@ -59,7 +66,7 @@ class BlogWebSocketClient {
       // 로그인 상태라면 이 세션을 사용자와 연결해 실시간 알림을 받을 수 있게 한다.
       this.authenticate();
       if (this.viewingPostId) {
-        this.sendMessage('VIEW_POST', this.viewingPostId);
+        this.sendViewPost();
       }
       if (this.watchedPostIds.size > 0) {
         this.sendMessage('WATCH_POSTS', Array.from(this.watchedPostIds));
@@ -73,6 +80,7 @@ class BlogWebSocketClient {
       this.sessionId = null;
       this.postViewerCounts = {};
       this.onpostviewercountschanged?.();
+      this.setPostViewers(null);
       this.scheduleReconnect();
     };
     socket.onerror = () => {
@@ -110,6 +118,14 @@ class BlogWebSocketClient {
           this.oncursorself?.(this.sessionId);
           break;
         }
+        case 'POST_VIEWERS': {
+          const viewers = message.payload as PostViewersDto;
+          // 글을 옮긴 뒤 늦게 도착한 이전 글의 목록은 버린다.
+          if (viewers.postId === this.viewingPostId) {
+            this.setPostViewers(viewers);
+          }
+          break;
+        }
         case 'CURSOR_BATCH': {
           this.oncursorbatch?.(message.payload as CursorBatchDto);
           break;
@@ -143,13 +159,29 @@ class BlogWebSocketClient {
   }
 
   // 현재 보고 있는 게시글을 서버에 알린다. (상세 페이지 진입 시 postId, 이탈 시 null)
-  public viewPost(postId: string | null) {
+  // identity 는 같은 글을 읽는 사람들에게 보일 내 이름·색이다.
+  public viewPost(postId: string | null, identity: { name: string; color: string } | null = null) {
     if (this.viewingPostId === postId) {
       return;
     }
     this.viewingPostId = postId;
+    this.viewingIdentity = postId ? identity : null;
+    this.setPostViewers(null);
     // 연결이 끊겨 있으면 재연결 시 onopen에서 현재 상태가 다시 전송된다.
-    this.sendMessage('VIEW_POST', postId);
+    this.sendViewPost();
+  }
+
+  private sendViewPost() {
+    if (this.viewingPostId && this.viewingIdentity) {
+      this.sendMessage('VIEW_POST', { postId: this.viewingPostId, ...this.viewingIdentity });
+    } else {
+      this.sendMessage('VIEW_POST', this.viewingPostId);
+    }
+  }
+
+  private setPostViewers(viewers: PostViewersDto | null) {
+    this.postViewers = viewers;
+    this.onpostviewerschanged?.(viewers);
   }
 
   // 특정 게시글의 시청자 수 구독을 시작하고 현재 값을 요청한다.
@@ -200,6 +232,7 @@ class BlogWebSocketClient {
 
   public onsessioncountchanged: { (count: number): void } | undefined;
   public onpostviewercountschanged: { (): void } | undefined;
+  public onpostviewerschanged: { (viewers: PostViewersDto | null): void } | undefined;
   public onnotification: { (notification: NotificationDto): void } | undefined;
   // 서버가 알려준 이 세션의 Id (커서 묶음에서 내 커서를 걸러내는 데 쓴다)
   public sessionId: string | null = null;
