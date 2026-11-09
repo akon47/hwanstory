@@ -87,6 +87,8 @@ export default defineComponent({
       isLoading: false,
       keyword: this.search ?? '',
       viewingRefreshTimer: null as ReturnType<typeof setTimeout> | null,
+      // 가장 최근에 보낸 목록 요청 번호. 늦게 도착한 이전 요청의 응답을 가려낸다.
+      fetchRequestId: 0,
     };
   },
   computed: {
@@ -113,6 +115,8 @@ export default defineComponent({
       }
     },
     sortBy() {
+      // 탭을 옮기면 "지금 보는 중" 탭에서 예약해 둔 목록 갱신은 버린다.
+      this.clearViewingRefreshTimer();
       this.refresh();
     },
     search(value) {
@@ -124,13 +128,22 @@ export default defineComponent({
       if (!this.isViewingMode) {
         return;
       }
-      if (this.viewingRefreshTimer) {
-        clearTimeout(this.viewingRefreshTimer);
-      }
-      this.viewingRefreshTimer = setTimeout(() => this.fetchViewingPosts(), 800);
+      this.clearViewingRefreshTimer();
+      this.viewingRefreshTimer = setTimeout(() => {
+        this.viewingRefreshTimer = null;
+        if (this.isViewingMode) {
+          this.fetchViewingPosts();
+        }
+      }, 800);
     },
   },
   methods: {
+    clearViewingRefreshTimer() {
+      if (this.viewingRefreshTimer) {
+        clearTimeout(this.viewingRefreshTimer);
+        this.viewingRefreshTimer = null;
+      }
+    },
     async refresh() {
       await this.fetchPosts();
     },
@@ -150,10 +163,15 @@ export default defineComponent({
         this.isNoMorePage = true;
         return;
       }
+      const requestId = ++this.fetchRequestId;
       try {
         this.isLoading = true;
         await getAllPosts(20, cursorId, this.sortBy ?? null, this.isSearchMode ? this.search ?? null : null)
         .then(async (posts) => {
+          // 응답을 기다리는 사이 탭·검색어가 바뀌었으면 늦게 온 응답은 버린다.
+          if (requestId !== this.fetchRequestId) {
+            return;
+          }
           if (posts.first) {
             this.simplePosts = posts.data;
           } else {
@@ -173,10 +191,14 @@ export default defineComponent({
           }
         })
         .catch((error: HttpApiError) => {
-          toast.error(error.getErrorMessage());
+          if (requestId === this.fetchRequestId) {
+            toast.error(error.getErrorMessage());
+          }
         });
       } finally {
-        this.isLoading = false;
+        if (requestId === this.fetchRequestId) {
+          this.isLoading = false;
+        }
       }
     },
     async loadMorePosts() {
@@ -186,15 +208,23 @@ export default defineComponent({
     },
     // 현재 한 명 이상이 보고 있는 공개 게시글을 조회한다. (캐시/페이징 미사용)
     async fetchViewingPosts() {
+      const requestId = ++this.fetchRequestId;
       try {
         this.isLoading = true;
-        this.simplePosts = await getViewingPosts();
+        const posts = await getViewingPosts();
+        // 응답을 기다리는 사이 다른 탭으로 옮겼으면 그 탭의 목록을 덮어쓰지 않는다.
+        if (requestId !== this.fetchRequestId) {
+          return;
+        }
+        this.simplePosts = posts;
         this.cursorId = '';
         this.isNoMorePage = true;
       } catch (error) {
         // 목록 조회 실패는 빈 목록으로 둔다.
       } finally {
-        this.isLoading = false;
+        if (requestId === this.fetchRequestId) {
+          this.isLoading = false;
+        }
       }
     },
   },
@@ -220,9 +250,7 @@ export default defineComponent({
     }
   },
   beforeUnmount() {
-    if (this.viewingRefreshTimer) {
-      clearTimeout(this.viewingRefreshTimer);
-    }
+    this.clearViewingRefreshTimer();
   },
 });
 </script>
