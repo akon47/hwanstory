@@ -89,6 +89,8 @@ export default defineComponent({
       viewingRefreshTimer: null as ReturnType<typeof setTimeout> | null,
       // 가장 최근에 보낸 목록 요청 번호. 늦게 도착한 이전 요청의 응답을 가려낸다.
       fetchRequestId: 0,
+      // 화면의 "지금 보는 중" 목록을 받았을 때의 시청자 수 요약
+      loadedViewingSignature: null as string | null,
     };
   },
   computed: {
@@ -131,13 +133,25 @@ export default defineComponent({
       this.clearViewingRefreshTimer();
       this.viewingRefreshTimer = setTimeout(() => {
         this.viewingRefreshTimer = null;
-        if (this.isViewingMode) {
-          this.fetchViewingPosts();
+        // 화면에 있는 목록을 받은 뒤로 읽는 사람 수가 그대로면 다시 받을 필요가 없다.
+        // (탭에 들어온 직후 카드들이 시청자 수를 받아 오면서 생기는 변경 알림이 여기에 해당한다)
+        if (this.isViewingMode && this.viewingSignature() !== this.loadedViewingSignature) {
+          // 이미 목록이 보이는 상태의 갱신이므로 로딩 표시 없이 조용히 바꾼다.
+          this.fetchViewingPosts(true);
         }
       }, 800);
     },
   },
   methods: {
+    // 지금 읽히고 있는 글과 사람 수를 한 줄로 요약한다. (목록을 다시 받아야 하는지 비교하는 데 쓴다)
+    viewingSignature(): string {
+      const counts = (this.viewerCounts ?? {}) as Record<string, number>;
+      return Object.keys(counts)
+      .filter((postId) => counts[postId] > 0)
+      .sort()
+      .map((postId) => `${postId}:${counts[postId]}`)
+      .join(',');
+    },
     clearViewingRefreshTimer() {
       if (this.viewingRefreshTimer) {
         clearTimeout(this.viewingRefreshTimer);
@@ -207,10 +221,12 @@ export default defineComponent({
       }
     },
     // 현재 한 명 이상이 보고 있는 공개 게시글을 조회한다. (캐시/페이징 미사용)
-    async fetchViewingPosts() {
+    async fetchViewingPosts(silent = false) {
       const requestId = ++this.fetchRequestId;
       try {
-        this.isLoading = true;
+        if (!silent) {
+          this.isLoading = true;
+        }
         const posts = await getViewingPosts();
         // 응답을 기다리는 사이 다른 탭으로 옮겼으면 그 탭의 목록을 덮어쓰지 않는다.
         if (requestId !== this.fetchRequestId) {
@@ -219,6 +235,7 @@ export default defineComponent({
         this.simplePosts = posts;
         this.cursorId = '';
         this.isNoMorePage = true;
+        this.loadedViewingSignature = this.viewingSignature();
       } catch (error) {
         // 목록 조회 실패는 빈 목록으로 둔다.
       } finally {
