@@ -3,6 +3,7 @@ import {
   MessageDto,
   PostViewerCountDto,
   PostViewersDto,
+  ReadPositionsDto,
 } from '@/api/models/blog.dtos';
 import { NotificationDto } from '@/api/models/notification.dtos';
 import { getAccessTokenFromLocalStorage } from '@/utils/storage';
@@ -30,6 +31,8 @@ class BlogWebSocketClient {
   private viewingIdentity: { name: string; color: string } | null;
   // 지금 보는 글을 함께 읽고 있는 사람들 (서버가 누가 들어오거나 나갈 때마다 알려 준다)
   public postViewers: PostViewersDto | null;
+  // 지금 보는 글에서 내가 읽고 있는 위치 (재연결 시 다시 보내기 위해 보관)
+  private readPosition: number | null;
   // 시청자 수를 구독 중인 게시글 Id 집합 (재연결 시 재요청을 위해 보관)
   private readonly watchedPostIds: Set<string>;
 
@@ -46,6 +49,7 @@ class BlogWebSocketClient {
     this.viewingPostId = null;
     this.viewingIdentity = null;
     this.postViewers = null;
+    this.readPosition = null;
     this.watchedPostIds = new Set<string>();
     this.reconnectDelay = INITIAL_RECONNECT_DELAY;
     this.reconnectTimer = null;
@@ -67,6 +71,9 @@ class BlogWebSocketClient {
       this.authenticate();
       if (this.viewingPostId) {
         this.sendViewPost();
+        if (this.readPosition !== null) {
+          this.sendMessage('READ_POSITION', this.readPosition);
+        }
       }
       if (this.watchedPostIds.size > 0) {
         this.sendMessage('WATCH_POSTS', Array.from(this.watchedPostIds));
@@ -126,6 +133,13 @@ class BlogWebSocketClient {
           }
           break;
         }
+        case 'READ_POSITIONS': {
+          const positions = message.payload as ReadPositionsDto;
+          if (positions.postId === this.viewingPostId) {
+            this.onreadpositionschanged?.(positions);
+          }
+          break;
+        }
         case 'CURSOR_BATCH': {
           this.oncursorbatch?.(message.payload as CursorBatchDto);
           break;
@@ -166,6 +180,7 @@ class BlogWebSocketClient {
     }
     this.viewingPostId = postId;
     this.viewingIdentity = postId ? identity : null;
+    this.readPosition = null;
     this.setPostViewers(null);
     // 연결이 끊겨 있으면 재연결 시 onopen에서 현재 상태가 다시 전송된다.
     this.sendViewPost();
@@ -177,6 +192,15 @@ class BlogWebSocketClient {
     } else {
       this.sendMessage('VIEW_POST', this.viewingPostId);
     }
+  }
+
+  // 지금 보는 글에서 내가 읽고 있는 위치를 보낸다. (본문 시작 0 ~ 끝 1. 서버가 같은 글을 읽는 사람들에게 묶어 전달한다)
+  public sendReadPosition(progress: number) {
+    if (!this.viewingPostId) {
+      return;
+    }
+    this.readPosition = progress;
+    this.sendMessage('READ_POSITION', progress);
   }
 
   private setPostViewers(viewers: PostViewersDto | null) {
@@ -233,6 +257,7 @@ class BlogWebSocketClient {
   public onsessioncountchanged: { (count: number): void } | undefined;
   public onpostviewercountschanged: { (): void } | undefined;
   public onpostviewerschanged: { (viewers: PostViewersDto | null): void } | undefined;
+  public onreadpositionschanged: { (positions: ReadPositionsDto): void } | undefined;
   public onnotification: { (notification: NotificationDto): void } | undefined;
   // 서버가 알려준 이 세션의 Id (커서 묶음에서 내 커서를 걸러내는 데 쓴다)
   public sessionId: string | null = null;

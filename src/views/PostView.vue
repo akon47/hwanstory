@@ -4,6 +4,8 @@
       <div class="reading-progress-bar" :style="{ width: readingProgress + '%' }"/>
     </div>
 
+    <read-position-rail :readers="otherReaders" @jump="jumpToProgress"/>
+
     <div class="container post-layout" :class="{ 'has-toc': toc.length > 0 }">
       <article class="post-main" ref="post-main">
         <live-cursors v-if="post.id" :post-id="post.id" :container="postMainElement"/>
@@ -170,10 +172,15 @@
             <ul>
               <li v-for="item in toc" :key="item.id" :class="[`toc-level-${item.level}`, { active: item.id === activeTocId }]">
                 <a :href="`#${item.id}`" @click.prevent="scrollToHeading(item.id)">{{ item.text }}</a>
+                <span v-if="tocReaders[item.id]" class="toc-readers">
+                  <span v-for="reader in tocReaders[item.id]" :key="reader.id" class="toc-reader"
+                        :style="{ background: reader.color }" :title="`${reader.name} 님이 읽는 중`"/>
+                </span>
               </li>
             </ul>
           </nav>
-          <post-viewers v-if="post.id" :post-id="post.id"/>
+          <post-viewers :viewers="viewers" :total="viewersTotal" :self-id="selfId" :positions="readPositions"
+                        @jump="jumpToProgress"/>
         </div>
       </aside>
     </div>
@@ -211,6 +218,8 @@ import PostViewer from '@/components/posts/PostViewer.vue';
 import AppIcon from '@/components/common/AppIcon.vue';
 import LiveCursors from '@/components/posts/LiveCursors.vue';
 import PostViewers from '@/components/posts/PostViewers.vue';
+import ReadPositionRail, { PostReader } from '@/components/posts/ReadPositionRail.vue';
+import { PostViewerDto, PostViewersDto, ReadPositionsDto } from '@/api/models/blog.dtos';
 import { getCursorIdentity } from '@/utils/cursorIdentity';
 import blogWebSocketClient from '@/utils/websocket';
 import { confirmDialog, toast } from '@/utils/dialog';
@@ -226,9 +235,14 @@ const OPEN_TYPE_NOTES: Record<string, string> = {
   SCHEDULED: '예약 발행 글입니다. 예약한 시각에 공개됩니다.',
 };
 
+// 읽는 위치의 기준선: 화면 위에서 이만큼 내려온 곳(고정 헤더 바로 아래)을 "지금 읽는 곳"으로 본다.
+const READ_LINE_OFFSET = 96;
+// 읽는 위치 전송 간격(ms)
+const READ_POSITION_INTERVAL = 400;
+
 export default defineComponent({
   name: 'PostView',
-  components: { AppIcon, LiveCursors, PostViewers, PostViewer, SimpleCommentItem, CommentComposer, AccountProfileImageButton },
+  components: { AppIcon, LiveCursors, PostViewers, ReadPositionRail, PostViewer, SimpleCommentItem, CommentComposer, AccountProfileImageButton },
   props: {
     blogId: {
       type: String,
@@ -257,6 +271,17 @@ export default defineComponent({
       isFollowingAuthor: false,
       followLoading: false,
       postMainElement: null as HTMLElement | null,
+      // 이 글을 함께 읽는 사람들 (서버가 들어오고 나갈 때마다 알려 준다)
+      viewers: [] as Array<PostViewerDto>,
+      viewersTotal: 0,
+      selfId: null as string | null,
+      // 세션 Id -> 읽는 위치(본문 시작 0 ~ 끝 1)
+      readPositions: {} as Record<string, number>,
+      // 목차 항목 Id -> 그 부분을 읽고 있는 다른 사람들
+      tocReaders: {} as Record<string, Array<PostReader>>,
+      lastSentReadPosition: -1,
+      lastSentReadPositionAt: 0,
+      readPositionTimer: null as ReturnType<typeof setTimeout> | null,
     };
   },
   computed: {
@@ -318,6 +343,12 @@ export default defineComponent({
         next: index < posts.length - 1 ? (posts[index + 1] as unknown as SimplePostDto) : null,
       };
     },
+    // 나를 뺀, 읽는 위치를 알고 있는 사람들
+    otherReaders(): Array<PostReader> {
+      return this.viewers
+      .filter((viewer) => viewer.id !== this.selfId && this.readPositions[viewer.id] !== undefined)
+      .map((viewer) => ({ id: viewer.id, name: viewer.name, color: viewer.color, progress: this.readPositions[viewer.id] }));
+    },
     // 현재 이 게시글을 함께 보고 있는 사람 수 (자신 포함)
     currentViewerCount(): number {
       return store.getters['commonStore/postViewerCount'](this.post?.id);
@@ -359,6 +390,7 @@ export default defineComponent({
 
         // 현재 이 게시글을 보고 있다고 서버에 알린다. (실시간 시청자 수 집계 + 함께 읽는 사람 목록에 보일 이름·색)
         blogWebSocketClient.viewPost(post.id, getCursorIdentity());
+        this.lastSentReadPosition = -1;
 
         if (post.seriesUrl) {
           this.series = await getBlogSeriesDetail(this.blogId, post.seriesUrl).catch(() => null);
@@ -650,6 +682,102 @@ export default defineComponent({
         };
       }).filter((item) => item.text.length > 0);
       this.updateActiveToc();
+      // 본문이 그려졌으니 내 읽는 위치를 알리고, 다른 사람들의 위치를 목차에 다시 맞춘다.
+      this.reportReadPosition();
+      this.$nextTick(() => this.updateTocReaders());
+    },
+    // ───── 함께 읽는 사람 · 읽는 위치 ─────
+    onViewersChanged(payload: PostViewersDto | null) {
+      this.selfId = blogWebSocketClient.sessionId;
+      this.viewers = payload?.viewers ?? [];
+      this.viewersTotal = payload?.total ?? 0;
+      // 떠난 사람의 위치는 버린다.
+      const positions: Record<string, number> = {};
+      this.viewers.forEach((viewer) => {
+        if (this.readPositions[viewer.id] !== undefined) {
+          positions[viewer.id] = this.readPositions[viewer.id];
+        }
+      });
+      this.readPositions = positions;
+      this.updateTocReaders();
+    },
+    onReadPositionsChanged(payload: ReadPositionsDto) {
+      const positions: Record<string, number> = {};
+      payload.positions.forEach((position) => {
+        positions[position.id] = position.progress;
+      });
+      this.readPositions = positions;
+      this.updateTocReaders();
+    },
+    contentElement(): HTMLElement | null {
+      return (this.$el as HTMLElement | undefined)?.querySelector?.('.post-content') ?? null;
+    },
+    // 화면 위쪽 기준선(헤더 바로 아래)이 본문의 어디쯤인지 0~1 로 구한다. 창 크기가 달라도 비슷한 곳을 가리킨다.
+    currentReadPosition(): number | null {
+      const content = this.contentElement();
+      if (!content) {
+        return null;
+      }
+      const rect = content.getBoundingClientRect();
+      if (rect.height <= 0) {
+        return null;
+      }
+      return Math.min(1, Math.max(0, (READ_LINE_OFFSET - rect.top) / rect.height));
+    },
+    // 내 읽는 위치가 바뀌었으면 서버에 알린다. (스크롤 중에는 간격을 두고, 멈춘 뒤의 마지막 값은 반드시 보낸다)
+    reportReadPosition() {
+      if (this.readPositionTimer) {
+        return;
+      }
+      const wait = Math.max(0, READ_POSITION_INTERVAL - (Date.now() - this.lastSentReadPositionAt));
+      this.readPositionTimer = setTimeout(() => {
+        this.readPositionTimer = null;
+        const position = this.currentReadPosition();
+        if (position === null || !this.post?.id || Math.abs(position - this.lastSentReadPosition) < 0.003) {
+          return;
+        }
+        this.lastSentReadPosition = position;
+        this.lastSentReadPositionAt = Date.now();
+        blogWebSocketClient.sendReadPosition(Math.round(position * 1000) / 1000);
+      }, wait);
+    },
+    // 다른 사람이 읽고 있는 곳(본문 비율)으로 간다.
+    jumpToProgress(progress: number) {
+      const content = this.contentElement();
+      if (!content) {
+        return;
+      }
+      const rect = content.getBoundingClientRect();
+      const top = rect.top + window.scrollY + progress * rect.height - READ_LINE_OFFSET;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    },
+    // 다른 사람들이 목차의 어느 부분을 읽고 있는지 계산한다. (그 사람 위치보다 위에 있는 마지막 제목)
+    updateTocReaders() {
+      const content = this.contentElement();
+      const result: Record<string, Array<PostReader>> = {};
+      if (content && this.toc.length > 0 && this.otherReaders.length > 0) {
+        const rect = content.getBoundingClientRect();
+        const headings = this.toc
+        .map((item) => ({ id: item.id, top: document.getElementById(item.id)?.getBoundingClientRect().top }))
+        .filter((heading): heading is { id: string; top: number } => heading.top !== undefined);
+        this.otherReaders.forEach((reader) => {
+          // 제목이 기준선에 막 걸친 경우도 그 부분으로 치도록 조금 여유를 둔다.
+          const y = rect.top + reader.progress * rect.height + 8;
+          // 첫 제목보다 위(글머리)를 읽는 사람은 첫 부분에 둔다.
+          let section: string | null = headings[0]?.id ?? null;
+          for (const heading of headings) {
+            if (heading.top <= y) {
+              section = heading.id;
+            } else {
+              break;
+            }
+          }
+          if (section) {
+            (result[section] ??= []).push(reader);
+          }
+        });
+      }
+      this.tocReaders = result;
     },
     scrollToHeading(id: string) {
       const element = document.getElementById(id);
@@ -665,6 +793,7 @@ export default defineComponent({
       const scrollableHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       this.readingProgress = scrollableHeight > 0 ? Math.min(100, Math.max(0, (scrollTop / scrollableHeight) * 100)) : 0;
       this.updateActiveToc();
+      this.reportReadPosition();
     },
     // 화면 위쪽을 지난 마지막 제목을 현재 위치로 표시한다.
     updateActiveToc() {
@@ -685,6 +814,8 @@ export default defineComponent({
     },
   },
   created() {
+    blogWebSocketClient.onpostviewerschanged = this.onViewersChanged;
+    blogWebSocketClient.onreadpositionschanged = this.onReadPositionsChanged;
     this.loadPost();
   },
   mounted() {
@@ -694,6 +825,15 @@ export default defineComponent({
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.updateReadingProgress);
+    if (this.readPositionTimer) {
+      clearTimeout(this.readPositionTimer);
+    }
+    if (blogWebSocketClient.onpostviewerschanged === this.onViewersChanged) {
+      blogWebSocketClient.onpostviewerschanged = undefined;
+    }
+    if (blogWebSocketClient.onreadpositionschanged === this.onReadPositionsChanged) {
+      blogWebSocketClient.onreadpositionschanged = undefined;
+    }
     // 게시글을 떠나므로 더 이상 보고 있지 않음을 알린다.
     blogWebSocketClient.viewPost(null);
   },
@@ -1308,6 +1448,29 @@ export default defineComponent({
 .toc-side ul {
   display: grid;
   gap: 6px;
+}
+
+.toc-side li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toc-side li a {
+  min-width: 0;
+}
+
+/* 그 부분을 읽고 있는 다른 사람들의 색 점 */
+.toc-readers {
+  display: inline-flex;
+  flex: none;
+  gap: 3px;
+}
+
+.toc-reader {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
 .toc-side li.active a {

@@ -2,11 +2,13 @@
   <section v-if="total > 1" class="post-viewers" aria-label="함께 읽는 사람">
     <div class="viewers-title">함께 읽는 중 <span class="num">{{ total }}</span></div>
     <ul class="viewers-row" @mouseleave="hoveredId = null">
-      <li v-for="viewer in visibleViewers" :key="viewer.id" class="viewer" :class="{ me: viewer.id === selfId }"
-          :style="{ background: viewer.color }" :title="label(viewer)" tabindex="0"
-          @mouseenter="hoveredId = viewer.id" @focus="hoveredId = viewer.id" @blur="hoveredId = null">
+      <li v-for="viewer in visibleViewers" :key="viewer.id" class="viewer"
+          :class="{ me: viewer.id === selfId, jumpable: canJump(viewer) }"
+          :style="{ background: viewer.color }" :title="hint(viewer)" tabindex="0"
+          @mouseenter="hoveredId = viewer.id" @focus="hoveredId = viewer.id" @blur="hoveredId = null"
+          @click="jump(viewer)" @keydown.enter.prevent="jump(viewer)">
         <span aria-hidden="true">{{ glyph(viewer.name) }}</span>
-        <span class="sr-only">{{ label(viewer) }}</span>
+        <span class="sr-only">{{ hint(viewer) }}</span>
       </li>
       <li v-if="hiddenCount > 0" class="viewer more" :title="`외 ${hiddenCount}명`">+{{ hiddenCount }}</li>
     </ul>
@@ -15,28 +17,41 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import blogWebSocketClient from '@/utils/websocket';
-import { PostViewerDto, PostViewersDto } from '@/api/models/blog.dtos';
+import { defineComponent, PropType } from 'vue';
+import { PostViewerDto } from '@/api/models/blog.dtos';
 import { avatarGlyph } from '@/utils/cursorIdentity';
 
 // 같은 글을 지금 읽고 있는 사람들을 동그라미로 나란히 보여준다. (문서 도구의 "함께 보는 사람" 표시처럼)
-// 서버가 누가 들어오거나 나갈 때마다 목록(POST_VIEWERS)을 보내 주며, 혼자 읽는 중이면 아무것도 그리지 않는다.
+// 목록과 읽는 위치는 PostView 가 웹소켓에서 받아 내려 준다. 혼자 읽는 중이면 아무것도 그리지 않는다.
+// 다른 사람의 동그라미를 누르면 그 사람이 읽고 있는 곳으로 가도록 jump 이벤트를 올린다.
 const MAX_VISIBLE = 7;
 
 export default defineComponent({
   name: 'PostViewers',
   props: {
-    postId: {
-      type: String,
-      required: true,
+    viewers: {
+      type: Array as PropType<Array<PostViewerDto>>,
+      default: () => [],
+    },
+    // 전체 읽는 사람 수 (viewers 에 다 담기지 않았을 수 있다)
+    total: {
+      type: Number,
+      default: 0,
+    },
+    // 내 세션 Id
+    selfId: {
+      type: String as PropType<string | null>,
+      default: null,
+    },
+    // 세션 Id -> 읽는 위치(본문 시작 0 ~ 끝 1)
+    positions: {
+      type: Object as PropType<Record<string, number>>,
+      default: () => ({}),
     },
   },
+  emits: ['jump'],
   data() {
     return {
-      viewers: [] as Array<PostViewerDto>,
-      total: 0,
-      selfId: null as string | null,
       hoveredId: null as string | null,
     };
   },
@@ -53,19 +68,14 @@ export default defineComponent({
     hiddenCount(): number {
       return Math.max(0, this.total - this.visibleViewers.length);
     },
-    // 동그라미 아래 한 줄: 가리킨 사람의 이름, 아니면 읽는 사람들 이름을 이어서
+    // 동그라미 아래 한 줄: 가리킨 사람의 이름(과 읽는 위치), 아니면 읽는 사람들 이름을 이어서
     caption(): string {
       const hovered = this.orderedViewers.find((viewer) => viewer.id === this.hoveredId);
       if (hovered) {
-        return this.label(hovered);
+        return this.hint(hovered);
       }
       const names = this.visibleViewers.map((viewer) => this.label(viewer)).join(', ');
       return this.hiddenCount > 0 ? `${names} 외 ${this.hiddenCount}명` : names;
-    },
-  },
-  watch: {
-    postId() {
-      this.apply(blogWebSocketClient.postViewers);
     },
   },
   methods: {
@@ -75,26 +85,20 @@ export default defineComponent({
     label(viewer: PostViewerDto): string {
       return viewer.id === this.selfId ? `${viewer.name} (나)` : viewer.name;
     },
-    apply(payload: PostViewersDto | null) {
-      this.selfId = blogWebSocketClient.sessionId;
-      if (!payload || payload.postId !== this.postId) {
-        this.viewers = [];
-        this.total = 0;
-        return;
-      }
-      this.viewers = payload.viewers;
-      this.total = payload.total;
+    canJump(viewer: PostViewerDto): boolean {
+      return viewer.id !== this.selfId && this.positions[viewer.id] !== undefined;
     },
-  },
-  mounted() {
-    // 컴포넌트가 뜨기 전에 이미 도착한 목록이 있으면 그것부터 보여준다.
-    this.apply(blogWebSocketClient.postViewers);
-    blogWebSocketClient.onpostviewerschanged = this.apply;
-  },
-  beforeUnmount() {
-    if (blogWebSocketClient.onpostviewerschanged === this.apply) {
-      blogWebSocketClient.onpostviewerschanged = undefined;
-    }
+    hint(viewer: PostViewerDto): string {
+      if (!this.canJump(viewer)) {
+        return this.label(viewer);
+      }
+      return `${viewer.name} · ${Math.round(this.positions[viewer.id] * 100)}% 읽는 중`;
+    },
+    jump(viewer: PostViewerDto) {
+      if (this.canJump(viewer)) {
+        this.$emit('jump', this.positions[viewer.id]);
+      }
+    },
   },
 });
 </script>
@@ -140,6 +144,10 @@ export default defineComponent({
   cursor: default;
   user-select: none;
   transition: transform var(--ease);
+}
+
+.viewer.jumpable {
+  cursor: pointer;
 }
 
 .viewer:hover,

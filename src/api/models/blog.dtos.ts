@@ -247,6 +247,8 @@ export type MessageType =
   | 'CURSOR_SELF'
   | 'CURSOR_BATCH'
   | 'POST_VIEWERS'
+  | 'READ_POSITION'
+  | 'READ_POSITIONS'
   | null
 
 // 웹소켓 메시지 Dto
@@ -267,6 +269,13 @@ export interface PostViewerDto {
   readonly id: string;
   readonly name: string;
   readonly color: string;
+}
+
+// 같은 글을 읽는 사람들이 지금 읽고 있는 위치 (서버 -> 그 글을 읽는 세션들)
+export interface ReadPositionsDto {
+  readonly postId: string;
+  // id 는 세션 Id, progress 는 본문 시작(0) ~ 끝(1)
+  readonly positions: Array<{ readonly id: string; readonly progress: number }>;
 }
 
 // 한 글을 지금 읽고 있는 사람들 (서버 -> 그 글을 읽는 세션들)
