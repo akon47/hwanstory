@@ -249,6 +249,9 @@ export type MessageType =
   | 'POST_VIEWERS'
   | 'READ_POSITION'
   | 'READ_POSITIONS'
+  | 'REACTION_BURST'
+  | 'COMMENT_TYPING'
+  | 'COMMENTS_CHANGED'
   | null
 
 // 웹소켓 메시지 Dto

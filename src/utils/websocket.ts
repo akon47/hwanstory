@@ -133,6 +133,27 @@ class BlogWebSocketClient {
           }
           break;
         }
+        case 'REACTION_BURST': {
+          const burst = message.payload as { postId: string; emoji: string; id: string };
+          if (burst.postId === this.viewingPostId) {
+            this.onreactionburst?.(burst.emoji);
+          }
+          break;
+        }
+        case 'COMMENT_TYPING': {
+          const typing = message.payload as { postId: string; id: string; name: string };
+          if (typing.postId === this.viewingPostId) {
+            this.oncommenttyping?.(typing.id, typing.name);
+          }
+          break;
+        }
+        case 'COMMENTS_CHANGED': {
+          const changed = message.payload as { postId: string };
+          if (changed.postId === this.viewingPostId) {
+            this.oncommentschanged?.();
+          }
+          break;
+        }
         case 'READ_POSITIONS': {
           const positions = message.payload as ReadPositionsDto;
           if (positions.postId === this.viewingPostId) {
@@ -203,6 +224,20 @@ class BlogWebSocketClient {
     this.sendMessage('READ_POSITION', progress);
   }
 
+  // 반응 이모지를 방금 눌렀다고 알린다. (같은 글을 읽는 사람들 화면에 이모지가 떠오른다)
+  public sendReactionBurst(emoji: string) {
+    if (this.viewingPostId) {
+      this.sendMessage('REACTION_BURST', emoji);
+    }
+  }
+
+  // 댓글을 쓰는 중이라고 알린다.
+  public sendCommentTyping() {
+    if (this.viewingPostId) {
+      this.sendMessage('COMMENT_TYPING', null);
+    }
+  }
+
   private setPostViewers(viewers: PostViewersDto | null) {
     this.postViewers = viewers;
     this.onpostviewerschanged?.(viewers);
@@ -258,6 +293,9 @@ class BlogWebSocketClient {
   public onpostviewercountschanged: { (): void } | undefined;
   public onpostviewerschanged: { (viewers: PostViewersDto | null): void } | undefined;
   public onreadpositionschanged: { (positions: ReadPositionsDto): void } | undefined;
+  public onreactionburst: { (emoji: string): void } | undefined;
+  public oncommenttyping: { (sessionId: string, name: string): void } | undefined;
+  public oncommentschanged: { (): void } | undefined;
   public onnotification: { (notification: NotificationDto): void } | undefined;
   // 서버가 알려준 이 세션의 Id (커서 묶음에서 내 커서를 걸러내는 데 쓴다)
   public sessionId: string | null = null;

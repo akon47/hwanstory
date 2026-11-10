@@ -19,7 +19,7 @@ const routeToSigninWhenIsNotLoggedIn: NavigationGuardWithThis<undefined> = (to, 
 // 검색엔진 색인에서 제외할 화면 (개인 화면·인증 화면·실시간 화면)
 const NOINDEX_PATHS = [
   '/setting', '/bookmarks', '/search', '/signup', '/signin', '/write', '/feed', '/viewing', '/admin',
-  '/social-authentication-redirect', '/reset-password', '/not-found', '/tokens', '/device',
+  '/social-authentication-redirect', '/reset-password', '/not-found', '/tokens', '/device', '/stats',
 ];
 
 // beforeEnter에 사용하여 로그인이 되어 있으면 메인 화면으로 보내는 함수
@@ -81,6 +81,15 @@ const router = createRouter({
         component: () => import('../views/SettingView.vue'),
         meta: {
           title: '설정',
+        },
+      },
+      {
+        path: '/stats',
+        name: 'Stats',
+        component: () => import('../views/StatsView.vue'),
+        beforeEnter: routeToSigninWhenIsNotLoggedIn,
+        meta: {
+          title: '글 통계',
         },
       },
       {
@@ -201,6 +210,8 @@ const router = createRouter({
         children: [
           { path: '', name: 'Admin', component: () => import('../views/admin/AdminDashboardView.vue'), meta: { title: '관리자 · 대시보드' } },
           { path: 'members', component: () => import('../views/admin/AdminMembersView.vue'), meta: { title: '관리자 · 회원' } },
+          { path: 'members/:accountId', component: () => import('../views/admin/AdminMemberDetailView.vue'), props: true, meta: { title: '관리자 · 회원 상세' } },
+          { path: 'blocks', component: () => import('../views/admin/AdminBlocksView.vue'), meta: { title: '관리자 · 차단' } },
           { path: 'posts', component: () => import('../views/admin/AdminPostsView.vue'), meta: { title: '관리자 · 글' } },
           { path: 'comments', component: () => import('../views/admin/AdminCommentsView.vue'), meta: { title: '관리자 · 댓글' } },
           { path: 'reports', component: () => import('../views/admin/AdminReportsView.vue'), meta: { title: '관리자 · 신고' } },

@@ -4,7 +4,7 @@
     <span class="body">
       <span class="text">
         <b>{{ notification?.comment?.author?.name }}</b>님이
-        <b class="post-title">{{ notification?.comment?.post?.title }}</b>에 댓글을 남겼습니다
+        <b class="post-title">{{ notification?.comment?.post?.title }}</b>{{ isMention ? '의 댓글에서 회원님을 언급했습니다' : '에 댓글을 남겼습니다' }}
       </span>
       <span class="excerpt">{{ notification?.comment?.content }}</span>
       <span class="time">{{ relativeTime }}</span>
@@ -28,6 +28,10 @@ export default defineComponent({
   computed: {
     relativeTime(): string {
       return formatRelativeDate(this.notification?.createdAt);
+    },
+    // 언급 알림(@블로그Id)도 이 항목으로 그린다.
+    isMention(): boolean {
+      return this.notification?.notificationType === 'MENTION';
     },
     relatedPostUrl(): string | null {
       const simplePost = this.notification?.comment?.post;

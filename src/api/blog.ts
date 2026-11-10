@@ -1,5 +1,7 @@
 import { blogV1 } from './index';
 import { SliceDto } from '@/api/models/common.dtos';
+import { MyPostStatsDto } from '@/api/models/stats.dtos';
+import { SimpleCommentDto } from '@/api/models/blog.dtos';
 import {
   BlogDetailsDto,
   BlogStatisticsDto,
@@ -200,6 +202,16 @@ function getMyStatistics() {
   return blogV1.getRequest<BlogStatisticsDto>('/me/statistics');
 }
 
+// 내 글 통계 조회 (기간별 조회수 추이 + 글별 수치)
+function getMyPostStatistics(days: number) {
+  return blogV1.getRequest<MyPostStatsDto>('/me/statistics/posts', { days });
+}
+
+// 게시글의 댓글만 다시 조회 (조회수는 올리지 않는다)
+function getPostComments(blogId: string, postUrl: string) {
+  return blogV1.getRequest<Array<SimpleCommentDto>>(`/${blogId}/posts/${postUrl}/comments`);
+}
+
 // 관련 게시글 조회 (태그가 겹치는 공개 게시글)
 function getRelatedPosts(blogId: string, postUrl: string, size = 5) {
   return blogV1.getRequest<Array<SimplePostDto>>(`/${blogId}/posts/${postUrl}/related`, {
@@ -243,6 +255,8 @@ function getBlogSeries(blogId: string) {
 }
 
 export {
+  getMyPostStatistics,
+  getPostComments,
   getBlogDetails,
   createPost,
   modifyPost,

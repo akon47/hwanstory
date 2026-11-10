@@ -3,6 +3,33 @@ import { SimpleAccountDto } from '@/api/models/account.dtos';
 import { SimplePostDto } from '@/api/models/blog.dtos';
 import { ReportReason, ReportStatus, ReportTargetType } from '@/api/models/site.dtos';
 
+// 차단한 IP Dto
+export interface AdminBlockedIpDto extends DataTransferObject {
+  readonly id: string;
+  readonly ip: string;
+  readonly reason: string | null;
+  readonly createdBy: string | null;
+  readonly createdAt: string;
+}
+
+// 금칙어 목록 Dto
+export interface AdminBannedWordsDto extends DataTransferObject {
+  readonly words: Array<string>;
+}
+
+// 관리자용 회원 상세 Dto
+export interface AdminAccountDetailDto extends DataTransferObject {
+  readonly account: AdminAccountDto;
+  readonly postCount: number;
+  readonly commentCount: number;
+  readonly totalHits: number;
+  // 이 회원의 글·댓글이 신고된 횟수 / 이 회원이 신고한 횟수
+  readonly reportedCount: number;
+  readonly reportCount: number;
+  readonly recentPosts: Array<SimplePostDto>;
+  readonly recentComments: Array<AdminCommentDto>;
+}
+
 // 관리자 활동 기록 Dto
 export interface AdminAuditLogDto extends DataTransferObject {
   readonly id: string;
@@ -117,6 +144,8 @@ export interface AdminCommentDto extends DataTransferObject {
   readonly postUrl: string | null;
   readonly postTitle: string | null;
   readonly createdAt: Date;
+  // 작성한 IP (손님 댓글만)
+  readonly authorIp: string | null;
 }
 
 // 관리자 대시보드 Dto

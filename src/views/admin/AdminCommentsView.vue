@@ -31,6 +31,10 @@
                          :to="`/${comment.postBlogId}/posts/${comment.postUrl}#comment-${comment.id}`">
               <app-icon name="file-text" :size="14"/>{{ comment.postTitle }}
             </router-link>
+            <div v-if="comment.authorIp" class="subtle small">
+              <span class="mono">{{ comment.authorIp }}</span> ·
+              <router-link :to="{ path: '/admin/blocks', query: { ip: comment.authorIp, reason: '스팸 댓글' } }">이 IP 차단</router-link>
+            </div>
           </div>
           <button class="btn btn-danger-ghost btn-sm" type="button" :disabled="isBusy" @click="remove(comment)">삭제</button>
         </li>

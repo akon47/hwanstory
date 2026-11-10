@@ -118,7 +118,9 @@ export default defineComponent({
       const escaped = (this.content ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+        .replace(/>/g, '&gt;')
+        // 언급(@블로그Id)은 그 사람의 블로그로 가는 링크로 바꾼다. (이메일 주소·경로 속 @ 는 건드리지 않는다)
+        .replace(/(^|[^\w@/])@([A-Za-z0-9_-]{2,40})/g, '$1[@$2](/@$2)');
 
       const sanitizeUrl = (href: string | null): string => {
         if (!href) {
@@ -136,6 +138,10 @@ export default defineComponent({
         const safe = sanitizeUrl(href);
         if (!safe) {
           return text;
+        }
+        // 사이트 안 블로그 링크(언급)는 같은 탭에서 연다.
+        if (/^\/@[A-Za-z0-9_-]+$/.test(safe)) {
+          return `<a href="${safe}" class="mention">${text}</a>`;
         }
         return `<a href="${safe}" target="_blank" rel="noopener noreferrer nofollow">${text}</a>`;
       };

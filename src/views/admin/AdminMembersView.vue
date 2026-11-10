@@ -44,6 +44,7 @@
                   <span class="member-id subtle">{{ account.blogId }}</span>
                 </span>
               </router-link>
+              <router-link class="small" :to="`/admin/members/${account.id}`">활동 보기</router-link>
             </td>
             <td class="mono small">{{ account.email }}</td>
             <td>

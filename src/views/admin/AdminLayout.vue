@@ -42,6 +42,7 @@ export default defineComponent({
         { path: '/admin/posts', label: '글', icon: 'file-text' },
         { path: '/admin/comments', label: '댓글', icon: 'comment' },
         { path: '/admin/reports', label: '신고', icon: 'alert' },
+        { path: '/admin/blocks', label: '차단', icon: 'lock' },
         { path: '/admin/tokens', label: '액세스 토큰', icon: 'key' },
         { path: '/admin/live', label: '실시간 접속', icon: 'radio' },
         { path: '/admin/site', label: '사이트 공지', icon: 'bell' },
@@ -54,7 +55,8 @@ export default defineComponent({
   },
   methods: {
     isActive(item: MenuItem): boolean {
-      return this.$route.path === item.path;
+      // 회원 상세(/admin/members/…)에서도 '회원' 메뉴가 켜져 있게 한다.
+      return this.$route.path === item.path || (item.path === '/admin/members' && this.$route.path.startsWith('/admin/members/'));
     },
     async loadOpenReports() {
       // 숫자를 못 받아도 메뉴는 그대로 쓸 수 있게 조용히 넘어간다.

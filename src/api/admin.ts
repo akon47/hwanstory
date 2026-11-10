@@ -10,7 +10,8 @@ import {
   AdminTokenDto,
 } from '@/api/models/admin.dtos';
 import { OpenType, SimplePostDto } from '@/api/models/blog.dtos';
-import { AdminAuditLogDto, AdminReportDto } from '@/api/models/admin.dtos';
+import { AdminAccountDetailDto, AdminAuditLogDto, AdminBannedWordsDto, AdminBlockedIpDto, AdminReportDto } from '@/api/models/admin.dtos';
+import { InsightsDto } from '@/api/models/stats.dtos';
 import { AnnouncementDto, AnnouncementLevel, ReportStatus } from '@/api/models/site.dtos';
 
 // 대시보드 조회 (요약·최근 30일 추이·최근 활동)
@@ -130,7 +131,49 @@ function handleReport(reportId: string, status: ReportStatus, deleteTarget = fal
   return adminV1.putRequest<AdminReportDto>(`/reports/${reportId}`, null, { status, deleteTarget });
 }
 
+// 사이트 인사이트 조회 (조회수 추이 · 많이 읽힌 글 · 많이 찾는 검색어)
+function getInsights(days: number) {
+  return adminV1.getRequest<InsightsDto>('/insights', { days });
+}
+
+// 차단한 IP 목록 조회
+function getBlockedIps() {
+  return adminV1.getRequest<Array<AdminBlockedIpDto>>('/blocked-ips');
+}
+
+// IP 차단
+function blockIp(ip: string, reason: string | null) {
+  return adminV1.postRequest<AdminBlockedIpDto>('/blocked-ips', null, { ip, reason });
+}
+
+// IP 차단 해제
+function unblockIp(blockedIpId: string) {
+  return adminV1.deleteRequest(`/blocked-ips/${blockedIpId}`);
+}
+
+// 금칙어 조회
+function getBannedWords() {
+  return adminV1.getRequest<AdminBannedWordsDto>('/banned-words');
+}
+
+// 금칙어 저장 (목록을 통째로 바꾼다)
+function setBannedWords(words: Array<string>) {
+  return adminV1.putRequest<AdminBannedWordsDto>('/banned-words', null, { words });
+}
+
+// 회원 상세 조회
+function getAccountDetail(accountId: string) {
+  return adminV1.getRequest<AdminAccountDetailDto>(`/accounts/${accountId}/detail`);
+}
+
 export {
+  getInsights,
+  getBlockedIps,
+  blockIp,
+  unblockIp,
+  getBannedWords,
+  setBannedWords,
+  getAccountDetail,
   getAuditLogs,
   getAdminAnnouncement,
   setAnnouncement,

@@ -5,6 +5,16 @@
     </div>
 
     <read-position-rail :readers="otherReaders" @jump="jumpToProgress"/>
+    <floating-reactions ref="floating-reactions"/>
+    <transition name="resume">
+      <div v-if="resumeProgress !== null" class="resume-bar" role="status">
+        <span>지난번에 <b class="num">{{ Math.round(resumeProgress * 100) }}%</b>까지 읽었어요</span>
+        <button class="btn btn-sm" type="button" @click="resumeReading">이어 읽기</button>
+        <button class="btn btn-ghost btn-icon btn-sm" type="button" aria-label="닫기" @click="dismissResume">
+          <app-icon name="x" :size="16"/>
+        </button>
+      </div>
+    </transition>
 
     <div class="container post-layout" :class="{ 'has-toc': toc.length > 0 }">
       <article class="post-main" ref="post-main">
@@ -143,9 +153,12 @@
           </div>
         </section>
 
-        <section class="comments" id="comments">
+        <section class="comments" id="comments" @input="onCommentInput">
           <h2 class="section-title">댓글 <span class="count num">{{ allCommentCount }}</span></h2>
           <comment-composer @submit="writeComment"/>
+          <div v-if="typingText" class="typing subtle small" aria-live="polite">
+            <span class="typing-dots" aria-hidden="true"><i/><i/><i/></span>{{ typingText }}
+          </div>
           <div v-if="comments?.length === 0" class="empty-comments subtle">아직 댓글이 없어요. 첫 댓글을 남겨보세요.</div>
           <simple-comment-item
               v-for="comment in comments" :key="comment.id"
@@ -221,6 +234,8 @@ import PostViewer from '@/components/posts/PostViewer.vue';
 import AppIcon from '@/components/common/AppIcon.vue';
 import LiveCursors from '@/components/posts/LiveCursors.vue';
 import PostViewers from '@/components/posts/PostViewers.vue';
+import { getPostComments } from '@/api/blog';
+import FloatingReactions from '@/components/posts/FloatingReactions.vue';
 import ReadPositionRail, { PostReader } from '@/components/posts/ReadPositionRail.vue';
 import { PostViewerDto, PostViewersDto, ReadPositionsDto } from '@/api/models/blog.dtos';
 import { getCursorIdentity } from '@/utils/cursorIdentity';
@@ -247,11 +262,20 @@ const READ_POSITION_INTERVAL = 400;
 const HIDDEN_AWAY_MS = 3 * 60 * 1000;
 const IDLE_AWAY_MS = 30 * 60 * 1000;
 const PRESENCE_CHECK_INTERVAL = 15 * 1000;
+// 이어 읽기: 글마다 마지막으로 읽던 위치를 이 브라우저에 적어 둔다. (최근 50개 글까지)
+const RESUME_STORAGE_KEY = 'hwanstory.read.positions';
+const RESUME_MAX_ENTRIES = 50;
+// 이 범위 안에서 멈췄을 때만 "이어 읽기"를 권한다 (거의 안 읽었거나 다 읽은 글은 권하지 않는다)
+const RESUME_MIN = 0.1;
+const RESUME_MAX = 0.92;
+// 댓글 작성 중 신호를 보내는 간격과, 받은 신호를 "작성 중"으로 보여주는 시간(ms)
+const TYPING_SEND_INTERVAL = 1500;
+const TYPING_SHOW_MS = 4000;
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart', 'scroll'];
 
 export default defineComponent({
   name: 'PostView',
-  components: { AppIcon, LiveCursors, PostViewers, ReadPositionRail, PostViewer, SimpleCommentItem, CommentComposer, AccountProfileImageButton },
+  components: { AppIcon, LiveCursors, PostViewers, ReadPositionRail, FloatingReactions, PostViewer, SimpleCommentItem, CommentComposer, AccountProfileImageButton },
   props: {
     blogId: {
       type: String,
@@ -296,6 +320,14 @@ export default defineComponent({
       lastActivityAt: Date.now(),
       hiddenSince: null as number | null,
       presenceTimer: null as ReturnType<typeof setInterval> | null,
+      // 지금 댓글을 쓰고 있는 다른 사람들 (세션 Id -> 이름과 표시 만료 시각)
+      typing: {} as Record<string, { name: string; until: number }>,
+      typingTimer: null as ReturnType<typeof setTimeout> | null,
+      lastTypingSentAt: 0,
+      commentsRefreshTimer: null as ReturnType<typeof setTimeout> | null,
+      // 이어 읽기를 권할 위치 (권하지 않을 때는 null)
+      resumeProgress: null as number | null,
+      resumeTimer: null as ReturnType<typeof setTimeout> | null,
     };
   },
   computed: {
@@ -356,6 +388,13 @@ export default defineComponent({
         prev: index > 0 ? (posts[index - 1] as unknown as SimplePostDto) : null,
         next: index < posts.length - 1 ? (posts[index + 1] as unknown as SimplePostDto) : null,
       };
+    },
+    typingText(): string {
+      const names = Object.values(this.typing).map((item) => item.name);
+      if (names.length === 0) {
+        return '';
+      }
+      return names.length === 1 ? `${names[0]}님이 댓글을 쓰고 있어요` : `${names[0]}님 외 ${names.length - 1}명이 댓글을 쓰고 있어요`;
     },
     // 나를 뺀, 읽는 위치를 알고 있는 사람들
     otherReaders(): Array<PostReader> {
@@ -578,11 +617,18 @@ export default defineComponent({
       if (!await this.requireLogin('이모지 반응을 남기')) {
         return;
       }
+      const isAdding = !reaction.reacted;
       const action = reaction.reacted
         ? removeReaction(this.blogId, this.postUrl, reaction.emoji)
         : addReaction(this.blogId, this.postUrl, reaction.emoji);
       await action
-      .then(() => this.loadReactions())
+      .then(() => {
+        // 새로 누른 반응은 같은 글을 읽는 사람들 화면에 이모지로 떠오른다.
+        if (isAdding) {
+          blogWebSocketClient.sendReactionBurst(reaction.emoji);
+        }
+        return this.loadReactions();
+      })
       .catch((error: HttpApiError) => {
         toast.error(error.getErrorMessage());
       });
@@ -701,7 +747,117 @@ export default defineComponent({
       this.updateActiveToc();
       // 본문이 그려졌으니 내 읽는 위치를 알리고, 다른 사람들의 위치를 목차에 다시 맞춘다.
       this.reportReadPosition();
-      this.$nextTick(() => this.updateTocReaders());
+      this.$nextTick(() => {
+        this.updateTocReaders();
+        this.offerResume();
+      });
+    },
+    // ───── 떠오르는 이모지 · 댓글 실시간 ─────
+    onReactionBurst(emoji: string) {
+      (this.$refs['floating-reactions'] as InstanceType<typeof FloatingReactions> | undefined)?.add(emoji);
+      // 누가 반응을 눌렀으니 반응 수도 맞춰 둔다.
+      this.loadReactions();
+    },
+    onCommentTyping(sessionId: string, name: string) {
+      this.typing = { ...this.typing, [sessionId]: { name, until: Date.now() + TYPING_SHOW_MS } };
+      this.scheduleTypingCleanup();
+    },
+    scheduleTypingCleanup() {
+      if (this.typingTimer) {
+        clearTimeout(this.typingTimer);
+      }
+      this.typingTimer = setTimeout(() => {
+        const now = Date.now();
+        const alive: Record<string, { name: string; until: number }> = {};
+        Object.entries(this.typing).forEach(([id, item]) => {
+          if (item.until > now) {
+            alive[id] = item;
+          }
+        });
+        this.typing = alive;
+        if (Object.keys(alive).length > 0) {
+          this.scheduleTypingCleanup();
+        }
+      }, 1000);
+    },
+    // 댓글 입력칸에 글자를 넣는 동안 간격을 두고 "쓰는 중"을 알린다.
+    onCommentInput() {
+      const now = Date.now();
+      if (now - this.lastTypingSentAt >= TYPING_SEND_INTERVAL) {
+        this.lastTypingSentAt = now;
+        blogWebSocketClient.sendCommentTyping();
+      }
+    },
+    // 누군가 댓글을 달거나 고치거나 지웠다: 잠깐 모았다가 댓글 목록만 다시 받는다.
+    onCommentsChanged() {
+      if (this.commentsRefreshTimer) {
+        clearTimeout(this.commentsRefreshTimer);
+      }
+      this.commentsRefreshTimer = setTimeout(async () => {
+        this.commentsRefreshTimer = null;
+        const comments = await getPostComments(this.blogId, this.postUrl).catch(() => null);
+        if (comments) {
+          this.comments = comments;
+          this.typing = {};
+        }
+      }, 400);
+    },
+    // ───── 이어 읽기 ─────
+    loadResumePositions(): Record<string, { p: number; t: number }> {
+      try {
+        return JSON.parse(localStorage.getItem(RESUME_STORAGE_KEY) ?? '{}') ?? {};
+      } catch (e) {
+        return {};
+      }
+    },
+    saveResumePosition(position: number) {
+      const postId = this.post?.id;
+      // 권유가 떠 있는 동안(아직 맨 위)에는 지난 위치를 덮어쓰지 않는다.
+      if (!postId || this.resumeProgress !== null) {
+        return;
+      }
+      const positions = this.loadResumePositions();
+      if (position >= RESUME_MAX) {
+        delete positions[postId];
+      } else if (position >= 0.05) {
+        positions[postId] = { p: Math.round(position * 1000) / 1000, t: Date.now() };
+      } else {
+        return;
+      }
+      const kept = Object.entries(positions).sort((a, b) => b[1].t - a[1].t).slice(0, RESUME_MAX_ENTRIES);
+      try {
+        localStorage.setItem(RESUME_STORAGE_KEY, JSON.stringify(Object.fromEntries(kept)));
+      } catch (e) {
+        // 저장소를 못 쓰면 이어 읽기 없이 지낸다.
+      }
+    },
+    // 본문이 그려진 뒤, 지난번에 읽다 만 곳이 있으면 이어 읽기를 권한다.
+    offerResume() {
+      const postId = this.post?.id;
+      if (!postId || window.location.hash) {
+        return;
+      }
+      const saved = this.loadResumePositions()[postId];
+      const current = this.currentReadPosition() ?? 0;
+      if (!saved || saved.p < RESUME_MIN || saved.p > RESUME_MAX || current > 0.05) {
+        return;
+      }
+      this.resumeProgress = saved.p;
+      this.resumeTimer = setTimeout(() => this.dismissResume(), 12000);
+    },
+    resumeReading() {
+      const progress = this.resumeProgress;
+      this.dismissResume();
+      if (progress !== null) {
+        this.jumpToProgress(progress);
+      }
+    },
+    dismissResume() {
+      this.resumeProgress = null;
+      if (this.resumeTimer) {
+        clearTimeout(this.resumeTimer);
+        this.resumeTimer = null;
+      }
     },
     reportPost() {
       if (this.post?.id) {
@@ -793,6 +949,7 @@ export default defineComponent({
         if (position === null || !this.post?.id || Math.abs(position - this.lastSentReadPosition) < 0.003) {
           return;
         }
+        this.saveResumePosition(position);
         this.lastSentReadPosition = position;
         this.lastSentReadPositionAt = Date.now();
         blogWebSocketClient.sendReadPosition(Math.round(position * 1000) / 1000);
@@ -873,6 +1030,9 @@ export default defineComponent({
   created() {
     blogWebSocketClient.onpostviewerschanged = this.onViewersChanged;
     blogWebSocketClient.onreadpositionschanged = this.onReadPositionsChanged;
+    blogWebSocketClient.onreactionburst = this.onReactionBurst;
+    blogWebSocketClient.oncommenttyping = this.onCommentTyping;
+    blogWebSocketClient.oncommentschanged = this.onCommentsChanged;
     this.loadPost();
   },
   mounted() {
@@ -890,6 +1050,20 @@ export default defineComponent({
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
     if (this.presenceTimer) {
       clearInterval(this.presenceTimer);
+    }
+    [this.typingTimer, this.commentsRefreshTimer, this.resumeTimer].forEach((timer) => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    });
+    if (blogWebSocketClient.onreactionburst === this.onReactionBurst) {
+      blogWebSocketClient.onreactionburst = undefined;
+    }
+    if (blogWebSocketClient.oncommenttyping === this.onCommentTyping) {
+      blogWebSocketClient.oncommenttyping = undefined;
+    }
+    if (blogWebSocketClient.oncommentschanged === this.onCommentsChanged) {
+      blogWebSocketClient.oncommentschanged = undefined;
     }
     if (this.readPositionTimer) {
       clearTimeout(this.readPositionTimer);
@@ -1524,6 +1698,76 @@ export default defineComponent({
 
 .toc-side li a {
   min-width: 0;
+}
+
+/* 댓글 작성 중 표시 */
+.typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.typing-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.typing-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-3);
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+.typing-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+/* 이어 읽기 권유 (화면 아래 가운데) */
+.resume-bar {
+  position: fixed;
+  left: 50%;
+  bottom: var(--s-6);
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  max-width: calc(100vw - var(--s-8));
+  padding: 10px 10px 10px var(--s-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.resume-enter-active,
+.resume-leave-active {
+  transition: opacity var(--ease), transform var(--ease);
+}
+
+.resume-enter-from,
+.resume-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 12px);
 }
 
 /* 그 부분을 읽고 있는 다른 사람들의 색 점 */

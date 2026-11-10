@@ -3,7 +3,7 @@ import { SimpleAccountDto } from "@/api/models/account.dtos";
 import { CommentDto } from "@/api/models/blog.dtos";
 
 // 알림 유형
-export type NotificationType = 'COMMENT' | 'FOLLOW'
+export type NotificationType = 'COMMENT' | 'FOLLOW' | 'MENTION'
 
 // 알림 Dto
 export interface NotificationDto extends DataTransferObject {
@@ -24,6 +24,9 @@ export interface CommentNotificationDto extends NotificationDto {
   // 관련 댓글
   readonly comment: CommentDto;
 }
+
+// 언급 알림 Dto (댓글에서 @블로그Id 로 불렸을 때. 모양은 댓글 알림과 같다)
+export type MentionNotificationDto = CommentNotificationDto;
 
 // 팔로우 알림 Dto
 export interface FollowNotificationDto extends NotificationDto {

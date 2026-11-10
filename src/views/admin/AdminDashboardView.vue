@@ -60,6 +60,8 @@
       </div>
     </section>
 
+    <admin-insights/>
+
     <div v-if="dashboard" class="recent-grid">
       <section class="card">
         <div class="card-head">
@@ -117,6 +119,7 @@ import { AdminDashboardDto } from '@/api/models/admin.dtos';
 import { getDashboard } from '@/api/admin';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import AdminInsights from '@/components/admin/AdminInsights.vue';
 import { toast } from '@/utils/dialog';
 import { formatCount, formatRelativeDate } from '@/utils/format';
 
@@ -124,7 +127,7 @@ const OPEN_TYPE_LABELS: Record<string, string> = { PUBLIC: '공개', PRIVATE: '�
 
 export default defineComponent({
   name: 'AdminDashboardView',
-  components: { LoadingSpinner },
+  components: { LoadingSpinner, AdminInsights },
   data() {
     return {
       dashboard: null as AdminDashboardDto | null,

@@ -17,6 +17,9 @@
         <router-link class="menu-item" role="menuitem" to="/bookmarks" @click="close">
           <app-icon name="bookmark" :size="18"/>북마크
         </router-link>
+        <router-link class="menu-item" role="menuitem" to="/stats" @click="close">
+          <app-icon name="bar-chart" :size="18"/>글 통계
+        </router-link>
         <router-link class="menu-item" role="menuitem" to="/setting" @click="close">
           <app-icon name="settings" :size="18"/>설정
         </router-link>

@@ -20,7 +20,7 @@
         </div>
         <div v-else class="list">
           <div v-for="notification in notifications" :key="notification.id" class="item">
-            <comment-notification-item v-if="notification.notificationType == 'COMMENT'" :notification="notification"
+            <comment-notification-item v-if="notification.notificationType == 'COMMENT' || notification.notificationType == 'MENTION'" :notification="notification"
                                        @navigate="close"/>
             <follow-notification-item v-else-if="notification.notificationType == 'FOLLOW'" :notification="notification"
                                       @navigate="close"/>
