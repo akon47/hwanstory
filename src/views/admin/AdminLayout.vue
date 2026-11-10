@@ -10,11 +10,12 @@
                      :class="{ 'router-link-exact-active': isActive(item) }">
           <app-icon :name="item.icon" :size="18"/>
           <span>{{ item.label }}</span>
+          <span v-if="item.path === '/admin/reports' && openReports > 0" class="badge badge-danger menu-count">{{ openReports }}</span>
         </router-link>
       </nav>
     </aside>
     <section class="admin-content">
-      <router-view/>
+      <router-view @changed="loadOpenReports"/>
     </section>
   </div>
 </template>
@@ -22,6 +23,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import AppIcon from '@/components/common/AppIcon.vue';
+import { getReports } from '@/api/admin';
 
 interface MenuItem {
   path: string;
@@ -39,16 +41,28 @@ export default defineComponent({
         { path: '/admin/members', label: '회원', icon: 'users' },
         { path: '/admin/posts', label: '글', icon: 'file-text' },
         { path: '/admin/comments', label: '댓글', icon: 'comment' },
+        { path: '/admin/reports', label: '신고', icon: 'alert' },
         { path: '/admin/tokens', label: '액세스 토큰', icon: 'key' },
         { path: '/admin/live', label: '실시간 접속', icon: 'radio' },
+        { path: '/admin/site', label: '사이트 공지', icon: 'bell' },
+        { path: '/admin/audit', label: '활동 기록', icon: 'clock' },
         { path: '/admin/system', label: '시스템', icon: 'terminal' },
       ] as Array<MenuItem>,
+      // 처리 대기 중인 신고 수 (메뉴에 숫자로 보여준다)
+      openReports: 0,
     };
   },
   methods: {
     isActive(item: MenuItem): boolean {
       return this.$route.path === item.path;
     },
+    async loadOpenReports() {
+      // 숫자를 못 받아도 메뉴는 그대로 쓸 수 있게 조용히 넘어간다.
+      this.openReports = await getReports(0, 1, 'OPEN').then((page) => page.totalElements).catch(() => this.openReports);
+    },
+  },
+  mounted() {
+    this.loadOpenReports();
   },
 });
 </script>
@@ -92,6 +106,10 @@ export default defineComponent({
   color: var(--text-2);
   font-weight: 600;
   font-size: var(--text-sm);
+}
+
+.menu-count {
+  margin-left: auto;
 }
 
 .admin-menu-item:hover {

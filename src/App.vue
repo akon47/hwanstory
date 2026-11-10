@@ -1,5 +1,6 @@
 <template>
   <app-header v-if="!isEmbed"/>
+  <site-announcement v-if="!isEmbed && !isFullHeightRoute"/>
   <main class="content" :class="{ 'full-height': isFullHeightRoute }">
     <app-content/>
   </main>
@@ -13,6 +14,7 @@ import AppHeader from './components/common/AppHeader.vue';
 import AppContent from './components/common/AppContent.vue';
 import AppFooter from './components/common/AppFooter.vue';
 import AppDialogHost from './components/common/AppDialogHost.vue';
+import SiteAnnouncement from './components/common/SiteAnnouncement.vue';
 import store from '@/store';
 import blogWebSocketClient from '@/utils/websocket';
 
@@ -23,6 +25,7 @@ export default defineComponent({
     AppContent,
     AppFooter,
     AppDialogHost,
+    SiteAnnouncement,
   },
   computed: {
     theme() {

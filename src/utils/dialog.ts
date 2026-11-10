@@ -37,16 +37,24 @@ interface PromptRequest extends PromptOptions {
   resolve: (value: string | null) => void;
 }
 
+// 글·댓글 신고 창에 넘기는 대상
+export interface ReportRequest {
+  targetType: 'POST' | 'COMMENT';
+  targetId: string;
+}
+
 interface DialogState {
   toasts: Array<ToastItem>;
   confirm: ConfirmRequest | null;
   prompt: PromptRequest | null;
+  report: ReportRequest | null;
 }
 
 export const dialogState = reactive<DialogState>({
   toasts: [],
   confirm: null,
   prompt: null,
+  report: null,
 });
 
 let nextToastId = 1;
@@ -94,6 +102,17 @@ export function promptDialog(options: PromptOptions): Promise<string | null> {
     dialogState.confirm = null;
     dialogState.prompt = { ...options, resolve };
   });
+}
+
+// 글·댓글 신고 창을 연다. (사유 선택과 접수는 AppDialogHost 가 맡는다)
+export function openReportDialog(targetType: 'POST' | 'COMMENT', targetId: string) {
+  dialogState.confirm = null;
+  dialogState.prompt = null;
+  dialogState.report = { targetType, targetId };
+}
+
+export function closeReportDialog() {
+  dialogState.report = null;
 }
 
 export function resolveConfirm(ok: boolean) {

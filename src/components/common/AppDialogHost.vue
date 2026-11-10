@@ -56,12 +56,36 @@
       </div>
     </div>
   </transition>
+
+  <!-- 글·댓글 신고 -->
+  <transition name="modal">
+    <div v-if="state.report" class="modal-backdrop" @click.self="closeReport">
+      <form class="modal" role="dialog" aria-modal="true" @submit.prevent="submitReport">
+        <h2 class="modal-title">{{ state.report.targetType === 'POST' ? '이 글을 신고할까요?' : '이 댓글을 신고할까요?' }}</h2>
+        <p class="modal-message">사유를 골라 주세요. 관리자가 확인한 뒤 조치합니다.</p>
+        <div class="report-reasons">
+          <label v-for="reason in reportReasons" :key="reason.value" class="report-reason" :class="{ selected: reportReason === reason.value }">
+            <input v-model="reportReason" type="radio" name="report-reason" :value="reason.value"/>
+            {{ reason.label }}
+          </label>
+        </div>
+        <textarea v-model="reportDetail" class="textarea" rows="3" maxlength="500" placeholder="자세한 설명 (선택)"/>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" @click="closeReport">취소</button>
+          <button class="btn btn-danger" type="submit" :disabled="!reportReason || isReporting">신고</button>
+        </div>
+      </form>
+    </div>
+  </transition>
 </template>
 
 <script lang="ts">
 import { defineComponent, nextTick } from 'vue';
 import AppIcon from '@/components/common/AppIcon.vue';
-import { dialogState, dismissToast, resolveConfirm, resolvePrompt, ToastKind } from '@/utils/dialog';
+import { closeReportDialog, dialogState, dismissToast, resolveConfirm, resolvePrompt, toast, ToastKind } from '@/utils/dialog';
+import { REPORT_REASONS, ReportReason } from '@/api/models/site.dtos';
+import { createReport } from '@/api/site';
+import { HttpApiError } from '@/api/common/httpApiClient';
 
 export default defineComponent({
   name: 'AppDialogHost',
@@ -70,6 +94,10 @@ export default defineComponent({
     return {
       state: dialogState,
       promptValue: '',
+      reportReasons: REPORT_REASONS,
+      reportReason: null as ReportReason | null,
+      reportDetail: '',
+      isReporting: false,
     };
   },
   watch: {
@@ -77,6 +105,12 @@ export default defineComponent({
       if (request) {
         this.promptValue = request.defaultValue ?? '';
         nextTick(() => (this.$refs['prompt-input'] as HTMLInputElement | undefined)?.focus());
+      }
+    },
+    'state.report'(request) {
+      if (request) {
+        this.reportReason = null;
+        this.reportDetail = '';
       }
     },
     'state.confirm'(request) {
@@ -109,9 +143,32 @@ export default defineComponent({
       }
       resolvePrompt(this.promptValue);
     },
+    closeReport() {
+      closeReportDialog();
+    },
+    async submitReport() {
+      const request = this.state.report;
+      if (!request || !this.reportReason || this.isReporting) {
+        return;
+      }
+      this.isReporting = true;
+      await createReport(request.targetType, request.targetId, this.reportReason, this.reportDetail.trim() || null)
+      .then(() => {
+        closeReportDialog();
+        toast.success('신고를 접수했습니다. 확인 후 조치하겠습니다.');
+      })
+      .catch((error: HttpApiError) => {
+        toast.error(error.getErrorMessage());
+      })
+      .finally(() => {
+        this.isReporting = false;
+      });
+    },
     onKeydown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        if (this.state.prompt) {
+        if (this.state.report) {
+          closeReportDialog();
+        } else if (this.state.prompt) {
           resolvePrompt(null);
         } else if (this.state.confirm) {
           resolveConfirm(false);
@@ -244,6 +301,33 @@ export default defineComponent({
   color: var(--text-2);
   white-space: pre-line;
   line-height: 1.6;
+}
+
+.report-reasons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+
+.report-reason {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.report-reason input {
+  accent-color: var(--accent);
+}
+
+.report-reason.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 
 .modal-actions {

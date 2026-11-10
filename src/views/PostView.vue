@@ -97,6 +97,9 @@
             <button class="action-btn" type="button" @click="share">
               <app-icon name="share" :size="18"/>공유
             </button>
+            <button v-if="!isMyPost" class="action-btn" type="button" @click="reportPost">
+              <app-icon name="alert" :size="18"/>신고
+            </button>
           </div>
         </section>
 
@@ -222,7 +225,7 @@ import ReadPositionRail, { PostReader } from '@/components/posts/ReadPositionRai
 import { PostViewerDto, PostViewersDto, ReadPositionsDto } from '@/api/models/blog.dtos';
 import { getCursorIdentity } from '@/utils/cursorIdentity';
 import blogWebSocketClient from '@/utils/websocket';
-import { confirmDialog, toast } from '@/utils/dialog';
+import { confirmDialog, openReportDialog, toast } from '@/utils/dialog';
 import { formatCount, formatDate, formatDateTime } from '@/utils/format';
 import { thumbnailStyle } from '@/utils/thumbnail';
 
@@ -239,6 +242,12 @@ const OPEN_TYPE_NOTES: Record<string, string> = {
 const READ_LINE_OFFSET = 96;
 // 읽는 위치 전송 간격(ms)
 const READ_POSITION_INTERVAL = 400;
+// "읽는 중"에서 빼는 기준: 탭이 숨겨진 채 이만큼 지났거나, 보이는 탭이라도 이만큼 아무 조작이 없을 때.
+// (탭을 열어 두기만 한 사람이 하루 종일 읽는 중으로 남지 않게 한다. 돌아오면 바로 다시 들어간다)
+const HIDDEN_AWAY_MS = 3 * 60 * 1000;
+const IDLE_AWAY_MS = 30 * 60 * 1000;
+const PRESENCE_CHECK_INTERVAL = 15 * 1000;
+const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart', 'scroll'];
 
 export default defineComponent({
   name: 'PostView',
@@ -282,6 +291,11 @@ export default defineComponent({
       lastSentReadPosition: -1,
       lastSentReadPositionAt: 0,
       readPositionTimer: null as ReturnType<typeof setTimeout> | null,
+      // 자리를 비운 상태(읽는 중에서 빠진 상태)인지, 마지막 조작 시각, 탭이 숨겨진 시각
+      isAway: false,
+      lastActivityAt: Date.now(),
+      hiddenSince: null as number | null,
+      presenceTimer: null as ReturnType<typeof setInterval> | null,
     };
   },
   computed: {
@@ -389,7 +403,10 @@ export default defineComponent({
         document.title = this.post.title;
 
         // 현재 이 게시글을 보고 있다고 서버에 알린다. (실시간 시청자 수 집계 + 함께 읽는 사람 목록에 보일 이름·색)
-        blogWebSocketClient.viewPost(post.id, getCursorIdentity());
+        // 자리를 비운 상태에서 글이 바뀌었다면 돌아올 때(setAway) 알린다.
+        if (!this.isAway) {
+          blogWebSocketClient.viewPost(post.id, getCursorIdentity());
+        }
         this.lastSentReadPosition = -1;
 
         if (post.seriesUrl) {
@@ -686,6 +703,46 @@ export default defineComponent({
       this.reportReadPosition();
       this.$nextTick(() => this.updateTocReaders());
     },
+    reportPost() {
+      if (this.post?.id) {
+        openReportDialog('POST', this.post.id);
+      }
+    },
+    // ───── 읽는 중 / 자리 비움 ─────
+    onActivity() {
+      this.lastActivityAt = Date.now();
+      if (this.isAway && !document.hidden) {
+        this.setAway(false);
+      }
+    },
+    onVisibilityChange() {
+      if (document.hidden) {
+        this.hiddenSince = Date.now();
+      } else {
+        this.hiddenSince = null;
+        this.onActivity();
+      }
+    },
+    checkPresence() {
+      if (this.isAway) {
+        return;
+      }
+      const now = Date.now();
+      const hiddenTooLong = this.hiddenSince !== null && now - this.hiddenSince >= HIDDEN_AWAY_MS;
+      if (hiddenTooLong || now - this.lastActivityAt >= IDLE_AWAY_MS) {
+        this.setAway(true);
+      }
+    },
+    setAway(away: boolean) {
+      this.isAway = away;
+      if (away) {
+        blogWebSocketClient.viewPost(null);
+      } else if (this.post?.id) {
+        blogWebSocketClient.viewPost(this.post.id, getCursorIdentity());
+        this.lastSentReadPosition = -1;
+        this.reportReadPosition();
+      }
+    },
     // ───── 함께 읽는 사람 · 읽는 위치 ─────
     onViewersChanged(payload: PostViewersDto | null) {
       this.selfId = blogWebSocketClient.sessionId;
@@ -822,9 +879,18 @@ export default defineComponent({
     window.addEventListener('scroll', this.updateReadingProgress, { passive: true });
     this.updateReadingProgress();
     this.postMainElement = (this.$refs['post-main'] as HTMLElement | undefined) ?? null;
+    ACTIVITY_EVENTS.forEach((name) => window.addEventListener(name, this.onActivity, { passive: true }));
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+    this.hiddenSince = document.hidden ? Date.now() : null;
+    this.presenceTimer = setInterval(this.checkPresence, PRESENCE_CHECK_INTERVAL);
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.updateReadingProgress);
+    ACTIVITY_EVENTS.forEach((name) => window.removeEventListener(name, this.onActivity));
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    if (this.presenceTimer) {
+      clearInterval(this.presenceTimer);
+    }
     if (this.readPositionTimer) {
       clearTimeout(this.readPositionTimer);
     }

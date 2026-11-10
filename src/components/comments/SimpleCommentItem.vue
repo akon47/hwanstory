@@ -37,6 +37,7 @@
           <button class="action danger" type="button" @click="deleteComment">삭제</button>
         </template>
         <button v-else-if="isMyPost && !isMyComment" class="action danger" type="button" @click="deleteComment">삭제</button>
+        <button v-if="!isMyComment && !isEditing" class="action" type="button" @click="reportComment">신고</button>
       </div>
 
       <div v-if="isNestedCommentsOpened" class="replies">
@@ -70,7 +71,7 @@ import {
 } from '@/api/blog';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import { marked } from 'marked';
-import { confirmDialog, promptDialog, toast } from '@/utils/dialog';
+import { confirmDialog, openReportDialog, promptDialog, toast } from '@/utils/dialog';
 import { formatDateTime, formatRelativeDate } from '@/utils/format';
 
 export default defineComponent({
@@ -205,6 +206,11 @@ export default defineComponent({
       .finally(() => {
         this.isBusy = false;
       });
+    },
+    reportComment() {
+      if (this.simpleComment?.id) {
+        openReportDialog('COMMENT', this.simpleComment.id);
+      }
     },
     async deleteComment() {
       if (!this.simpleComment?.id) {

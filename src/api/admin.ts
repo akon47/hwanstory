@@ -10,6 +10,8 @@ import {
   AdminTokenDto,
 } from '@/api/models/admin.dtos';
 import { OpenType, SimplePostDto } from '@/api/models/blog.dtos';
+import { AdminAuditLogDto, AdminReportDto } from '@/api/models/admin.dtos';
+import { AnnouncementDto, AnnouncementLevel, ReportStatus } from '@/api/models/site.dtos';
 
 // 대시보드 조회 (요약·최근 30일 추이·최근 활동)
 function getDashboard() {
@@ -99,7 +101,41 @@ function getActiveViewers() {
   return adminV1.getRequest<AdminActiveViewersDto>('/active-viewers');
 }
 
+// 관리자 활동 기록 조회
+function getAuditLogs(page: number, size: number) {
+  return adminV1.getRequest<PageDto<AdminAuditLogDto>>('/audit-logs', { page, size });
+}
+
+// 저장된 사이트 공지 조회 (꺼져 있어도 내용이 온다)
+function getAdminAnnouncement() {
+  return adminV1.getRequest<AnnouncementDto>('/announcement');
+}
+
+// 사이트 공지 저장
+function setAnnouncement(announcement: { enabled: boolean; message: string; level: AnnouncementLevel; linkUrl: string }) {
+  return adminV1.putRequest<AnnouncementDto>('/announcement', null, announcement);
+}
+
+// 신고 목록 조회 (status 를 주면 그 상태만)
+function getReports(page: number, size: number, status: ReportStatus | null = null) {
+  return adminV1.getRequest<PageDto<AdminReportDto>>('/reports', {
+    page: page,
+    size: size,
+    ...status && { status: status },
+  });
+}
+
+// 신고 처리 (deleteTarget 이면 신고된 글·댓글도 삭제)
+function handleReport(reportId: string, status: ReportStatus, deleteTarget = false) {
+  return adminV1.putRequest<AdminReportDto>(`/reports/${reportId}`, null, { status, deleteTarget });
+}
+
 export {
+  getAuditLogs,
+  getAdminAnnouncement,
+  setAnnouncement,
+  getReports,
+  handleReport,
   getDashboard,
   getStatistics,
   getSystem,

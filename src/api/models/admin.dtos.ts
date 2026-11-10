@@ -1,6 +1,42 @@
 import DataTransferObject from '@/api/models/common.dtos';
 import { SimpleAccountDto } from '@/api/models/account.dtos';
 import { SimplePostDto } from '@/api/models/blog.dtos';
+import { ReportReason, ReportStatus, ReportTargetType } from '@/api/models/site.dtos';
+
+// 관리자 활동 기록 Dto
+export interface AdminAuditLogDto extends DataTransferObject {
+  readonly id: string;
+  readonly actorEmail: string | null;
+  readonly actorName: string | null;
+  // 행동 종류 (예: ACCOUNT_DISABLE, POST_DELETE)
+  readonly action: string;
+  readonly targetType: string | null;
+  readonly targetId: string | null;
+  readonly summary: string | null;
+  readonly createdAt: string;
+}
+
+// 관리자용 신고 Dto
+export interface AdminReportDto extends DataTransferObject {
+  readonly id: string;
+  readonly targetType: ReportTargetType;
+  readonly targetId: string;
+  // 신고 시점의 대상 요약 (글 제목 / 댓글 앞부분)
+  readonly targetSummary: string | null;
+  // 대상을 볼 수 있는 화면 경로
+  readonly targetPath: string | null;
+  // 대상이 아직 남아 있는지
+  readonly targetExists: boolean;
+  readonly reason: ReportReason;
+  readonly detail: string | null;
+  readonly reporterName: string | null;
+  readonly reporterEmail: string | null;
+  readonly reporterIp: string | null;
+  readonly status: ReportStatus;
+  readonly handledBy: string | null;
+  readonly handledAt: string | null;
+  readonly createdAt: string;
+}
 
 // 관리자용 계정 정보 Dto
 export interface AdminAccountDto extends DataTransferObject {
