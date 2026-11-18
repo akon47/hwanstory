@@ -18,3 +18,6 @@ export const siteV1: HttpApiClient = createHttpApiClient('v1/site');
 // 개인 액세스 토큰 (AI 에이전트용) 관리 · 기기 로그인 승인
 export const tokensV1: HttpApiClient = createHttpApiClient('v1/tokens');
 export const deviceV1: HttpApiClient = createHttpApiClient('v1/authentication/device');
+
+// AI 글쓰기 (회원 자신의 Anthropic API 키). 스트리밍(SSE) 엔드포인트는 ai.ts 가 fetch 로 직접 부른다.
+export const aiV1: HttpApiClient = createHttpApiClient('v1/ai');

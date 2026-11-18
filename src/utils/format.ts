@@ -49,3 +49,22 @@ export function estimateReadingMinutes(content: string | null | undefined): numb
   const length = (content ?? '').replace(/\s+/g, '').length;
   return Math.max(1, Math.round(length / 500));
 }
+
+// 목적격 조사: 마지막 글자에 받침이 있으면 '을', 없으면 '를' ("제목을", "주소를")
+export function withObjectParticle(word: string): string {
+  const last = word.charCodeAt(word.length - 1);
+  if (last >= 0xac00 && last <= 0xd7a3) {
+    return `${word}${(last - 0xac00) % 28 === 0 ? '를' : '을'}`;
+  }
+  return `${word}을(를)`;
+}
+
+// 달러 금액 (AI 사용 비용·한도). 0.01 미만은 "$0.01 미만", 그 밖은 소수 둘째 자리까지 ("$1.23", "$10")
+export function formatUsd(value: number | null | undefined): string {
+  const amount = value ?? 0;
+  if (amount > 0 && amount < 0.01) {
+    return '$0.01 미만';
+  }
+  const fixed = amount.toFixed(2);
+  return `$${fixed.endsWith('.00') ? fixed.slice(0, -3) : fixed}`;
+}

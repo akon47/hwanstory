@@ -5,6 +5,7 @@
       <div v-for="item in state.toasts" :key="item.id" class="toast" :class="`toast-${item.kind}`" role="status">
         <app-icon :name="iconFor(item.kind)" :size="18"/>
         <span class="toast-message">{{ item.message }}</span>
+        <a v-if="item.link" class="toast-link" :href="item.link.href" target="_blank" rel="noopener">{{ item.link.label }}</a>
         <button class="toast-close" type="button" aria-label="닫기" @click="dismiss(item.id)">
           <app-icon name="x" :size="16"/>
         </button>
@@ -230,6 +231,15 @@ export default defineComponent({
   flex: 1;
   min-width: 0;
   word-break: keep-all;
+}
+
+.toast-link {
+  flex-shrink: 0;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  white-space: nowrap;
 }
 
 .toast-close {

@@ -101,6 +101,8 @@
       </div>
     </section>
 
+    <ai-settings-card/>
+
     <section class="card">
       <div class="card-head">
         <h2>AI 에이전트에게 맡기기</h2>
@@ -169,13 +171,14 @@ import {
 import { getMyStatistics } from '@/api/blog';
 import AccountProfileImage from '@/components/accounts/AccountProfileImage.vue';
 import AppIcon from '@/components/common/AppIcon.vue';
+import AiSettingsCard from '@/components/ai/AiSettingsCard.vue';
 import store from '@/store';
 import { confirmDialog, toast } from '@/utils/dialog';
 import { formatCount } from '@/utils/format';
 
 export default defineComponent({
   name: 'SettingView',
-  components: { AppIcon, AccountProfileImage },
+  components: { AppIcon, AccountProfileImage, AiSettingsCard },
   data() {
     return {
       account: {} as AccountDto,

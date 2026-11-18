@@ -88,5 +88,7 @@ export default defineComponent({
 .content.full-height {
   height: calc(100vh - var(--header-height));
   height: calc(100dvh - var(--header-height));
+  /* 행을 화면 높이에 묶어 둔다 (글쓰기의 AI 패널처럼 내용이 긴 칸이 바닥 막대를 밀어내지 않게) */
+  grid-template-rows: minmax(0, 1fr);
 }
 </style>

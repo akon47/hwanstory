@@ -1,18 +1,27 @@
 <template>
-  <div class="write-form">
-    <div class="editor-area">
-      <div class="container-reading write-head">
-        <textarea id="title" ref="title" class="title-input" v-model="title" placeholder="제목을 입력하세요" rows="1"
-                  maxlength="200" @input="autoGrowTitle" @keydown.enter.prevent/>
-        <div class="url-row" :class="{ invalid: !isPostUrlValid }">
-          <span class="url-prefix">hwanstory.kr/{{ blogId }}/posts/</span>
-          <input id="postUrl" class="url-input" type="text" v-model.trim="newPostUrl" placeholder="글-주소 (비우면 자동 생성)"
-                 spellcheck="false" autocomplete="off"/>
+  <div class="write-form" :class="{ 'ai-open': isAiPanelOpen }">
+    <div class="write-main">
+      <div class="editor-area">
+        <div class="container-reading write-head">
+          <textarea id="title" ref="title" class="title-input" v-model="title" placeholder="제목을 입력하세요" rows="1"
+                    maxlength="200" @input="autoGrowTitle" @keydown.enter.prevent/>
+          <div class="url-row" :class="{ invalid: !isPostUrlValid }">
+            <span class="url-prefix">hwanstory.kr/{{ blogId }}/posts/</span>
+            <input id="postUrl" class="url-input" type="text" v-model.trim="newPostUrl" placeholder="글-주소 (비우면 자동 생성)"
+                   spellcheck="false" autocomplete="off"/>
+          </div>
+          <span v-if="!isPostUrlValid" class="error-text">글 주소는 영문·숫자·하이픈(-)·밑줄(_)만 쓸 수 있어요.</span>
+          <textarea id="summary" ref="summary" class="summary-input" v-model="summary" rows="1" maxlength="255"
+                    placeholder="한 줄 요약 (비워 두면 본문 첫 문단을 써요)" aria-label="요약"
+                    @input="autoGrowSummary" @keydown.enter.prevent/>
+          <tag-input-box id="tags" class="tags-row" v-model="tags"/>
         </div>
-        <span v-if="!isPostUrlValid" class="error-text">글 주소는 영문·숫자·하이픈(-)·밑줄(_)만 쓸 수 있어요.</span>
-        <tag-input-box id="tags" class="tags-row" v-model="tags"/>
+        <post-editor ref="editor" id="editor" class="editor" :class="{ 'ai-streaming': isAiStreaming }" v-model="content"
+                     @selection-change="selectedText = $event"/>
       </div>
-      <post-editor id="editor" class="editor" v-model="content"/>
+      <!-- AI 글쓰기 패널: 처음 열 때 만들고, 닫아도 진행 중인 작업·결과가 남도록 숨기기만 한다 -->
+      <ai-write-panel v-if="isAiPanelMounted" v-show="isAiPanelOpen" class="ai-panel" :bridge="aiBridge"
+                      :selected-text="selectedText" @close="isAiPanelOpen = false"/>
     </div>
 
     <div class="write-bar">
@@ -20,6 +29,10 @@
         <div class="bar-left">
           <button class="btn btn-ghost" type="button" @click="exit">
             <app-icon name="arrow-left" :size="16"/>나가기
+          </button>
+          <button class="btn ai-toggle" :class="isAiPanelOpen ? 'btn-soft' : 'btn-ghost'" type="button"
+                  :aria-pressed="isAiPanelOpen" title="AI 글쓰기" aria-label="AI 글쓰기" @click="toggleAiPanel">
+            <app-icon name="sparkles" :size="16"/><span>AI 글쓰기</span>
           </button>
           <span v-if="draftSavedAt" class="draft-note subtle small">
             <app-icon name="check" :size="14"/>이 브라우저에 임시 보관됨 {{ draftSavedAt }}
@@ -53,15 +66,19 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { HttpApiError } from '@/api/common/httpApiClient';
+import { attachmentFileBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
 import { createPost, createSeries, getPost, modifyPost } from '@/api/blog';
 import store from '@/store';
 import { OpenType, TagDto } from '@/api/models/blog.dtos';
+import { AiCoverDto, AiMetaDto } from '@/api/models/ai.dtos';
 import PostEditor from '@/components/posts/PostEditor.vue';
+import { EditorSelection, PostEditorHandle } from '@/components/posts/editorSelection';
 import { uploadFileFromUrl } from '@/api/attachments';
 import TagInputBox from '@/components/posts/TagInputBox.vue';
 import SeriesSelector from '@/components/series/SeriesSelector.vue';
 import AppIcon from '@/components/common/AppIcon.vue';
+import AiWritePanel from '@/components/ai/AiWritePanel.vue';
+import { AiMetaField, AiWriteBridge, normalizePostUrl } from '@/components/ai/aiWriteBridge';
 import { marked } from 'marked';
 import { confirmDialog, promptDialog, toast } from '@/utils/dialog';
 import dayjs from 'dayjs';
@@ -74,12 +91,18 @@ interface LocalDraft {
   content: string;
   tags: Array<string>;
   postUrl: string;
+  summary?: string;
   savedAt: number;
 }
 
+// 본문 맨 앞의 이미지 한 줄 (AI 커버를 바꿔 끼울 때)
+const LEADING_IMAGE = /^\s*!\[[^\]]*\]\(([^)\s]+)\)[ \t]*(?:\r?\n)*/;
+
+const META_FIELDS: Array<AiMetaField> = ['title', 'summary', 'tags', 'postUrl'];
+
 export default defineComponent({
   name: 'WritePostForm',
-  components: { AppIcon, SeriesSelector, TagInputBox, PostEditor },
+  components: { AppIcon, SeriesSelector, TagInputBox, PostEditor, AiWritePanel },
   props: {
     postUrl: {
       type: String,
@@ -101,6 +124,16 @@ export default defineComponent({
       draftSavedAt: '',
       draftTimer: null as ReturnType<typeof setTimeout> | null,
       isDraftRestoredOrDeclined: false,
+      // 직접 쓰거나 AI 가 채운 요약 (비어 있으면 저장할 때 본문 첫 문단으로 만든다)
+      summary: '',
+      // AI 가 그린 커버 (본문 첫 이미지가 이것이면 다시 올리지 않고 이 첨부를 썸네일로 쓴다)
+      coverFile: null as { id: string; url: string } | null,
+      // AI 패널
+      isAiPanelOpen: false,
+      isAiPanelMounted: false,
+      isAiStreaming: false,
+      aiStreamBase: '',
+      selectedText: '',
     };
   },
   computed: {
@@ -128,13 +161,19 @@ export default defineComponent({
       return regex.test(this.newPostUrl);
     },
     canSubmit(): boolean {
-      return this.isTitleValid && this.isContentValid && this.isPostUrlValid && this.isScheduleValid && !this.isLoading;
+      // AI 가 초안을 쓰는 중에는 반쯤 쓴 글이 저장되지 않게 막는다.
+      return this.isTitleValid && this.isContentValid && this.isPostUrlValid && this.isScheduleValid && !this.isLoading
+          && !this.isAiStreaming;
     },
     isNewPost(): boolean {
       return !this.postUrl;
     },
     blogId(): string {
       return store.state.accountStore.blogId;
+    },
+    // AI 패널에 넘기는 조작 창구 (반응형 값에 기대지 않아 한 번만 만들어진다)
+    aiBridge(): AiWriteBridge {
+      return this.createAiBridge();
     },
   },
   watch: {
@@ -150,6 +189,9 @@ export default defineComponent({
     tags() {
       this.scheduleDraftSave();
     },
+    summary() {
+      this.scheduleDraftSave();
+    },
   },
   methods: {
     autoGrowTitle() {
@@ -159,6 +201,14 @@ export default defineComponent({
       }
       title.style.height = 'auto';
       title.style.height = `${title.scrollHeight}px`;
+    },
+    autoGrowSummary() {
+      const summary = this.$refs['summary'] as HTMLTextAreaElement | undefined;
+      if (!summary) {
+        return;
+      }
+      summary.style.height = 'auto';
+      summary.style.height = `${summary.scrollHeight}px`;
     },
     async exit() {
       const hasContent = this.isTitleValid || this.isContentValid;
@@ -219,7 +269,7 @@ export default defineComponent({
       return {
         title: this.title.trim(),
         content: this.content,
-        summary: this.createSummaryFromContent(this.content),
+        summary: this.summary.trim() || this.createSummaryFromContent(this.content),
         openType: this.openType,
         scheduledAt: this.openType === 'SCHEDULED' ? this.scheduledAt : null,
         postUrl: this.newPostUrl ? this.newPostUrl : null,
@@ -278,10 +328,15 @@ export default defineComponent({
           this.newPostUrl = post.postUrl;
           this.content = post.content;
           this.tags = post.tags?.map((x) => x.name) ?? [];
+          // 본문 첫 문단으로 만든 요약이 아니면(직접 쓰거나 AI 가 채운 요약) 보여 주고 그대로 유지한다.
+          this.summary = post.summary && post.summary !== this.createSummaryFromContent(post.content) ? post.summary : '';
           this.openType = post.openType;
           this.scheduledAt = post.scheduledAt ? post.scheduledAt.substring(0, 16) : '';
           this.seriesUrl = post.seriesUrl ? post.seriesUrl : '';
-          this.$nextTick(() => this.autoGrowTitle());
+          this.$nextTick(() => {
+            this.autoGrowTitle();
+            this.autoGrowSummary();
+          });
         })
         .catch((error: HttpApiError) => {
           toast.error(error.getErrorMessage());
@@ -289,9 +344,14 @@ export default defineComponent({
         });
       }
     },
-    async getThumbnailFileId() {
-      const urls = /!\[.*?\]\((.*?)\)/.exec(this.content);
+    // reuseCover: 본문 첫 이미지가 AI 커버면 다시 올리지 않고 그 첨부 Id 를 쓴다. 썸네일은 글마다 따로여야 해서(@OneToOne)
+    // 다른 글(영어판)에 쓸 때는 false 로 복사본을 만든다.
+    async getThumbnailFileId(content?: string, reuseCover = true) {
+      const urls = /!\[.*?\]\((.*?)\)/.exec(content ?? this.content);
       if (urls) {
+        if (reuseCover && this.coverFile && urls[1] === `${attachmentFileBaseUrl}${this.coverFile.url}`) {
+          return this.coverFile.id;
+        }
         try {
           const imageUrl = new URL(urls[1]);
           return await uploadFileFromUrl(imageUrl)
@@ -337,6 +397,129 @@ export default defineComponent({
 
       return summary.length > 255 ? summary.substring(0, 255) : summary;
     },
+    // ---- AI 글쓰기 ----
+    toggleAiPanel() {
+      this.isAiPanelMounted = true;
+      this.isAiPanelOpen = !this.isAiPanelOpen;
+    },
+    editorHandle(): PostEditorHandle | undefined {
+      return this.$refs['editor'] as PostEditorHandle | undefined;
+    },
+    // AI 가 제안한 값을 이 폼의 규칙에 맞춘 것
+    aiMetaValue(field: AiMetaField, meta: AiMetaDto): string | Array<string> {
+      if (field === 'tags') {
+        return Array.from(new Set((meta.tags ?? []).map((tag) => tag.trim()).filter(Boolean)));
+      }
+      if (field === 'postUrl') {
+        return normalizePostUrl(meta.postUrl);
+      }
+      const value = (meta[field] ?? '').trim();
+      return field === 'summary' ? value.substring(0, 255) : value;
+    },
+    applyAiMetaField(field: AiMetaField, meta: AiMetaDto) {
+      const value = this.aiMetaValue(field, meta);
+      if (field === 'tags') {
+        this.tags = value as Array<string>;
+      } else if (field === 'title') {
+        this.title = value as string;
+        this.$nextTick(() => this.autoGrowTitle());
+      } else if (field === 'summary') {
+        this.summary = value as string;
+        this.$nextTick(() => this.autoGrowSummary());
+      } else {
+        this.newPostUrl = value as string;
+      }
+    },
+    isAiMetaFieldEmpty(field: AiMetaField): boolean {
+      if (field === 'title') return !this.title.trim();
+      if (field === 'summary') return !this.summary.trim();
+      if (field === 'tags') return (this.tags ?? []).length === 0;
+      // 이미 있는 글의 주소는 비어 있지 않은 것으로 본다 (바꾸면 링크가 깨진다)
+      return this.isNewPost && !this.newPostUrl;
+    },
+    createAiBridge(): AiWriteBridge {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
+      const form = this;
+      return {
+        get isNewPost() {
+          return form.isNewPost;
+        },
+        get blogId() {
+          return form.blogId;
+        },
+        snapshot() {
+          return {
+            title: form.title.trim(),
+            summary: form.summary.trim() || (form.content.trim() ? form.createSummaryFromContent(form.content) : ''),
+            content: form.content,
+            tags: [...(form.tags ?? [])],
+            postUrl: form.newPostUrl,
+          };
+        },
+        fillEmptyMeta(meta: AiMetaDto) {
+          const filled = META_FIELDS.filter((field) => form.isAiMetaFieldEmpty(field) && form.aiMetaValue(field, meta).length > 0);
+          filled.forEach((field) => form.applyAiMetaField(field, meta));
+          return filled;
+        },
+        applyMetaField(field: AiMetaField, meta: AiMetaDto) {
+          form.applyAiMetaField(field, meta);
+        },
+        isMetaFieldSameAs(field: AiMetaField, meta: AiMetaDto) {
+          const value = form.aiMetaValue(field, meta);
+          if (field === 'tags') {
+            return JSON.stringify(form.tags ?? []) === JSON.stringify(value);
+          }
+          const current = field === 'title' ? form.title : field === 'summary' ? form.summary : form.newPostUrl;
+          return current.trim() === value;
+        },
+        applyCover(cover: AiCoverDto, alt: string) {
+          let body = form.content;
+          const leading = LEADING_IMAGE.exec(body);
+          if (leading && form.coverFile && leading[1] === `${attachmentFileBaseUrl}${form.coverFile.url}`) {
+            body = body.substring(leading[0].length);
+          }
+          const safeAlt = alt.replace(/[[\]\n]/g, ' ').trim() || '커버 이미지';
+          const markdown = `![${safeAlt}](${attachmentFileBaseUrl}${cover.url})\n\n${body.replace(/^\s+/, '')}`;
+          form.coverFile = { id: cover.fileId, url: cover.url };
+          const editor = form.editorHandle();
+          if (editor) {
+            editor.setMarkdownQuietly(markdown, 'top');
+          } else {
+            form.content = markdown;
+          }
+        },
+        markAsDraft() {
+          if (!form.isNewPost || form.openType === 'DRAFT') {
+            return false;
+          }
+          form.openType = 'DRAFT';
+          return true;
+        },
+        hasContent() {
+          return form.content.trim().length > 0;
+        },
+        beginStream(mode: 'replace' | 'append') {
+          form.aiStreamBase = mode === 'append' && form.content.trim() ? `${form.content.replace(/\s+$/, '')}\n\n` : '';
+          form.isAiStreaming = true;
+          form.editorHandle()?.setMarkdownQuietly(form.aiStreamBase, 'end');
+        },
+        updateStream(text: string) {
+          form.editorHandle()?.setMarkdownQuietly(form.aiStreamBase + text, 'end');
+        },
+        endStream() {
+          form.isAiStreaming = false;
+        },
+        captureSelection() {
+          return form.editorHandle()?.captureSelection() ?? null;
+        },
+        replaceSelection(selection: EditorSelection, text: string) {
+          return form.editorHandle()?.replaceCapturedSelection(selection, text) ?? false;
+        },
+        resolveThumbnailFileId(content: string) {
+          return form.getThumbnailFileId(content, false);
+        },
+      };
+    },
     // ---- 브라우저 임시 보관 (새 글만) ----
     scheduleDraftSave() {
       if (!this.isNewPost || !this.isDraftRestoredOrDeclined) {
@@ -360,6 +543,7 @@ export default defineComponent({
         content: this.content,
         tags: this.tags ?? [],
         postUrl: this.newPostUrl,
+        summary: this.summary,
         savedAt: Date.now(),
       };
       try {
@@ -400,8 +584,12 @@ export default defineComponent({
           this.content = draft.content;
           this.tags = draft.tags ?? [];
           this.newPostUrl = draft.postUrl ?? '';
+          this.summary = draft.summary ?? '';
           this.draftSavedAt = dayjs(draft.savedAt).format('HH:mm');
-          this.$nextTick(() => this.autoGrowTitle());
+          this.$nextTick(() => {
+            this.autoGrowTitle();
+            this.autoGrowSummary();
+          });
         } else {
           this.clearDraft();
         }
@@ -434,10 +622,25 @@ export default defineComponent({
   background: var(--surface);
 }
 
+.write-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  /* 행 높이를 고정해야 패널 내용이 길어져도 아래 막대를 밀어내지 않고 패널 안에서 스크롤된다 */
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+}
+
+.write-form.ai-open .write-main {
+  grid-template-columns: minmax(0, 1fr) 400px;
+}
+
 .editor-area {
   display: grid;
+  /* 열을 명시해야 AI 패널이 열려 폭이 줄 때 편집기 도구 막대가 줄어든 폭에 맞춰 접힌다 */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -506,6 +709,30 @@ export default defineComponent({
   font-family: var(--font-sans);
 }
 
+.summary-input {
+  width: 100%;
+  resize: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  padding: 6px 0;
+  overflow: hidden;
+}
+
+.summary-input:focus {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.summary-input::placeholder {
+  color: var(--text-3);
+}
+
 .tags-row {
   border-bottom: 1px solid var(--border);
   padding: 4px 0;
@@ -514,7 +741,14 @@ export default defineComponent({
 
 .editor {
   min-height: 0;
+  min-width: 0;
   padding: 0 var(--gutter) var(--s-4);
+  transition: opacity var(--ease);
+}
+
+/* AI 가 초안을 쓰는 동안 (입력해도 덮어써지니 조금 흐리게) */
+.editor.ai-streaming {
+  opacity: 0.85;
 }
 
 .write-bar {
@@ -572,6 +806,19 @@ export default defineComponent({
 
 .publish {
   min-width: 110px;
+}
+
+@media (max-width: 1100px) {
+  .write-form.ai-open .draft-note {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  /* 좁은 화면에서는 패널이 아래에서 올라오는 시트가 된다 (AiWritePanel 이 position: fixed 로 그린다) */
+  .write-form.ai-open .write-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 760px) {

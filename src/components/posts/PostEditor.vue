@@ -13,6 +13,7 @@ import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { uploadFile } from '@/api/attachments';
 import { attachmentFileBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
 import { toast } from '@/utils/dialog';
+import { buildSelectionContext, EditorSelection, markdownOffsetOf } from '@/components/posts/editorSelection';
 
 const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight-all');
 
@@ -25,6 +26,8 @@ export default defineComponent({
       type: String,
     },
   },
+  // selection-change: 고른 텍스트가 바뀔 때 (AI 다듬기 패널이 미리 보여준다)
+  emits: ['update:modelValue', 'selection-change'],
   data() {
     return {
       previewStyle: {} as 'tab' | 'vertical',
@@ -53,6 +56,67 @@ export default defineComponent({
         this.previewStyle = 'tab';
       } else {
         this.previewStyle = 'vertical';
+      }
+    },
+    // ---- AI 글쓰기가 부르는 편집기 조작 (WritePostForm 이 ref 로 부른다) ----
+    // 지금 고른 부분과 위치·앞뒤 문맥을 잡아 둔다. 고른 게 없으면 null.
+    captureSelection(): EditorSelection | null {
+      if (!editor) {
+        return null;
+      }
+      const text = editor.getSelectedText();
+      if (!text || !text.trim()) {
+        return null;
+      }
+      const range = editor.getSelection();
+      const markdown = editor.getMarkdown();
+      if (editor.isMarkdownMode()) {
+        const [[startLine, startCh], [endLine, endCh]] = range as [[number, number], [number, number]];
+        return {
+          text,
+          start: [startLine, startCh],
+          end: [endLine, endCh],
+          mode: 'markdown',
+          context: buildSelectionContext(markdown, markdownOffsetOf(markdown, startLine, startCh), markdownOffsetOf(markdown, endLine, endCh)),
+        };
+      }
+      // 위지윅 모드는 위치가 마크다운과 달라 같은 텍스트를 찾아 문맥만 대략 잡는다.
+      const [from, to] = range as [number, number];
+      const index = markdown.indexOf(text);
+      return {
+        text,
+        start: from,
+        end: to,
+        mode: 'wysiwyg',
+        context: index >= 0 ? buildSelectionContext(markdown, index, index + text.length) : '',
+      };
+    },
+    // 잡아 둔 자리를 새 텍스트로 바꾼다. 그사이 그 자리가 바뀌었거나 편집 모드가 바뀌었으면 false.
+    replaceCapturedSelection(selection: EditorSelection, text: string): boolean {
+      if (!editor || (selection.mode === 'markdown') !== editor.isMarkdownMode()) {
+        return false;
+      }
+      try {
+        if (editor.getSelectedText(selection.start, selection.end) !== selection.text) {
+          return false;
+        }
+        editor.replaceSelection(text, selection.start, selection.end);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+    // 본문을 통째로 바꾼다. v-model 로 바꿀 때와 달리 포커스를 가져가지 않는다(모바일 키보드가 뜨지 않게).
+    // scroll: 'end' 는 스트리밍 중 맨 아래로 따라가기, 'top' 은 맨 위(커버 이미지 넣은 뒤).
+    setMarkdownQuietly(markdown: string, scroll: 'end' | 'top' | null = null) {
+      if (!editor) {
+        return;
+      }
+      editor.setMarkdown(markdown, false);
+      if (scroll === 'end') {
+        editor.setScrollTop(Number.MAX_SAFE_INTEGER);
+      } else if (scroll === 'top') {
+        editor.setScrollTop(0);
       }
     },
   },
@@ -157,6 +221,9 @@ export default defineComponent({
 
     editor.on('change', () => {
       this.$emit('update:modelValue', editor.getMarkdown());
+    });
+    editor.on('caretChange', () => {
+      this.$emit('selection-change', editor.getSelectedText());
     });
     editor.addHook('addImageBlobHook', async (blob: Blob | File, callback: HookCallback) => {
       await uploadFile(blob)

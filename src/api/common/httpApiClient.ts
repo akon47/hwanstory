@@ -41,6 +41,35 @@ export function createHttpApiClient(uri: string, withAuth: boolean = true): Http
   return new AxiosHttpApiClientImpl(uri, withAuth);
 }
 
+//region 인증 공통 (axios 클라이언트와 스트리밍(fetch) 클라이언트가 같이 쓴다)
+
+// 요청에 붙일 Authorization 헤더 값
+export function getAuthorizationHeader(): string {
+  return `Bearer ${store.state.accountStore.accessToken}`;
+}
+
+// 401 응답을 받았을 때의 공통 처리.
+// 토큰 만료(token_expired)이고 아직 다시 보내 본 적이 없으면 토큰을 재발급하고 true(같은 요청을 한 번 더 보내도 됨)를 돌려준다.
+// 재발급에 실패하면 이 브라우저의 토큰을 지우고, 만료가 아닌 다른 401 도 토큰을 지운 뒤 false 를 돌려준다.
+export async function handleUnauthorizedResponse(serverErrorCode: string | undefined, alreadyRetried: boolean): Promise<boolean> {
+  if (serverErrorCode?.toLowerCase() == 'token_expired') {
+    if (alreadyRetried) {
+      return false;
+    }
+    try {
+      await store.dispatch('accountStore/reissueToken');
+      return true;
+    } catch (error) {
+      await store.dispatch('accountStore/signOut', true);
+      return false;
+    }
+  }
+  await store.dispatch('accountStore/signOut', true);
+  return false;
+}
+
+//endregion
+
 //region Axios를 이용한 구현체
 
 // Retry 요청 기능을 지원하기 위한 인터페이스
@@ -163,7 +192,7 @@ class AxiosHttpApiClientImpl implements HttpApiClient {
       (config: InternalAxiosRequestConfig) => {
         // 인증 사용 시 인증 헤더를 항상 추가하여 전송한다. (axios 1.x: headers 는 항상 존재하는 AxiosHeaders)
         if (withAuth) {
-          config.headers.set('Authorization', `Bearer ${store.state.accountStore.accessToken}`);
+          config.headers.set('Authorization', getAuthorizationHeader());
         }
 
         return config;
@@ -184,27 +213,14 @@ class AxiosHttpApiClientImpl implements HttpApiClient {
         const httpApiError = new AxiosHttpApiErrorImpl(axios.isAxiosError(error) ? error : new AxiosError<ErrorResponseDto>(error.message));
 
         if (withAuth && httpApiError.isUnauthorized()) {
-          const serverErrorCode = httpApiError.serverErrorCode?.toLowerCase();
+          // 토큰이 만료된 경우 한 번만 갱신해서 다시 보내고, 그 밖의 401 은 저장된 토큰을 지운다.
+          const requestConfig = httpApiError.getCustomAxiosRequestConfig();
+          const alreadyRetried = requestConfig.retryCount >= 1;
+          requestConfig.retryCount++;
 
-          // 토큰이 만료된 경우 갱신을 시도한다.
-          if (serverErrorCode == 'token_expired') {
-            const requestConfig = httpApiError.getCustomAxiosRequestConfig();
-
-            if (requestConfig?.retryCount < 1) {
-              requestConfig.retryCount++;
-
-              try {
-                await store.dispatch('accountStore/reissueToken');
-              } catch (error) {
-                return store.dispatch('accountStore/signOut', true);
-              }
-
-              // 토큰이 만료되어 실패했던 요청을 다시 재요청 시도한다.
-              return instance.request(requestConfig);
-            }
-          } else {
-            // 토큰이 만료된 경우가 아닌 경우에 대해서는 클라이언트에 저장되어 있는 토큰을 삭제한다.
-            await store.dispatch('accountStore/signOut', true);
+          if (await handleUnauthorizedResponse(httpApiError.serverErrorCode, alreadyRetried)) {
+            // 토큰이 만료되어 실패했던 요청을 다시 재요청 시도한다.
+            return instance.request(requestConfig);
           }
         }
 

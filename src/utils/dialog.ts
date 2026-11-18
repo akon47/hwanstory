@@ -5,10 +5,23 @@ import { reactive } from 'vue';
 
 export type ToastKind = 'info' | 'success' | 'error';
 
+// 토스트 끝에 붙는 링크 (새 탭으로 연다)
+export interface ToastLink {
+  label: string;
+  href: string;
+}
+
 export interface ToastItem {
   id: number;
   kind: ToastKind;
   message: string;
+  link?: ToastLink;
+}
+
+// 토스트 옵션 (숫자만 넘기면 표시 시간)
+export interface ToastOptions {
+  duration?: number;
+  link?: ToastLink;
 }
 
 export interface ConfirmOptions {
@@ -59,9 +72,11 @@ export const dialogState = reactive<DialogState>({
 
 let nextToastId = 1;
 
-function pushToast(kind: ToastKind, message: string, duration: number) {
+function pushToast(kind: ToastKind, message: string, defaultDuration: number, options?: number | ToastOptions) {
+  const normalized: ToastOptions = typeof options === 'number' ? { duration: options } : (options ?? {});
+  const duration = normalized.duration ?? defaultDuration;
   const id = nextToastId++;
-  dialogState.toasts.push({ id, kind, message });
+  dialogState.toasts.push({ id, kind, message, link: normalized.link });
   if (dialogState.toasts.length > 4) {
     dialogState.toasts.shift();
   }
@@ -76,14 +91,14 @@ export function dismissToast(id: number) {
 }
 
 export const toast = {
-  info(message: string, duration = 3200) {
-    pushToast('info', message, duration);
+  info(message: string, options?: number | ToastOptions) {
+    pushToast('info', message, 3200, options);
   },
-  success(message: string, duration = 3200) {
-    pushToast('success', message, duration);
+  success(message: string, options?: number | ToastOptions) {
+    pushToast('success', message, 3200, options);
   },
-  error(message: string, duration = 5000) {
-    pushToast('error', message, duration);
+  error(message: string, options?: number | ToastOptions) {
+    pushToast('error', message, 5000, options);
   },
 };
 
