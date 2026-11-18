@@ -8,6 +8,12 @@ import {
   AiCoverRequestDto,
   AiDoneEventDto,
   AiDraftRequestDto,
+  AiMetaApplyRequestDto,
+  AiMetaApplyResultDto,
+  AiMetaBatchDoneEventDto,
+  AiMetaBatchItemEventDto,
+  AiMetaBatchRequestDto,
+  AiMetaCandidatesDto,
   AiMetaDto,
   AiMetaRequestDto,
   AiMissingCoversDto,
@@ -62,6 +68,24 @@ function streamAiCoverBatch(
   return postEventStream('v1/ai/covers/batch', request, handlers);
 }
 
+// 제목·요약·태그 한꺼번에 채우기 후보 (태그가 없거나 요약이 짧은 내 글)
+function getAiMetaCandidates() {
+  return aiV1.getRequest<AiMetaCandidatesDto>('/meta/candidates');
+}
+
+// 제목·요약·태그 제안 받기 (SSE: status / item(글마다 current·suggested) / done / error). 글은 바꾸지 않는다.
+function streamAiMetaBatch(
+    request: AiMetaBatchRequestDto,
+    handlers: SseHandlers<AiMetaBatchDoneEventDto, AiMetaBatchItemEventDto>,
+): SseStream {
+  return postEventStream('v1/ai/meta/batch', request, handlers);
+}
+
+// 고른 제안만 적용 (AI 호출 없음)
+function applyAiMetaBatch(request: AiMetaApplyRequestDto) {
+  return aiV1.postRequest<AiMetaApplyResultDto>('/meta/apply', null, request);
+}
+
 // 초안 쓰기 (SSE: status / delta / done{sources} / error)
 function streamAiDraft(request: AiDraftRequestDto, handlers: SseHandlers<AiDoneEventDto>): SseStream {
   return postEventStream('v1/ai/draft', request, handlers);
@@ -86,6 +110,9 @@ export {
   generateAiCover,
   getAiMissingCovers,
   streamAiCoverBatch,
+  getAiMetaCandidates,
+  streamAiMetaBatch,
+  applyAiMetaBatch,
   streamAiDraft,
   streamAiRewrite,
   streamAiTranslate,

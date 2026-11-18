@@ -100,14 +100,25 @@
           </template>
         </div>
 
-        <div v-if="settings.configured" class="covers">
-          <div class="covers-text">
+        <div v-if="settings.configured" class="batch-row covers">
+          <div class="batch-text">
             <div class="section-title">{{ coversTitle }}</div>
             <div class="muted small">{{ coversDescription }}</div>
           </div>
           <button v-if="!missing || missing.total > 0" class="btn btn-secondary btn-sm" type="button" :disabled="!missing"
                   @click="showCoverBatch = true">
             <app-icon name="image" :size="14"/>커버 한꺼번에 만들기
+          </button>
+        </div>
+
+        <div v-if="settings.configured" class="batch-row meta-batch">
+          <div class="batch-text">
+            <div class="section-title">{{ metaTitle }}</div>
+            <div class="muted small">{{ metaDescription }}</div>
+          </div>
+          <button v-if="!metaCandidates || metaCandidates.total > 0" class="btn btn-secondary btn-sm" type="button"
+                  :disabled="!metaCandidates" @click="showMetaBatch = true">
+            <app-icon name="tag" :size="14"/>한꺼번에 채우기
           </button>
         </div>
       </div>
@@ -127,6 +138,8 @@
 
     <ai-cover-batch-dialog v-if="showCoverBatch && missing" :posts="missing.posts" :total="missing.total"
                            @close="showCoverBatch = false" @finished="onCoverBatchFinished"/>
+    <ai-meta-batch-dialog v-if="showMetaBatch && metaCandidates" :posts="metaCandidates.posts" :total="metaCandidates.total"
+                          @close="showMetaBatch = false" @finished="onMetaBatchFinished"/>
   </section>
 </template>
 
@@ -134,17 +147,25 @@
 import { defineComponent } from 'vue';
 import AppIcon from '@/components/common/AppIcon.vue';
 import AiCoverBatchDialog from '@/components/ai/AiCoverBatchDialog.vue';
-import { analyzeAiStyle, deleteAiKey, getAiMissingCovers, getAiSettings, saveAiSettings } from '@/api/ai';
-import { AI_ERROR, AI_MONTHLY_LIMIT_MAX, AI_MONTHLY_LIMIT_MIN, AiMissingCoversDto, AiSettingsDto } from '@/api/models/ai.dtos';
+import AiMetaBatchDialog from '@/components/ai/AiMetaBatchDialog.vue';
+import { analyzeAiStyle, deleteAiKey, getAiMetaCandidates, getAiMissingCovers, getAiSettings, saveAiSettings } from '@/api/ai';
+import {
+  AI_ERROR,
+  AI_MONTHLY_LIMIT_MAX,
+  AI_MONTHLY_LIMIT_MIN,
+  AiMetaCandidatesDto,
+  AiMissingCoversDto,
+  AiSettingsDto,
+} from '@/api/models/ai.dtos';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import { errorCodeOf } from '@/api/common/sseClient';
 import { confirmDialog, toast } from '@/utils/dialog';
 import { formatCount, formatRelativeDate, formatUsd } from '@/utils/format';
 
-// 설정 화면의 "AI 글쓰기" 카드: 키 연결·모델·월 한도·이번 달 사용량·문체 분석·커버 일괄 만들기
+// 설정 화면의 "AI 글쓰기" 카드: 키 연결·모델·월 한도·이번 달 사용량·문체 분석·커버 일괄 만들기·제목/요약/태그 일괄 채우기
 export default defineComponent({
   name: 'AiSettingsCard',
-  components: { AppIcon, AiCoverBatchDialog },
+  components: { AppIcon, AiCoverBatchDialog, AiMetaBatchDialog },
   data() {
     return {
       state: 'loading' as 'loading' | 'ready' | 'error',
@@ -165,6 +186,11 @@ export default defineComponent({
       missingState: 'idle' as 'idle' | 'loading' | 'ready' | 'error',
       missingError: '',
       showCoverBatch: false,
+      // 요약·태그가 비었거나 짧은 글
+      metaCandidates: null as AiMetaCandidatesDto | null,
+      metaState: 'idle' as 'idle' | 'loading' | 'ready' | 'error',
+      metaError: '',
+      showMetaBatch: false,
     };
   },
   computed: {
@@ -211,6 +237,17 @@ export default defineComponent({
       if (!this.missing || this.missing.total === 0) return '커버 없는 글이 없어요';
       return `커버 없는 글 ${formatCount(this.missing.total)}개`;
     },
+    metaTitle(): string {
+      if (this.metaState === 'loading' && !this.metaCandidates) return '요약·태그가 빈 글을 세고 있어요';
+      if (this.metaState === 'error') return '요약·태그가 비었거나 짧은 글';
+      if (!this.metaCandidates || this.metaCandidates.total === 0) return '요약·태그가 모두 채워져 있어요';
+      return `요약·태그가 비었거나 짧은 글 ${formatCount(this.metaCandidates.total)}개`;
+    },
+    metaDescription(): string {
+      if (this.metaState === 'error') return this.metaError;
+      if (this.metaCandidates && this.metaCandidates.total === 0) return '모든 글에 태그와 요약이 있어요.';
+      return '글을 읽고 요약·태그를 제안해 드려요. 고른 것만 적용돼요.';
+    },
     coversDescription(): string {
       if (this.missingState === 'error') return this.missingError;
       if (this.missing && this.missing.total === 0) return '모든 글에 썸네일이 있어요.';
@@ -229,10 +266,25 @@ export default defineComponent({
       this.state = 'ready';
       if (settings.available && settings.configured) {
         this.loadMissingCovers();
+        this.loadMetaCandidates();
       } else {
         this.missing = null;
         this.missingState = 'idle';
+        this.metaCandidates = null;
+        this.metaState = 'idle';
       }
+    },
+    async loadMetaCandidates() {
+      this.metaState = 'loading';
+      await getAiMetaCandidates()
+      .then((candidates) => {
+        this.metaCandidates = candidates;
+        this.metaState = 'ready';
+      })
+      .catch((error: HttpApiError) => {
+        this.metaError = error.serverErrorMessage || '대상 글을 불러오지 못했어요. 잠시 뒤 다시 해 주세요.';
+        this.metaState = 'error';
+      });
     },
     async loadMissingCovers() {
       this.missingState = 'loading';
@@ -246,9 +298,16 @@ export default defineComponent({
         this.missingState = 'error';
       });
     },
-    // 일괄 만들기가 끝나면 남은 수와 이번 달 사용량만 다시 받는다 (고치던 입력값은 그대로 둔다)
-    async onCoverBatchFinished() {
+    // 일괄 작업이 끝나면 남은 수와 이번 달 사용량만 다시 받는다 (고치던 입력값은 그대로 둔다)
+    onCoverBatchFinished() {
       this.loadMissingCovers();
+      this.refreshUsage();
+    },
+    onMetaBatchFinished() {
+      this.loadMetaCandidates();
+      this.refreshUsage();
+    },
+    async refreshUsage() {
       await getAiSettings()
       .then((fresh) => {
         if (this.settings) {
@@ -492,7 +551,7 @@ export default defineComponent({
   overflow-wrap: anywhere;
 }
 
-.covers {
+.batch-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -501,7 +560,12 @@ export default defineComponent({
   border-top: 1px solid var(--border);
 }
 
-.covers-text {
+.batch-row + .batch-row {
+  padding-top: 0;
+  border-top: none;
+}
+
+.batch-text {
   display: grid;
   gap: 2px;
   min-width: 0;
@@ -556,7 +620,7 @@ export default defineComponent({
   }
 
   .style-head,
-  .covers {
+  .batch-row {
     flex-direction: column;
     align-items: flex-start;
   }

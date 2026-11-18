@@ -134,6 +134,54 @@ export interface AiCoverBatchRequestDto extends DataTransferObject {
   readonly insertIntoContent: boolean;
 }
 
+// 제목·요약·태그 한꺼번에 채우기: 후보 (태그가 없거나 요약이 40자 미만인 내 글, 최신 글부터, 최대 500개)
+export interface AiMetaCandidatePostDto extends DataTransferObject {
+  readonly postUrl: string;
+  readonly title: string;
+  readonly openType: OpenType;
+  readonly createdAt: string;
+  readonly summary: string;
+  readonly tags: Array<string>;
+  readonly noTags: boolean;
+  readonly shortSummary: boolean;
+}
+
+export interface AiMetaCandidatesDto extends DataTransferObject {
+  readonly total: number;
+  readonly posts: Array<AiMetaCandidatePostDto>;
+}
+
+export type AiMetaBatchField = 'title' | 'summary' | 'tags';
+
+// 제안 받기 (SSE, 한 번에 1~100개). 글은 바꾸지 않는다.
+export interface AiMetaBatchRequestDto extends DataTransferObject {
+  readonly postUrls: Array<string>;
+  readonly fields: Array<AiMetaBatchField>;
+}
+
+export interface AiMetaValuesDto {
+  readonly title: string;
+  readonly summary: string;
+  readonly tags: Array<string>;
+}
+
+// 고른 제안 적용 (한 번에 1~100개). 온 필드만 바꾼다.
+export interface AiMetaApplyItemDto extends DataTransferObject {
+  readonly postUrl: string;
+  readonly title?: string;
+  readonly summary?: string;
+  readonly tags?: Array<string>;
+}
+
+export interface AiMetaApplyRequestDto extends DataTransferObject {
+  readonly items: Array<AiMetaApplyItemDto>;
+}
+
+export interface AiMetaApplyResultDto extends DataTransferObject {
+  readonly applied: number;
+  readonly failed: Array<{ postUrl: string; message: string }>;
+}
+
 // ---- 스트리밍(SSE) 이벤트 ----
 
 export interface AiSourceDto {
@@ -183,6 +231,23 @@ export interface AiCoverBatchDoneEventDto {
   readonly usage: AiTokenUsageDto;
 }
 
+// 제안 받기 event: item (요청한 fields 만 suggested 가 다르고 나머지는 current 와 같다)
+export interface AiMetaBatchItemEventDto {
+  readonly postUrl: string;
+  readonly ok: boolean;
+  readonly current?: AiMetaValuesDto;
+  readonly suggested?: AiMetaValuesDto;
+  readonly message?: string;
+}
+
+// 제안 받기 event: done
+export interface AiMetaBatchDoneEventDto {
+  readonly total: number;
+  readonly suggested: number;
+  readonly failed: number;
+  readonly usage: AiTokenUsageDto;
+}
+
 // event: error
 export interface AiErrorEventDto {
   readonly code: string;
@@ -217,6 +282,9 @@ export const AI_REWRITE_INSTRUCTIONS: Array<{ value: Exclude<AiRewriteInstructio
 export const AI_COVER_BATCH_MAX = 100;
 // 커버 하나 예상 비용 (USD, 화면 안내용)
 export const AI_COVER_COST_RANGE: [number, number] = [0.01, 0.02];
+
+// 제목·요약·태그 제안 하나 예상 비용 (USD, 화면 안내용). 한 번에 보낼 수 있는 글 수는 커버와 같다(100).
+export const AI_META_COST_RANGE: [number, number] = [0.01, 0.03];
 
 // 월 한도 범위 (USD)
 export const AI_MONTHLY_LIMIT_MIN = 0.5;

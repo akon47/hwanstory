@@ -1,140 +1,108 @@
 <template>
-  <teleport to="body">
-    <div class="cb-backdrop" @click.self="requestClose">
-      <div class="cb-dialog" role="dialog" aria-modal="true" aria-labelledby="cb-title">
-        <header class="cb-head">
-          <div class="cb-head-text">
-            <h2 id="cb-title">커버 한꺼번에 만들기</h2>
-            <p class="small muted">{{ headline }}</p>
-          </div>
-          <button class="btn btn-icon btn-sm" type="button" aria-label="닫기" title="닫기" @click="requestClose">
-            <app-icon name="x" :size="18"/>
-          </button>
-        </header>
-
-        <!-- 만들기 시작 뒤: 진행 상황 -->
-        <div v-if="phase !== 'select'" class="cb-progress" aria-live="polite">
-          <div class="cb-progress-row">
-            <span v-if="phase === 'running'" class="spinner" aria-hidden="true"/>
-            <app-icon v-else-if="phase === 'done'" class="ok" name="check-circle" :size="16"/>
-            <app-icon v-else class="warn" name="info" :size="16"/>
-            <span class="cb-status">{{ statusText }}</span>
-          </div>
-          <div class="cb-bar" aria-hidden="true"><span :style="{ width: `${progressPercent}%` }"/></div>
-          <div class="cb-counts small subtle num">
-            {{ formatCount(processedCount) }} / {{ formatCount(runRows.length) }}
-            <span class="dot"/>만듦 {{ counts.created }}
-            <template v-if="counts.skipped"><span class="dot"/>건너뜀 {{ counts.skipped }}</template>
-            <template v-if="counts.failed"><span class="dot"/>실패 {{ counts.failed }}</template>
-          </div>
-        </div>
-
-        <div ref="body" class="cb-body">
-          <!-- 고르기 -->
-          <template v-if="phase === 'select'">
-            <label class="cb-all">
-              <input type="checkbox" :checked="allChecked" :indeterminate.prop="someChecked" @change="toggleAll"/>
-              <span>전체 선택</span>
-              <span class="subtle num">{{ formatCount(checkedCount) }} / {{ formatCount(posts.length) }}</span>
-            </label>
-            <ul class="cb-list">
-              <li v-for="post in posts" :key="post.postUrl">
-                <label class="cb-row selectable">
-                  <input type="checkbox" v-model="checked[post.postUrl]"/>
-                  <span class="cb-row-main">
-                    <span class="cb-title">{{ post.title || '(제목 없음)' }}</span>
-                    <span class="cb-meta">
-                      <span class="num">{{ formatRelativeDate(post.createdAt) }}</span>
-                      <span class="badge" :class="openTypeBadge(post.openType).className">{{ openTypeBadge(post.openType).label }}</span>
-                    </span>
-                  </span>
-                </label>
-              </li>
-            </ul>
-            <p v-if="total > posts.length" class="small subtle cb-more">
-              커버 없는 글이 {{ formatCount(total) }}개라 최근 {{ formatCount(posts.length) }}개만 보여요. 다 만들면 나머지가 이어서 보여요.
-            </p>
-          </template>
-
-          <!-- 진행·결과 -->
-          <ul v-else class="cb-list">
-            <li v-for="row in runRows" :key="row.postUrl" class="cb-row" :class="row.state">
-              <span class="cb-state" :aria-label="stateLabel(row.state)">
-                <span v-if="row.state === 'working'" class="spinner" aria-hidden="true"/>
-                <app-icon v-else :name="stateIcon(row.state)" :size="16"/>
+  <ai-batch-dialog-frame ref="frame" title="커버 한꺼번에 만들기" :subtitle="headline" :progress="progress" @close="requestClose">
+    <!-- 고르기 -->
+    <template v-if="phase === 'select'">
+      <label class="cb-all">
+        <input type="checkbox" :checked="allChecked" :indeterminate.prop="someChecked" @change="toggleAll"/>
+        <span>전체 선택</span>
+        <span class="subtle num">{{ formatCount(checkedCount) }} / {{ formatCount(posts.length) }}</span>
+      </label>
+      <ul class="cb-list">
+        <li v-for="post in posts" :key="post.postUrl">
+          <label class="cb-row selectable">
+            <input type="checkbox" v-model="checked[post.postUrl]"/>
+            <span class="cb-row-main">
+              <span class="cb-title">{{ post.title || '(제목 없음)' }}</span>
+              <span class="cb-meta">
+                <span class="num">{{ formatRelativeDate(post.createdAt) }}</span>
+                <span class="badge" :class="openTypeBadge(post.openType).className">{{ openTypeBadge(post.openType).label }}</span>
               </span>
-              <span class="cb-row-main">
-                <span class="cb-title">{{ row.title || '(제목 없음)' }}</span>
-                <span class="cb-meta">
-                  <span class="cb-state-label">{{ stateLabel(row.state) }}</span>
-                  <span v-if="row.message" class="cb-message">{{ row.message }}</span>
-                </span>
-              </span>
-              <img v-if="row.url" class="cb-thumb" :src="imageUrl(row.url)" :alt="`${row.title} 커버`" loading="lazy"/>
-            </li>
-          </ul>
-        </div>
-
-        <div v-if="phase === 'select'" class="cb-options">
-          <label class="check">
-            <input type="checkbox" v-model="useAsThumbnail"/>
-            <span>썸네일로 쓰기<span class="check-hint">글 목록과 공유 미리보기에 보이는 대표 이미지예요</span></span>
+            </span>
           </label>
-          <label class="check">
-            <input type="checkbox" v-model="insertIntoContent"/>
-            <span>본문 맨 위에도 넣기<span class="check-hint">켜면 글 본문이 실제로 수정돼요(맨 위에 이미지 한 줄, 수정일도 바뀌어요)</span></span>
-          </label>
-          <p class="cb-cost">
-            <span>예상 비용</span>
-            <span class="cost-value num">약 {{ costRangeText }}</span>
-            <span class="subtle">글 하나에 약 {{ formatUsd(costRange[0]) }}~{{ formatUsd(costRange[1]).replace('$', '') }}</span>
-          </p>
-          <p v-if="checkedCount > batchMax" class="small subtle">한 번에 {{ batchMax }}개씩 나눠서 차례로 만들어요.</p>
-          <p v-if="!useAsThumbnail && !insertIntoContent" class="small error-line">썸네일이나 본문 중 하나는 골라 주세요.</p>
-        </div>
+        </li>
+      </ul>
+      <p v-if="total > posts.length" class="small subtle cb-more">
+        커버 없는 글이 {{ formatCount(total) }}개라 최근 {{ formatCount(posts.length) }}개만 보여요. 다 만들면 나머지가 이어서 보여요.
+      </p>
+    </template>
 
-        <div v-if="error" class="cb-error">
-          <ai-error-box :message="error" :code="errorCode" :settings-link="false"/>
-        </div>
+    <!-- 진행·결과 -->
+    <ul v-else class="cb-list">
+      <li v-for="row in runRows" :key="row.postUrl" class="cb-row" :class="row.state">
+        <span class="cb-state" :aria-label="stateLabel(row.state)">
+          <span v-if="row.state === 'working'" class="spinner" aria-hidden="true"/>
+          <app-icon v-else :name="stateIcon(row.state)" :size="16"/>
+        </span>
+        <span class="cb-row-main">
+          <span class="cb-title">{{ row.title || '(제목 없음)' }}</span>
+          <span class="cb-meta">
+            <span class="cb-state-label">{{ stateLabel(row.state) }}</span>
+            <span v-if="row.message" class="cb-message">{{ row.message }}</span>
+          </span>
+        </span>
+        <img v-if="row.url" class="cb-thumb" :src="imageUrl(row.url)" :alt="`${row.title} 커버`" loading="lazy"/>
+      </li>
+    </ul>
 
-        <footer class="cb-foot">
-          <template v-if="phase === 'select'">
-            <button class="btn btn-secondary" type="button" @click="requestClose">취소</button>
-            <button class="btn" type="button" :disabled="!canStart" @click="start">
-              <app-icon name="sparkles" :size="16"/>{{ formatCount(checkedCount) }}개 만들기
-            </button>
-          </template>
-          <template v-else-if="phase === 'running'">
-            <span class="small muted foot-note">멈춰도 이미 만든 커버는 그대로 남아요.</span>
-            <button class="btn btn-secondary" type="button" :disabled="isStopping" @click="stop">
-              {{ isStopping ? '멈추는 중…' : '멈추기' }}
-            </button>
-          </template>
-          <template v-else>
-            <button class="btn" type="button" @click="$emit('close')">닫기</button>
-          </template>
-        </footer>
+    <template #bottom>
+      <div v-if="phase === 'select'" class="cb-options">
+        <label class="check">
+          <input type="checkbox" v-model="useAsThumbnail"/>
+          <span>썸네일로 쓰기<span class="check-hint">글 목록과 공유 미리보기에 보이는 대표 이미지예요</span></span>
+        </label>
+        <label class="check">
+          <input type="checkbox" v-model="insertIntoContent"/>
+          <span>본문 맨 위에도 넣기<span class="check-hint">켜면 글 본문이 실제로 수정돼요(맨 위에 이미지 한 줄, 수정일도 바뀌어요)</span></span>
+        </label>
+        <p class="cb-cost">
+          <span>예상 비용</span>
+          <span class="cost-value num">약 {{ costRangeText(costRange, checkedCount) }}</span>
+          <span class="subtle">글 하나에 약 {{ costRangeText(costRange, 1) }}</span>
+        </p>
+        <p v-if="checkedCount > batchMax" class="small subtle">한 번에 {{ batchMax }}개씩 나눠서 차례로 만들어요.</p>
+        <p v-if="!useAsThumbnail && !insertIntoContent" class="small error-line">썸네일이나 본문 중 하나는 골라 주세요.</p>
       </div>
-    </div>
-  </teleport>
+      <div v-if="error" class="cb-error">
+        <ai-error-box :message="error" :code="errorCode" :settings-link="false"/>
+      </div>
+    </template>
+
+    <template #foot>
+      <template v-if="phase === 'select'">
+        <button class="btn btn-secondary foot-btn" type="button" @click="requestClose">취소</button>
+        <button class="btn foot-btn" type="button" :disabled="!canStart" @click="start">
+          <app-icon name="sparkles" :size="16"/>{{ formatCount(checkedCount) }}개 만들기
+        </button>
+      </template>
+      <template v-else-if="phase === 'running'">
+        <span class="small muted foot-note">멈춰도 이미 만든 커버는 그대로 남아요.</span>
+        <button class="btn btn-secondary foot-btn" type="button" :disabled="isStopping" @click="stop">
+          {{ isStopping ? '멈추는 중…' : '멈추기' }}
+        </button>
+      </template>
+      <template v-else>
+        <button class="btn foot-btn" type="button" @click="$emit('close')">닫기</button>
+      </template>
+    </template>
+  </ai-batch-dialog-frame>
 </template>
 
 <script lang="ts">
 import { defineComponent, markRaw, PropType } from 'vue';
 import AppIcon from '@/components/common/AppIcon.vue';
 import AiErrorBox from '@/components/ai/AiErrorBox.vue';
+import AiBatchDialogFrame from '@/components/ai/AiBatchDialogFrame.vue';
+import { BATCH_MAX, BatchProgress, chunked, costRangeText, openTypeBadge } from '@/components/ai/aiBatch';
 import { streamAiCoverBatch } from '@/api/ai';
 import {
-  AI_COVER_BATCH_MAX,
   AI_COVER_COST_RANGE,
   AiCoverBatchDoneEventDto,
   AiCoverBatchItemEventDto,
   AiMissingCoverPostDto,
 } from '@/api/models/ai.dtos';
-import { OpenType } from '@/api/models/blog.dtos';
 import { attachmentFileBaseUrl, HttpApiError } from '@/api/common/httpApiClient';
 import { errorCodeOf, SseStream } from '@/api/common/sseClient';
-import { confirmDialog, dialogState, toast } from '@/utils/dialog';
+import { confirmDialog, toast } from '@/utils/dialog';
 import { formatCount, formatRelativeDate, formatUsd } from '@/utils/format';
 
 type RowState = 'queued' | 'working' | 'created' | 'skipped' | 'failed' | 'cancelled' | 'interrupted';
@@ -146,13 +114,6 @@ interface BatchRow {
   message: string;
   url: string;
 }
-
-const OPEN_TYPE_BADGES: Record<OpenType, { label: string; className: string }> = {
-  PUBLIC: { label: '공개', className: '' },
-  PRIVATE: { label: '비공개', className: '' },
-  DRAFT: { label: '임시저장', className: 'badge-warning' },
-  SCHEDULED: { label: '예약', className: 'badge-accent' },
-};
 
 const STATE_LABELS: Record<RowState, string> = {
   queued: '기다리는 중',
@@ -178,7 +139,7 @@ const STATE_ICONS: Record<RowState, string> = {
 // 고른 글을 100개씩 나눠 /covers/batch(SSE) 로 보내고, 글마다 오는 item 이벤트로 줄 상태를 바꾼다.
 export default defineComponent({
   name: 'AiCoverBatchDialog',
-  components: { AppIcon, AiErrorBox },
+  components: { AppIcon, AiErrorBox, AiBatchDialogFrame },
   props: {
     posts: {
       type: Array as PropType<Array<AiMissingCoverPostDto>>,
@@ -209,7 +170,7 @@ export default defineComponent({
       errorCode: '',
       isStopping: false,
       stream: null as SseStream | null,
-      batchMax: AI_COVER_BATCH_MAX,
+      batchMax: BATCH_MAX,
       costRange: AI_COVER_COST_RANGE,
     };
   },
@@ -226,10 +187,6 @@ export default defineComponent({
     canStart(): boolean {
       return this.checkedCount > 0 && (this.useAsThumbnail || this.insertIntoContent);
     },
-    costRangeText(): string {
-      const [low, high] = this.costRange;
-      return `${formatUsd(low * this.checkedCount)}~${formatUsd(high * this.checkedCount).replace('$', '')}`;
-    },
     counts(): { created: number; skipped: number; failed: number } {
       return {
         created: this.runRows.filter((row) => row.state === 'created').length,
@@ -240,35 +197,43 @@ export default defineComponent({
     processedCount(): number {
       return this.counts.created + this.counts.skipped + this.counts.failed;
     },
-    progressPercent(): number {
-      return this.runRows.length ? Math.round((this.processedCount / this.runRows.length) * 100) : 0;
-    },
     headline(): string {
       if (this.phase === 'select') {
         return `커버 없는 글 ${formatCount(this.total)}개 중에서 고를 수 있어요.`;
       }
       return `고른 글 ${formatCount(this.runRows.length)}개`;
     },
-    statusText(): string {
+    progress(): BatchProgress | null {
+      if (this.phase === 'select') {
+        return null;
+      }
+      const { created, skipped, failed } = this.counts;
+      const detail = [`${formatCount(this.processedCount)} / ${formatCount(this.runRows.length)}`, `만듦 ${created}`];
+      if (skipped) detail.push(`건너뜀 ${skipped}`);
+      if (failed) detail.push(`실패 ${failed}`);
+      let text: string;
       if (this.phase === 'running') {
-        return this.status || '준비하고 있어요';
+        text = this.status || '준비하고 있어요';
+      } else if (this.phase === 'done') {
+        text = this.costUsd !== null ? `다 만들었어요. 이번에 ${formatUsd(this.costUsd)} 들었어요.` : '다 만들었어요.';
+      } else if (this.phase === 'stopped') {
+        text = '멈췄어요. 이미 만든 커버는 그대로 남아요. 만들던 글 하나는 마저 끝날 수 있어요.';
+      } else {
+        text = '중간에 멈췄어요. 그때까지 만든 커버는 그대로 남아요.';
       }
-      if (this.phase === 'done') {
-        return this.costUsd !== null ? `다 만들었어요. 이번에 ${formatUsd(this.costUsd)} 들었어요.` : '다 만들었어요.';
-      }
-      if (this.phase === 'stopped') {
-        return '멈췄어요. 이미 만든 커버는 그대로 남아요. 만들던 글 하나는 마저 끝날 수 있어요.';
-      }
-      return '중간에 멈췄어요. 그때까지 만든 커버는 그대로 남아요.';
+      return {
+        state: this.phase,
+        text,
+        percent: this.runRows.length ? Math.round((this.processedCount / this.runRows.length) * 100) : 0,
+        detail: detail.join(' · '),
+      };
     },
   },
   methods: {
     formatCount,
-    formatUsd,
     formatRelativeDate,
-    openTypeBadge(openType: OpenType) {
-      return OPEN_TYPE_BADGES[openType] ?? OPEN_TYPE_BADGES.PUBLIC;
-    },
+    openTypeBadge,
+    costRangeText,
     stateLabel(state: RowState): string {
       return STATE_LABELS[state];
     },
@@ -277,6 +242,9 @@ export default defineComponent({
     },
     imageUrl(url: string): string {
       return `${attachmentFileBaseUrl}${url}`;
+    },
+    bodyElement(): HTMLElement | undefined {
+      return (this.$refs['frame'] as InstanceType<typeof AiBatchDialogFrame> | undefined)?.bodyElement();
     },
     toggleAll() {
       const next = !this.allChecked;
@@ -310,8 +278,7 @@ export default defineComponent({
     // 목록이 길면 지금 만드는 글이 보이게
     followWorkingRow() {
       this.$nextTick(() => {
-        const body = this.$refs['body'] as HTMLElement | undefined;
-        body?.querySelector('.cb-row.working')?.scrollIntoView({ block: 'nearest' });
+        this.bodyElement()?.querySelector('.cb-row.working')?.scrollIntoView({ block: 'nearest' });
       });
     },
     // 묶음 하나(최대 100개)를 보내고 결과를 돌려준다
@@ -368,12 +335,14 @@ export default defineComponent({
       this.error = '';
       this.errorCode = '';
       this.isStopping = false;
-      (this.$refs['body'] as HTMLElement | undefined)?.scrollTo({ top: 0 });
+      this.bodyElement()?.scrollTo({ top: 0 });
 
-      const urls = selected.map((post) => post.postUrl);
       let result: 'done' | 'stopped' | 'error' = 'done';
-      for (let index = 0; index < urls.length && result === 'done'; index += AI_COVER_BATCH_MAX) {
-        result = await this.runChunk(urls.slice(index, index + AI_COVER_BATCH_MAX));
+      for (const chunk of chunked(selected.map((post) => post.postUrl))) {
+        result = await this.runChunk(chunk);
+        if (result !== 'done') {
+          break;
+        }
       }
 
       // 결과가 안 온 글: 멈출 때 만들던 글은 서버가 마저 끝낼 수 있다
@@ -428,144 +397,14 @@ export default defineComponent({
       }
       this.$emit('close');
     },
-    onKeydown(event: KeyboardEvent) {
-      // 확인 창이 떠 있으면 그 창이 Esc 를 받는다
-      if (event.key === 'Escape' && !dialogState.confirm) {
-        this.requestClose();
-      }
-    },
-  },
-  mounted() {
-    window.addEventListener('keydown', this.onKeydown);
   },
   beforeUnmount() {
-    window.removeEventListener('keydown', this.onKeydown);
     this.stream?.abort();
   },
 });
 </script>
 
 <style scoped>
-.cb-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: grid;
-  place-items: center;
-  padding: var(--s-4);
-  background: var(--overlay);
-  backdrop-filter: blur(2px);
-}
-
-.cb-dialog {
-  width: min(620px, 100%);
-  max-height: min(86dvh, 820px);
-  /* 단계마다 보이는 칸이 달라서 grid 행 대신 세로 flex: 목록만 줄어들고 나머지는 제 높이를 지킨다 */
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
-
-.cb-dialog > * {
-  flex-shrink: 0;
-}
-
-.cb-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--s-3);
-  padding: var(--s-5) var(--s-5) var(--s-3) var(--s-6);
-}
-
-.cb-head h2 {
-  font-size: var(--text-lg);
-}
-
-.cb-head-text {
-  display: grid;
-  gap: 2px;
-}
-
-.cb-progress {
-  display: grid;
-  gap: 6px;
-  margin: 0 var(--s-6) var(--s-3);
-  padding: var(--s-3) var(--s-4);
-  border-radius: var(--radius);
-  background: var(--accent-soft);
-}
-
-.cb-progress-row {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s-2);
-}
-
-.cb-progress-row .spinner,
-.cb-progress-row .app-icon {
-  margin-top: 2px;
-  flex-shrink: 0;
-}
-
-.cb-progress-row .ok {
-  color: var(--success);
-}
-
-.cb-progress-row .warn {
-  color: var(--accent-text);
-}
-
-.cb-status {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--accent-text);
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-.cb-bar {
-  height: 4px;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  overflow: hidden;
-}
-
-.cb-bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--accent);
-  transition: width var(--ease);
-}
-
-.cb-counts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-}
-
-.cb-counts .dot::before {
-  content: '·';
-}
-
-.cb-dialog > .cb-body {
-  flex: 1 1 auto;
-}
-
-.cb-body {
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-
 .cb-all {
   position: sticky;
   top: 0;
@@ -744,15 +583,6 @@ export default defineComponent({
   padding: var(--s-3) var(--s-6);
 }
 
-.cb-foot {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--s-2);
-  padding: var(--s-3) var(--s-6) var(--s-4);
-  border-top: 1px solid var(--border);
-}
-
 .foot-note {
   margin-right: auto;
 }
@@ -773,35 +603,12 @@ export default defineComponent({
   }
 }
 
-/* 좁은 화면: 아래에서 올라오는 전체 폭 시트 */
 @media (max-width: 640px) {
-  .cb-backdrop {
-    padding: 0;
-    place-items: end stretch;
-  }
-
-  .cb-dialog {
-    width: 100%;
-    max-height: 92dvh;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    border-bottom: none;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
-  .cb-head {
-    padding: var(--s-4) var(--s-3) var(--s-3) var(--s-4);
-  }
-
-  .cb-progress {
-    margin: 0 var(--s-4) var(--s-3);
-  }
-
   .cb-all,
   .cb-row,
   .cb-more,
   .cb-options,
-  .cb-error,
-  .cb-foot {
+  .cb-error {
     padding-left: var(--s-4);
     padding-right: var(--s-4);
   }
@@ -810,16 +617,12 @@ export default defineComponent({
     width: 64px;
   }
 
-  .cb-foot .btn {
+  .foot-btn {
     flex: 1;
   }
 
   .foot-note {
     flex-basis: 100%;
-  }
-
-  .cb-foot {
-    flex-wrap: wrap;
   }
 }
 </style>
