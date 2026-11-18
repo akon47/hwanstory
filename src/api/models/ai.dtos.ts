@@ -1,4 +1,5 @@
 import DataTransferObject from '@/api/models/common.dtos';
+import { OpenType } from '@/api/models/blog.dtos';
 
 // AI 글쓰기 (회원 자신의 Anthropic API 키로 초안·다듬기·요약/태그·커버·영어판). 계약: /api/v1/ai/**
 
@@ -110,6 +111,29 @@ export interface AiCoverDto extends DataTransferObject {
   readonly url: string;
 }
 
+// 커버(썸네일) 없는 내 글 (최신 글부터, 최대 500개)
+export interface AiMissingCoverPostDto extends DataTransferObject {
+  readonly postUrl: string;
+  readonly title: string;
+  readonly openType: OpenType;
+  readonly createdAt: string;
+}
+
+export interface AiMissingCoversDto extends DataTransferObject {
+  // 커버 없는 글 전체 수 (posts 는 최대 500개까지)
+  readonly total: number;
+  readonly posts: Array<AiMissingCoverPostDto>;
+}
+
+// 커버 일괄 만들기 (SSE, 한 번에 1~100개)
+export interface AiCoverBatchRequestDto extends DataTransferObject {
+  readonly postUrls: Array<string>;
+  // 그 글의 썸네일로 지정
+  readonly useAsThumbnail: boolean;
+  // 본문 맨 앞에 이미지 한 줄을 넣는다 (글 본문·수정일이 바뀐다)
+  readonly insertIntoContent: boolean;
+}
+
 // ---- 스트리밍(SSE) 이벤트 ----
 
 export interface AiSourceDto {
@@ -134,6 +158,29 @@ export interface AiDoneEventDto {
 export interface AiTranslateDoneEventDto extends AiDoneEventDto {
   readonly title: string;
   readonly summary: string;
+}
+
+// 커버 일괄 만들기 event: item (글 하나 끝날 때마다)
+export interface AiCoverBatchItemEventDto {
+  readonly postUrl: string;
+  readonly title: string;
+  // false 면 실패 (message 에 이유)
+  readonly ok: boolean;
+  // true 면 건너뜀 (message 에 이유)
+  readonly skipped?: boolean;
+  readonly fileId?: string;
+  // 첨부 경로 (절대 주소는 attachmentFileBaseUrl + url)
+  readonly url?: string;
+  readonly message?: string;
+}
+
+// 커버 일괄 만들기 event: done
+export interface AiCoverBatchDoneEventDto {
+  readonly total: number;
+  readonly created: number;
+  readonly skipped: number;
+  readonly failed: number;
+  readonly usage: AiTokenUsageDto;
 }
 
 // event: error
@@ -165,6 +212,11 @@ export const AI_REWRITE_INSTRUCTIONS: Array<{ value: Exclude<AiRewriteInstructio
   { value: 'shorten', label: '줄이기' },
   { value: 'fix', label: '맞춤법' },
 ];
+
+// 커버 일괄 만들기 한 번에 보낼 수 있는 글 수 (넘으면 나눠서 차례로 보낸다)
+export const AI_COVER_BATCH_MAX = 100;
+// 커버 하나 예상 비용 (USD, 화면 안내용)
+export const AI_COVER_COST_RANGE: [number, number] = [0.01, 0.02];
 
 // 월 한도 범위 (USD)
 export const AI_MONTHLY_LIMIT_MIN = 0.5;

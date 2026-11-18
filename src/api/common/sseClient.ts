@@ -10,11 +10,13 @@ const DEFAULT_ERROR_MESSAGE = '서비스에 잠깐 문제가 생겼어요. 잠�
 const NETWORK_ERROR_MESSAGE = '서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 해 주세요.';
 const CUT_OFF_MESSAGE = '응답이 중간에 끊겼어요. 다시 해 주세요.';
 
-export interface SseHandlers<D> {
+export interface SseHandlers<D, I = unknown> {
   // event: status — 진행 상황 한 줄
   onStatus?: (message: string) => void;
   // event: delta — 본문 조각
   onDelta?: (text: string) => void;
+  // event: item — 묶음 작업에서 한 건이 끝날 때 (커버 일괄 만들기)
+  onItem?: (item: I) => void;
   // event: done — 끝 (사용량·출처 등)
   onDone?: (done: D) => void;
   // 스트림 전/도중 오류. 사용자가 멈춘(abort) 경우에는 부르지 않는다.
@@ -82,9 +84,11 @@ function parseJson<T>(data: string): T | null {
   }
 }
 
-export function postEventStream<D>(uri: string, body: unknown, handlers: SseHandlers<D>): SseStream {
+export function postEventStream<D, I = unknown>(uri: string, body: unknown, handlers: SseHandlers<D, I>): SseStream {
   const controller = new AbortController();
   let settled = false;
+  // 멈추기 때 읽기를 바로 끝내려고 들고 있는다 (fetch 가 abort 로 본문을 끊어 주지만 한 번 더 확실히)
+  let activeReader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
   const fail = (error: HttpApiError) => {
     if (settled || controller.signal.aborted) {
@@ -108,6 +112,11 @@ export function postEventStream<D>(uri: string, body: unknown, handlers: SseHand
       if (payload?.text) {
         handlers.onDelta?.(payload.text);
       }
+    } else if (event === 'item') {
+      const payload = parseJson<I>(data);
+      if (payload) {
+        handlers.onItem?.(payload);
+      }
     } else if (event === 'done') {
       const payload = parseJson<D>(data);
       if (!payload) {
@@ -128,6 +137,7 @@ export function postEventStream<D>(uri: string, body: unknown, handlers: SseHand
       fail(new StreamApiError(response.status, undefined, CUT_OFF_MESSAGE));
       return;
     }
+    activeReader = reader;
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     let eventName = '';
@@ -235,6 +245,7 @@ export function postEventStream<D>(uri: string, body: unknown, handlers: SseHand
   return {
     abort() {
       controller.abort();
+      activeReader?.cancel().catch(() => undefined);
     },
     finished,
   };

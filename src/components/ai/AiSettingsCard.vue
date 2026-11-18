@@ -99,6 +99,17 @@
             <p v-if="showProfile" class="profile-text">{{ settings.style.profile }}</p>
           </template>
         </div>
+
+        <div v-if="settings.configured" class="covers">
+          <div class="covers-text">
+            <div class="section-title">{{ coversTitle }}</div>
+            <div class="muted small">{{ coversDescription }}</div>
+          </div>
+          <button v-if="!missing || missing.total > 0" class="btn btn-secondary btn-sm" type="button" :disabled="!missing"
+                  @click="showCoverBatch = true">
+            <app-icon name="image" :size="14"/>커버 한꺼번에 만들기
+          </button>
+        </div>
       </div>
 
       <div class="card-foot">
@@ -113,23 +124,27 @@
         </button>
       </div>
     </template>
+
+    <ai-cover-batch-dialog v-if="showCoverBatch && missing" :posts="missing.posts" :total="missing.total"
+                           @close="showCoverBatch = false" @finished="onCoverBatchFinished"/>
   </section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import AppIcon from '@/components/common/AppIcon.vue';
-import { analyzeAiStyle, deleteAiKey, getAiSettings, saveAiSettings } from '@/api/ai';
-import { AI_ERROR, AI_MONTHLY_LIMIT_MAX, AI_MONTHLY_LIMIT_MIN, AiSettingsDto } from '@/api/models/ai.dtos';
+import AiCoverBatchDialog from '@/components/ai/AiCoverBatchDialog.vue';
+import { analyzeAiStyle, deleteAiKey, getAiMissingCovers, getAiSettings, saveAiSettings } from '@/api/ai';
+import { AI_ERROR, AI_MONTHLY_LIMIT_MAX, AI_MONTHLY_LIMIT_MIN, AiMissingCoversDto, AiSettingsDto } from '@/api/models/ai.dtos';
 import { HttpApiError } from '@/api/common/httpApiClient';
 import { errorCodeOf } from '@/api/common/sseClient';
 import { confirmDialog, toast } from '@/utils/dialog';
 import { formatCount, formatRelativeDate, formatUsd } from '@/utils/format';
 
-// 설정 화면의 "AI 글쓰기" 카드: 키 연결·모델·월 한도·이번 달 사용량·문체 분석
+// 설정 화면의 "AI 글쓰기" 카드: 키 연결·모델·월 한도·이번 달 사용량·문체 분석·커버 일괄 만들기
 export default defineComponent({
   name: 'AiSettingsCard',
-  components: { AppIcon },
+  components: { AppIcon, AiCoverBatchDialog },
   data() {
     return {
       state: 'loading' as 'loading' | 'ready' | 'error',
@@ -145,6 +160,11 @@ export default defineComponent({
       showProfile: false,
       limitMin: AI_MONTHLY_LIMIT_MIN,
       limitMax: AI_MONTHLY_LIMIT_MAX,
+      // 커버 없는 글 (키가 있을 때만 받는다)
+      missing: null as AiMissingCoversDto | null,
+      missingState: 'idle' as 'idle' | 'loading' | 'ready' | 'error',
+      missingError: '',
+      showCoverBatch: false,
     };
   },
   computed: {
@@ -185,6 +205,17 @@ export default defineComponent({
       const when = formatRelativeDate(style.analyzedAt);
       return `내 글 ${style.postCount}개로 문체를 익혔어요${when ? ` · ${when}` : ''}`;
     },
+    coversTitle(): string {
+      if (this.missingState === 'loading' && !this.missing) return '커버 없는 글을 세고 있어요';
+      if (this.missingState === 'error') return '커버 없는 글';
+      if (!this.missing || this.missing.total === 0) return '커버 없는 글이 없어요';
+      return `커버 없는 글 ${formatCount(this.missing.total)}개`;
+    },
+    coversDescription(): string {
+      if (this.missingState === 'error') return this.missingError;
+      if (this.missing && this.missing.total === 0) return '모든 글에 썸네일이 있어요.';
+      return '글마다 어울리는 커버를 그려서 썸네일로 넣어 드려요.';
+    },
   },
   methods: {
     formatCount,
@@ -196,6 +227,37 @@ export default defineComponent({
       this.apiKey = '';
       this.keyError = '';
       this.state = 'ready';
+      if (settings.available && settings.configured) {
+        this.loadMissingCovers();
+      } else {
+        this.missing = null;
+        this.missingState = 'idle';
+      }
+    },
+    async loadMissingCovers() {
+      this.missingState = 'loading';
+      await getAiMissingCovers()
+      .then((missing) => {
+        this.missing = missing;
+        this.missingState = 'ready';
+      })
+      .catch((error: HttpApiError) => {
+        this.missingError = error.serverErrorMessage || '커버 없는 글을 불러오지 못했어요. 잠시 뒤 다시 해 주세요.';
+        this.missingState = 'error';
+      });
+    },
+    // 일괄 만들기가 끝나면 남은 수와 이번 달 사용량만 다시 받는다 (고치던 입력값은 그대로 둔다)
+    async onCoverBatchFinished() {
+      this.loadMissingCovers();
+      await getAiSettings()
+      .then((fresh) => {
+        if (this.settings) {
+          this.settings = { ...this.settings, usage: fresh.usage };
+        }
+      })
+      .catch(() => {
+        // 사용량을 못 받아도 다음에 열 때 보인다.
+      });
     },
     async load() {
       this.state = 'loading';
@@ -430,6 +492,21 @@ export default defineComponent({
   overflow-wrap: anywhere;
 }
 
+.covers {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--border);
+}
+
+.covers-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
 .card-foot {
   align-items: center;
 }
@@ -478,7 +555,8 @@ export default defineComponent({
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .style-head {
+  .style-head,
+  .covers {
     flex-direction: column;
     align-items: flex-start;
   }

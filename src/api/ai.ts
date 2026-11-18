@@ -1,12 +1,16 @@
 import { aiV1 } from './index';
 import { postEventStream, SseHandlers, SseStream } from '@/api/common/sseClient';
 import {
+  AiCoverBatchDoneEventDto,
+  AiCoverBatchItemEventDto,
+  AiCoverBatchRequestDto,
   AiCoverDto,
   AiCoverRequestDto,
   AiDoneEventDto,
   AiDraftRequestDto,
   AiMetaDto,
   AiMetaRequestDto,
+  AiMissingCoversDto,
   AiRewriteRequestDto,
   AiSettingsDto,
   AiSettingsRequestDto,
@@ -45,6 +49,19 @@ function generateAiCover(request: AiCoverRequestDto) {
   return aiV1.postRequest<AiCoverDto>('/cover', null, request);
 }
 
+// 커버(썸네일) 없는 내 글 목록
+function getAiMissingCovers() {
+  return aiV1.getRequest<AiMissingCoversDto>('/covers/missing');
+}
+
+// 커버 일괄 만들기 (SSE: status / item(글마다) / done{created, skipped, failed, usage} / error). 끊으면 하던 글까지만 끝낸다.
+function streamAiCoverBatch(
+    request: AiCoverBatchRequestDto,
+    handlers: SseHandlers<AiCoverBatchDoneEventDto, AiCoverBatchItemEventDto>,
+): SseStream {
+  return postEventStream('v1/ai/covers/batch', request, handlers);
+}
+
 // 초안 쓰기 (SSE: status / delta / done{sources} / error)
 function streamAiDraft(request: AiDraftRequestDto, handlers: SseHandlers<AiDoneEventDto>): SseStream {
   return postEventStream('v1/ai/draft', request, handlers);
@@ -67,6 +84,8 @@ export {
   analyzeAiStyle,
   generateAiMeta,
   generateAiCover,
+  getAiMissingCovers,
+  streamAiCoverBatch,
   streamAiDraft,
   streamAiRewrite,
   streamAiTranslate,

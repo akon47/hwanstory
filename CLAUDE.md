@@ -69,3 +69,4 @@ Hwan'Story 블로그 서비스의 프론트엔드. (백엔드는 별도 저장�
   - 다듬기는 Toast UI 3.x 선택 API(`getSelection`/`getSelectedText`/`replaceSelection(text, start, end)`)로 고른 자리를 잡아 두었다가, 그 자리 글이 그대로일 때만 바꾼다. 앞뒤 2000자 문맥을 `[다듬을 부분]` 표시와 함께 보낸다(`posts/editorSelection.ts`). 위지윅 모드에서는 결과가 일반 문단으로 들어간다.
   - 글쓰기 폼에 요약 칸이 생겼다(비우면 예전처럼 본문 첫 문단). 수정할 때는 본문 첫 문단과 다른 요약만 칸에 보여 준다. 토스트는 `toast.success(msg, { link: { label, href } })` 로 새 탭 링크를 달 수 있다.
   - `/write` 는 `App.vue` 의 `.content.full-height` 가 `grid-template-rows: minmax(0, 1fr)` 이어야 패널 내용이 바닥 막대를 밀어내지 않는다.
+  - **커버 일괄 만들기**(설정 카드, 키가 있을 때만): `GET /v1/ai/covers/missing` 으로 "커버 없는 글 N개"를 보여 주고, `AiCoverBatchDialog.vue`(body 로 teleport, 640px 이하는 아래 시트)에서 글을 골라 `POST /v1/ai/covers/batch`(SSE, `item` 이벤트는 `SseHandlers.onItem`)로 만든다. 한 요청에 100개까지라 더 고르면 100개씩 차례로 보낸다. 줄 상태는 item 이 올 때마다 바꾸고(서버가 보낸 순서대로 처리한다고 보고 다음 줄을 "만드는 중"으로), 멈추면 만들던 글은 "만들던 중에 멈췄어요"(서버가 마저 끝낼 수 있음). 끝나면 카드가 남은 수와 이번 달 사용량만 다시 받는다(고치던 입력값은 안 건드림).

@@ -27,9 +27,15 @@ export default defineComponent({
       type: String,
       default: '',
     },
+    // 설정 화면 안에서 쓸 때는 설정 링크를 달지 않는다
+    settingsLink: {
+      type: Boolean,
+      default: true,
+    },
   },
   computed: {
     settingsHint(): string {
+      if (!this.settingsLink) return '';
       if (this.code === AI_ERROR.LIMIT_EXCEEDED) return '설정에서 한도 바꾸기';
       if (this.code === AI_ERROR.NO_KEY || this.code === AI_ERROR.INVALID_KEY) return '설정에서 키 확인하기';
       return '';
